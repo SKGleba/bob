@@ -111,7 +111,8 @@ void init(bob_config* arg_config) {
     options.ce_framework_parms[0] = arg_config->ce_framework_parms[0];
     if (options.ce_framework_parms[0]) {
         options.ce_framework_parms[0]->resp = 0;
-        options.ce_framework_parms[0]->status = options.ce_framework_parms[0]->exp_status;
+        if (options.ce_framework_parms[0]->exp_status)
+            options.ce_framework_parms[0]->status = options.ce_framework_parms[0]->exp_status;
         *(uint32_t*)0xE0000010 = 0xFFFFFFFF;
     }
 
