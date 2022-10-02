@@ -19,5 +19,7 @@ typedef struct syscon_packet {
 
 int syscon_common_read(unsigned int* buffer, unsigned short cmd);
 void syscon_common_write(unsigned int data, unsigned short cmd, unsigned int length);
+void syscon_cmd_exec(syscon_packet* packet);
+void send_msg_to_jig(uint8_t* msg, uint8_t size, bool push);
 
 #endif

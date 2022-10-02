@@ -1,4 +1,5 @@
 #include "include/types.h"
+#include "include/maika.h"
 #include "include/uart.h"
 
 void uart_init(int bus) {
