@@ -82,13 +82,13 @@ void test(void) {
     vp MAIKA_ACR |= 0x10;
 
     // disable all access to lpddr0, this effectively kills arm
-    vp XBAR_CONFIG_REG(XBAR_MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_MXB_DEV_LPDDR0, XBAR_ACCESS_CONTROL_WHITELIST) = 0;
+    vp XBAR_CONFIG_REG(XBAR_MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_LPDDR0, XBAR_ACCESS_CONTROL_WHITELIST) = 0;
 
     uint8_t hello[0x24];
     memset(hello, 0, sizeof(hello));
     *(uint32_t*)hello = 0x1A2B3C4D;
     keyring_slot_data(false, hello + 4, 0x20, 0x600);
-    send_msg_to_jig(hello, sizeof(hello), true)
+    send_msg_to_jig(hello, sizeof(hello), true);
 
     while (1) {
         delay(20000);
