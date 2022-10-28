@@ -16,9 +16,9 @@
 
 #else
 
-#define print(str) uart_print(UART_TX_BUS, (char *)(str))
+#define print(str) uart_print(UART_BUS, (char *)(str))
 #define printf debug_printFormat
-#define printn(str, n) uart_printn(UART_TX_BUS, (char *)(str), n)
+#define printn(str, n) uart_printn(UART_BUS, (char *)(str), n)
 #define printx(x) debug_printU32((uint32_t)(x), true)
 #define printp(x) printf("%X: %X\n", (uint32_t)(x), vp (x))
 #define hexdump(addr, length, show_addr) debug_printRange((char*)(addr), length, (int)show_addr)

@@ -1,11 +1,12 @@
 #include "include/types.h"
 #include "include/debug.h"
+#include "include/compat.h"
 #include "include/utils.h"
 #include "include/main.h"
 #include "include/ex.h"
 
 __attribute__((optimize("O0"), noreturn))
-void volatile c_RESET(void) {
+void c_RESET(void) {
     _MEP_INTR_DISABLE_
 
 #ifdef ENABLE_REGDUMP
@@ -33,7 +34,7 @@ void volatile c_RESET(void) {
 }
 
 __attribute__((optimize("O0")))
-void volatile c_SWI(void) {
+void c_SWI(void) {
     print("[BOB] entering SWI\n");
 
     // TODO
@@ -42,7 +43,7 @@ void volatile c_SWI(void) {
 }
 
 __attribute__((optimize("O0")))
-void volatile c_IRQ(void) {
+void c_IRQ(void) {
     print("[BOB] entering IRQ\n");
 
     // TODO
@@ -51,7 +52,7 @@ void volatile c_IRQ(void) {
 }
 
 __attribute__((optimize("O0")))
-void volatile c_ARM_REQ(void) {
+void c_ARM_REQ(void) {
     print("[BOB] entering ARM req\n");
     
     if (ce_framework(false))
@@ -63,7 +64,7 @@ void volatile c_ARM_REQ(void) {
 }
 
 __attribute__((optimize("O0"), noreturn))
-void volatile c_OTHER_INT(void) {
+void c_OTHER_INT(void) {
     _MEP_INTR_DISABLE_
 
 #ifdef ENABLE_REGDUMP
@@ -81,7 +82,7 @@ void volatile c_OTHER_INT(void) {
 }
 
 __attribute__((optimize("O0"), noreturn))
-void volatile c_OTHER_EXC(void) {
+void c_OTHER_EXC(void) {
     _MEP_INTR_DISABLE_
 
 #ifdef ENABLE_REGDUMP
@@ -99,7 +100,7 @@ void volatile c_OTHER_EXC(void) {
 }
 
 __attribute__((optimize("O0"), noreturn))
-void volatile PANIC(const char *panic_string, uint32_t panic_value) {
+void PANIC(const char *panic_string, uint32_t panic_value) {
     _MEP_INTR_DISABLE_
 
 #ifdef ENABLE_REGDUMP
@@ -114,6 +115,6 @@ void volatile PANIC(const char *panic_string, uint32_t panic_value) {
 }
 
 __attribute__((optimize("O0")))
-void volatile c_DBG(void) {
+void c_DBG(void) {
     print("[BOB] GOT DBG INTERRUPT\n");
 }

@@ -67,11 +67,11 @@ static void compat_IRQ7_genSKSO(void) {
     uint8_t key[0x20];
     memset(key, 0, 0x20);
     keyring_slot_data(false, key, 0x20, 0x514);
-    memcpy(0xE0050200, key, 0x20);
-    if (!crypto_bigmacDefaultCmd(0, &skso, skso.cmac_hash, 0x90, ((0x2080 & 0xfffffff8) | 0x33b) & 0xfffff3ff, 0, 0, 0)) {
+    memcpy((void *)0xE0050200, key, 0x20);
+    if (!crypto_bigmacDefaultCmd(0, (uint32_t)&skso, (uint32_t)skso.cmac_hash, 0x90, ((0x2080 & 0xfffffff8) | 0x33b) & 0xfffff3ff, 0, 0, 0)) {
         keyring_slot_data(false, key, 0x20, 0x515);
-        memcpy(0xE0050200, key, 0x20);
-        if (!crypto_bigmacDefaultCmd(0, &skso, &skso, 0xA0, 0x2189, 0, skso_iv, 0)) {
+        memcpy((void *)0xE0050200, key, 0x20);
+        if (!crypto_bigmacDefaultCmd(0, (uint32_t)&skso, (uint32_t)&skso, 0xA0, 0x2189, 0, (uint32_t)skso_iv, 0)) {
             memcpy((void*)0x4001ff00, &skso, 0xA0);
             memset(key, 0, 0x20);
             key[0] = 1;
@@ -164,9 +164,9 @@ void compat_IRQ7_handleCmd(void) {
 void compat_pListCopy(void* io, compat_paddr_list* paddr_list, uint32_t list_entries_count, bool copy_to_list) {
     while (list_entries_count) {
         if (copy_to_list)
-            memcpy(paddr_list->paddr, io, paddr_list->size);
+            memcpy((void *)paddr_list->paddr, io, paddr_list->size);
         else
-            memcpy(io, paddr_list->paddr, paddr_list->size);
+            memcpy(io, (void *)paddr_list->paddr, paddr_list->size);
         io-=-paddr_list->size;
         paddr_list++;
         list_entries_count--;

@@ -2,13 +2,13 @@
 #include "include/maika.h"
 #include "include/uart.h"
 
-void uart_init(int bus) {
+void uart_init(int bus, unsigned int clk) {
     volatile unsigned int* uart_regs = UART_REGS(bus);
     volatile unsigned int* uartclkgen_regs = UARTCLKGEN_REGS(bus);
 
     uart_regs[1] = 0; // disable device
 
-    *uartclkgen_regs = 0x1001A; // Baudrate = 115200
+    *uartclkgen_regs = clk; // Baudrate
 
     uart_regs[8] = 3;
     uart_regs[4] = 1;

@@ -1,27 +1,40 @@
 #include "include/types.h"
 #include "include/clib.h"
 
-void* memset(void* s, uint32_t c, uint32_t n) {
+void* memset8(void* s, uint8_t c, uint32_t n) {
     if (((uint32_t)s | (uint32_t)n) & 3) {
         uint8_t* z = s;
 
         while (n) {
-            *z++ = (uint8_t)c;
+            *z++ = c;
             n--;
         }
-    } else {
+
+        return z;
+    } else
+        return NULL;
+}
+
+void* memset32(void* s, uint32_t c, uint32_t n) {
+    if (((uint32_t)s | (uint32_t)n) & 3)
+        return NULL;
+    else {
         uint32_t* z = s;
-        uint32_t f = c;
-        if (c > 0xFF)
-            f = c | (c << 8) | (c << 16) | (c << 24);
 
         while (n) {
-            *z++ = f;
+            *z++ = c;
             n-=4;
         }
-    }
 
-    return s;
+        return z;
+    }
+}
+
+void* memset(void* s, uint8_t c, uint32_t n) {
+    if (((uint32_t)s | (uint32_t)n) & 3)
+        return memset8(s, c, n);
+    else
+        return memset32(s, c | (c << 8) | (c << 16) | (c << 24), n);
 }
 
 void* memcpy(void* dest, const void* src, uint32_t n) {

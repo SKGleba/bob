@@ -66,7 +66,7 @@ void debug_printFormat(char* base, ...) {
     printn(base + v_pos, i - v_pos);
 }
 
-void debug_printRange(char* addr, uint32_t size, int show_addr) {
+void debug_printRange(char* addr, uint32_t size, bool show_addr) {
     if (!size)
         return;
 

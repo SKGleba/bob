@@ -5,8 +5,8 @@
 
 int crypto_bigmacDefaultCmd(bool second_channel, uint32_t src, uint32_t dst, uint32_t sz, uint32_t cmd, uint32_t work_ks, uint32_t iv, uint32_t unk_status) {
 
-    volatile crypto_bigmac_if_t* bigmac_if = CRYPTO_BIGMAC;
-    volatile crypto_bigmac_op_channel_t* op_if = CRYPTO_CHAN(CRYPTO_BIGMAC, second_channel);
+    volatile crypto_bigmac_if_t* bigmac_if = (crypto_bigmac_if_t*)CRYPTO_BIGMAC;
+    volatile crypto_bigmac_op_channel_t* op_if = (crypto_bigmac_op_channel_t*)CRYPTO_CHAN(CRYPTO_BIGMAC, second_channel);
 
     op_if->src = src;
     op_if->dst = dst;
@@ -30,7 +30,7 @@ void crypto_waitStopBigmacOps(bool disable_future_ops) {
     if (psw & 1)
         PANIC("PSW", psw);
 
-    volatile crypto_bigmac_if_t* bigmac_if = CRYPTO_BIGMAC;
+    volatile crypto_bigmac_if_t* bigmac_if = (crypto_bigmac_if_t*)CRYPTO_BIGMAC;
 
     // waitstop scheduled jobs for channel 0
     if (bigmac_if->chan[0].res & 1) {
@@ -52,7 +52,7 @@ void crypto_waitStopBigmacOps(bool disable_future_ops) {
 }
 
 uint32_t crypto_memset(bool second_channel, uint32_t addr, uint32_t len, uint32_t fill_value32) {
-    volatile crypto_bigmac_if_t* bigmac_if = CRYPTO_BIGMAC;
+    volatile crypto_bigmac_if_t* bigmac_if = (crypto_bigmac_if_t*)CRYPTO_BIGMAC;
     bigmac_if->chan[second_channel].fill_v32 = fill_value32;
     uint32_t ret = crypto_bigmacDefaultCmd(false, 0, addr, len, CRYPTO_DMAC4_FUNC_MEMSET, 0, 0, 0);
     bigmac_if->unk_status = 0;

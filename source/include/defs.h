@@ -1,23 +1,16 @@
 #ifndef __DEFS_H__
 #define __DEFS_H__
 
+// hard definitions
+
 #include "types.h"
 
-#if(false) // suppress prints
-#define SILENT
+//#define SILENT // suppress prints and uart init
 
-#else
-
-// uart bus to print to
-#define UART_TX_BUS 1
-
-#if(true) // enable/disable register dumping on exceptions
-#define ENABLE_REGDUMP
-    #if(false) // if set, only display register number
-    #define REGDUMP_SMALL
-    #endif
-#endif
-
+#ifndef SILENT
+#define UART_BUS 1 // uart bus to print to
+#define ENABLE_REGDUMP // enable/disable register dumping on exceptions
+//#define REGDUMP_SMALL // only display register number at regdump
 #endif
 
 #endif

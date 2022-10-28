@@ -6,10 +6,11 @@
 #include "include/debug.h"
 #include "include/ex.h"
 #include "include/crypto.h"
-#include "include/syscon.h"
+#include "include/ernie.h"
 #include "include/xbar.h"
 #include "include/utils.h"
 #include "include/clib.h"
+#include "include/jig.h"
 
 #include "include/main.h"
 
@@ -58,7 +59,7 @@ void init(bob_config* arg_config) {
     }
 
     #ifndef SILENT
-    uart_init(UART_TX_BUS);
+    uart_init(UART_BUS, UART_RATE);
     #endif
 
     printf("[BOB] init bob [%X], me @ %X\n", get_build_timestamp(), init);
@@ -76,26 +77,28 @@ void init(bob_config* arg_config) {
 
 void test(void) {
     printf("[BOB] test test test\n");
-    
-    set_dbg_mode(true); // bypass buserrors
 
-    vp MAIKA_ACR |= 0x10;
+    set_dbg_mode(true);
 
-    // disable all access to lpddr0, this effectively kills arm
+    printf("[BOB] killing arm...\n");
     vp XBAR_CONFIG_REG(XBAR_MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_LPDDR0, XBAR_ACCESS_CONTROL_WHITELIST) = 0;
+    vp XBAR_CONFIG_REG(XBAR_MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_SPAD32K, XBAR_ACCESS_CONTROL_WHITELIST) = 0;
+    delay(10000);
+    uint32_t msg = 0x11111111;
+    jig_update_shared_buffer(&msg, 0, 4, true);
 
-    uint8_t hello[0x24];
-    memset(hello, 0, sizeof(hello));
-    *(uint32_t*)hello = 0x1A2B3C4D;
-    keyring_slot_data(false, hello + 4, 0x20, 0x600);
-    send_msg_to_jig(hello, sizeof(hello), true);
+    delay(10000);
 
-    while (1) {
+    msg = 0x22222222;
+    jig_update_shared_buffer(&msg, 0, 4, true);
+    delay(200);
+    //--
+
+    delay(20000);
+
+    printf("[BOB] infinilooping, but you dont see this\n");
+    while(1){
+        ernie_exec_cmd_short(ERNIE_CMD_GET_KERMITJIG_SHBUF, 0x0800, 2);
         delay(20000);
-        send_msg_to_jig(0xE0000020, 0x10, false);
-    }
-
-    // kill arm?
-    printf("[BOB] kill arm\n");
-    vp 0xE31010000 = 1;
+    };
 }
