@@ -134,3 +134,34 @@ add3 $sp, $sp, 0x60
 ldc $0, $depc
 ei
 jmp $0
+
+.global s_GLITCH
+s_GLITCH:
+di
+movh $sp, 0x5
+or3	$sp, $sp, 0xfff0
+.LGLITCH:
+bsr glitch_init
+bra .LGLITCH
+
+.global s_RESET
+s_RESET:
+di
+mov $gp, $0
+ldc $0, $pc
+movh $sp, 0x4
+or3	$sp, $sp, 0x9000
+sltu3 $0, $sp, $0
+beqz $0, .LNG
+movh $sp, 0x80
+or3	$sp, $sp, 0x9000
+mov $0, $gp
+movh $gp, 0x80
+or3	$gp, $gp, 0xfc00
+bra .LJMP
+.LNG:
+mov $0, $gp
+movh $gp, 0x4
+or3	$gp, $gp, 0xfc00
+.LJMP:
+jmp c_RESET

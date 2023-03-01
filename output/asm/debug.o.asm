@@ -261,6 +261,25 @@ debug_printRange:
 	add3	$sp, $sp, 40
 	jmp	$11
 	.size	debug_printRange, .-debug_printRange
+	.p2align 1
+	.globl debug_setGpoCode
+	.type	debug_setGpoCode, @function
+debug_setGpoCode:
+	movh	$3, 0xe20a
+	or3	$3, $3, 0xc
+	movh	$2, 0xff
+	sw	$2, ($3)
+	movh	$3, 0xe20a
+	or3	$3, $3, 0x34
+	extub	$1
+	lw	$2, ($3)
+	movh	$2, 0xe20a
+	sll	$1, 16
+	or3	$2, $2, 0x8
+	sw	$1, ($2)
+	lw	$3, ($3)
+	ret
+	.size	debug_setGpoCode, .-debug_setGpoCode
 	.section	.rodata
 	.p2align 2
 .LC2:
@@ -472,110 +491,25 @@ regdump_registers:
 	.text
 	.core
 	.p2align 1
-	.globl debug_regdump
-	.type	debug_regdump, @function
-debug_regdump:
+	.globl debug_c_regdump
+	.type	debug_c_regdump, @function
+debug_c_regdump:
 	# frame: 32   32 regs
 	add	$sp, -32
-	ldc	$11, $lp
-	sw	$5, 20($sp)
-	sw	$6, 16($sp)
 	sw	$7, 12($sp)
-	sw	$8, 8($sp)
-	sw	$11, 4($sp)
-#APP
-;# 106 "source/debug.c" 1
-	sw $0, 0x0($gp)
-sw $1, 0x4($gp)
-sw $2, 0x8($gp)
-sw $3, 0xC($gp)
-sw $4, 0x10($gp)
-sw $5, 0x14($gp)
-sw $6, 0x18($gp)
-sw $7, 0x1C($gp)
-sw $8, 0x20($gp)
-sw $9, 0x24($gp)
-sw $10, 0x28($gp)
-sw $11, 0x2C($gp)
-sw $12, 0x30($gp)
-sw $tp, 0x34($gp)
-sw $gp, 0x38($gp)
-sw $sp, 0x3C($gp)
-ldc $0, $pc
-sw $0, 0x40($gp)
-ldc $0, $lp
-sw $0, 0x44($gp)
-ldc $0, $sar
-sw $0, 0x48($gp)
-ldc $0, 3
-sw $0, 0x4C($gp)
-ldc $0, $rpb
-sw $0, 0x50($gp)
-ldc $0, $rpe
-sw $0, 0x54($gp)
-ldc $0, $rpc
-sw $0, 0x58($gp)
-ldc $0, $hi
-sw $0, 0x5C($gp)
-ldc $0, $lo
-sw $0, 0x60($gp)
-ldc $0, 9
-sw $0, 0x64($0)
-ldc $0, 10
-sw $0, 0x68($gp)
-ldc $0, 11
-sw $0, 0x6C($gp)
-ldc $0, $mb0
-sw $0, 0x70($gp)
-ldc $0, $me0
-sw $0, 0x74($gp)
-ldc $0, $mb1
-sw $0, 0x78($gp)
-ldc $0, $me1
-sw $0, 0x7C($gp)
-ldc $0, $psw
-sw $0, 0x80($gp)
-ldc $0, $id
-sw $0, 0x84($gp)
-ldc $0, $tmp
-sw $0, 0x88($gp)
-ldc $0, $epc
-sw $0, 0x8C($gp)
-ldc $0, $exc
-sw $0, 0x90($gp)
-ldc $0, $cfg
-sw $0, 0x94($gp)
-ldc $0, 22
-sw $0, 0x98($gp)
-ldc $0, $npc
-sw $0, 0x9C($gp)
-ldc $0, $dbg
-sw $0, 0xA0($gp)
-ldc $0, $depc
-sw $0, 0xA4($gp)
-ldc $0, $opt
-sw $0, 0xA8($gp)
-ldc $0, $rcfg
-sw $0, 0xAC($gp)
-ldc $0, $ccfg
-sw $0, 0xB0($gp)
-ldc $0, 29
-sw $0, 0xB4($gp)
-ldc $0, 30
-sw $0, 0xB8($gp)
-ldc $0, 31
-sw $0, 0xBC($gp)
-
-;# 0 "" 2
-#NO_APP
+	ldc	$11, $lp
 	movu	$2, .LC50
 	mov	$1, 1
 	movu	$7, regdump_registers
-	bsr	uart_print
+	sw	$5, 20($sp)
+	sw	$6, 16($sp)
+	sw	$8, 8($sp)
+	sw	$11, 4($sp)
 	mov	$5, 0
-	mov	$8, $7
+	bsr	uart_print
 	mov	$6, 48
-.L44:
+	mov	$8, $7
+.L45:
 	mov	$3, $8
 	sub	$3, $7
 	add3	$3, $3, $gp
@@ -584,7 +518,7 @@ sw $0, 0xBC($gp)
 	movu	$1, .LC52
 	add	$5, 1
 	bsr	debug_printFormat
-	bne	$5, $6, .L46
+	bne	$5, $6, .L47
 	lw	$8, 8($sp)
 	lw	$7, 12($sp)
 	lw	$6, 16($sp)
@@ -592,14 +526,14 @@ sw $0, 0xBC($gp)
 	lw	$11, 4($sp)
 	add3	$sp, $sp, 32
 	jmp	$11
-.L46:
+.L47:
 	mov	$3, 16
-	bne	$5, $3, .L45
+	bne	$5, $3, .L46
 	movu	$2, .LC51
 	mov	$1, 1
 	bsr	uart_print
-.L45:
+.L46:
 	add	$8, 4
-	bra	.L44
-	.size	debug_regdump, .-debug_regdump
+	bra	.L45
+	.size	debug_c_regdump, .-debug_c_regdump
 	.ident	"GCC: (WTF TEAM MOLECULE IS AT IT AGAIN?!) 6.3.0"

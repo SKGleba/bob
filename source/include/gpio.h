@@ -21,5 +21,6 @@ void gpio_port_set(int bus, int port);
 void gpio_port_clear(int bus, int port);
 int gpio_query_intr(int bus, int port);
 int gpio_acquire_intr(int bus, int port);
+void gpio_init(bool init_leds);
 
 #endif

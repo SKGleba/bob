@@ -5,6 +5,8 @@
 
 #include "types.h"
 
+//#define NO_STATUS_LED // disable usage of devkit gpo leds as status output
+
 //#define SILENT // suppress prints and uart init
 
 #ifndef SILENT

@@ -172,4 +172,42 @@ gpio_acquire_intr:
 	add	$sp, 16
 	ret
 	.size	gpio_acquire_intr, .-gpio_acquire_intr
+	.p2align 1
+	.globl gpio_init
+	.type	gpio_init, @function
+gpio_init:
+	# frame: 24   24 regs
+	add	$sp, -24
+	ldc	$11, $lp
+	sw	$5, 12($sp)
+	sw	$11, 4($sp)
+	mov	$5, $1
+	sw	$6, 8($sp)
+	bsr	pervasive_clock_enable_gpio
+	bsr	pervasive_reset_exit_gpio
+	beqz	$5, .L19
+	mov	$3, 1
+	mov	$2, 7
+	mov	$1, 0
+	bsr	gpio_set_port_mode
+	mov	$3, 1
+	mov	$2, 6
+	mov	$1, 0
+	bsr	gpio_set_port_mode
+	mov	$5, 16
+	mov	$6, 24
+.L21:
+	mov	$2, $5
+	mov	$3, 1
+	mov	$1, 0
+	add	$5, 1
+	bsr	gpio_set_port_mode
+	bne	$5, $6, .L21
+.L19:
+	lw	$6, 8($sp)
+	lw	$5, 12($sp)
+	lw	$11, 4($sp)
+	add	$sp, 24
+	jmp	$11
+	.size	gpio_init, .-gpio_init
 	.ident	"GCC: (WTF TEAM MOLECULE IS AT IT AGAIN?!) 6.3.0"

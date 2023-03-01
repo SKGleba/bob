@@ -2,19 +2,19 @@
 
 .global vectors_exceptions
 vectors_exceptions:
-jmp s_RESET
-jmp c_OTHER_EXC
-jmp c_OTHER_EXC
-jmp c_OTHER_EXC
-jmp c_OTHER_EXC
-jmp s_SWI
-jmp s_DBG
-jmp c_OTHER_EXC
-jmp c_OTHER_EXC
-jmp c_OTHER_EXC
-jmp c_OTHER_EXC
-jmp c_OTHER_EXC
-jmp c_OTHER_EXC
+jmp s_GLITCH
+jmp s_GLITCH
+jmp s_GLITCH
+jmp s_GLITCH
+jmp s_GLITCH
+jmp s_GLITCH
+jmp s_GLITCH
+jmp s_GLITCH
+jmp s_GLITCH
+jmp s_GLITCH
+jmp s_GLITCH
+jmp s_GLITCH
+jmp s_GLITCH
 
 .global vectors_interrupts
 vectors_interrupts:

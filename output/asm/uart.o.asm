@@ -5,36 +5,55 @@
 	.globl uart_init
 	.type	uart_init, @function
 uart_init:
+	# frame: 32   32 regs
+	add	$sp, -32
 	sll3	$0, $1, 16
 	movh	$3, 0xe203
-	add3	$0, $0, $3
+	sw	$5, 20($sp)
+	add3	$5, $0, $3
 	movh	$3, 0xe310
+	sll3	$0, $1, 2
 	or3	$3, $3, 0x5000
-	sll	$1, 2
-	add3	$1, $1, $3
+	ldc	$11, $lp
+	sw	$7, 12($sp)
+	sw	$8, 8($sp)
+	mov	$7, $1
+	mov	$8, $2
+	sw	$6, 16($sp)
+	sw	$11, 4($sp)
+	add3	$6, $0, $3
+	bsr	pervasive_clock_enable_uart
+	mov	$1, $7
+	bsr	pervasive_reset_exit_uart
 	mov	$3, 0
-	sw	$3, 4($0)
-	sw	$2, ($1)
 	mov	$2, 3
-	sw	$2, 32($0)
+	sw	$3, 4($5)
 	mov	$1, 771 # 0x303
+	sw	$8, ($6)
+	sw	$2, 32($5)
 	mov	$2, 1
-	sw	$2, 16($0)
-	sw	$3, 48($0)
-	sw	$1, 96($0)
-	sw	$3, 64($0)
-	sw	$3, 80($0)
+	sw	$2, 16($5)
+	sw	$3, 48($5)
+	sw	$1, 96($5)
+	sw	$3, 64($5)
+	sw	$3, 80($5)
 	movu	$3, 65537
-	sw	$3, 100($0)
-	sw	$2, 4($0)
+	sw	$3, 100($5)
+	sw	$2, 4($5)
 .L2:
-	lw	$3, 40($0)
+	lw	$3, 40($5)
 	and3	$3, $3, 0x200
 	beqz	$3, .L3
-	ret
+	lw	$8, 8($sp)
+	lw	$7, 12($sp)
+	lw	$6, 16($sp)
+	lw	$5, 20($sp)
+	lw	$11, 4($sp)
+	add3	$sp, $sp, 32
+	jmp	$11
 .L3:
 #APP
-;# 24 "source/uart.c" 1
+;# 27 "source/uart.c" 1
 	syncm
 
 ;# 0 "" 2
@@ -56,7 +75,7 @@ uart_write:
 	ret
 .L6:
 #APP
-;# 31 "source/uart.c" 1
+;# 34 "source/uart.c" 1
 	syncm
 
 ;# 0 "" 2

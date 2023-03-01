@@ -109,7 +109,7 @@ static void compat_IRQ7_forceExitSm(void) {
 }
 
 void compat_IRQ7_handleCmd(void) {
-
+    statusled(STATUS_COMPAT_HANDLE);
     bool shortcmd = true;
     uint32_t cmd = vp 0xE0000010;
 
@@ -122,6 +122,7 @@ void compat_IRQ7_handleCmd(void) {
             break;
     case 0xB01:
     case 0xE01:
+        statusled(STATUS_COMPAT_RESET_PERV);
         compat_IRQ7_resetPervDevice();
         compat_IRQ7_setEmmcKeyslots(cmd != 0xC01);
         if (cmd != 0xE01)
@@ -129,6 +130,7 @@ void compat_IRQ7_handleCmd(void) {
         compat_IRQ7_setSomeEmmcDatax14();
         break;
     case 0xF01:
+        statusled(STATUS_COMPAT_SKSO);
         compat_IRQ7_genSKSO();
         break;
     case 0x101:
@@ -150,14 +152,17 @@ void compat_IRQ7_handleCmd(void) {
         switch (cmd) {
         default:
         case 0x101:
+            statusled(STATUS_COMPAT_ARMDED);
             compat_IRQ7_armPanic();
             break;
         case 0x601:
+            statusled(STATUS_COMPAT_FEXSM);
             compat_IRQ7_forceExitSm();
             break;
         }
     }
 
+    statusled(STATUS_COMPAT_CRY2ARM0);
     compat_Cry2Arm0(ret);
 }
 

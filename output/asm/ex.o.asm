@@ -19,40 +19,33 @@ c_RESET:
 	sw	$11, 4($sp)
 	mov	$5, $tp
 	mov	$6, $gp
-	di
 	mov	$tp, $5
 	mov	$gp, $6
-	bsr	debug_regdump
+	bsr	debug_s_regdump
+	mov	$1, 14
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	mov	$3, 0
 	stc	$3, $exc
 	mov	$3, 0
 	stc	$3, $tmp
-	movh	$sp, 0x4
-	or3	$sp, $sp, 0x9000
-	movh	$gp, 0x4
-	or3	$gp, $gp, 0xfc00
-	mov	$2, $sp
-	movu	$3, c_RESET
-	sltu3	$0, $2, $3
-	mov	$3, $0
-	beqz	$3, .L2
-	movh	$sp, 0x80
-	or3	$sp, $sp, 0x9000
-	movh	$gp, 0x80
-	or3	$gp, $gp, 0xfc00
-.L2:
 	movu	$2, .LC0
 	mov	$1, 1
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	uart_print
+	mov	$1, 13
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	ei
-.L3:
+.L2:
 	mov	$1, 1
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	ce_framework
-	bra	.L3
+	bra	.L2
 	.size	c_RESET, .-c_RESET
 	.section	.rodata
 	.p2align 2
@@ -77,6 +70,10 @@ c_SWI:
 	sw	$11, 4($sp)
 	mov	$5, $tp
 	mov	$6, $gp
+	mov	$1, 15
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	movu	$2, .LC1
 	mov	$1, 1
 	mov	$tp, $5
@@ -87,6 +84,10 @@ c_SWI:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	uart_print
+	mov	$1, 16
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	nop
 	lw	$gp, 16($sp)
 	lw	$tp, 20($sp)
@@ -119,6 +120,10 @@ c_IRQ:
 	sw	$11, 4($sp)
 	mov	$5, $tp
 	mov	$6, $gp
+	mov	$1, 17
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	movu	$2, .LC3
 	mov	$1, 1
 	mov	$tp, $5
@@ -129,6 +134,10 @@ c_IRQ:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	uart_print
+	mov	$1, 18
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	nop
 	lw	$gp, 16($sp)
 	lw	$tp, 20($sp)
@@ -161,6 +170,10 @@ c_ARM_REQ:
 	sw	$11, 4($sp)
 	mov	$5, $tp
 	mov	$6, $gp
+	mov	$1, 19
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	movu	$2, .LC5
 	mov	$1, 1
 	mov	$tp, $5
@@ -171,22 +184,26 @@ c_ARM_REQ:
 	mov	$gp, $6
 	bsr	ce_framework
 	mov	$3, $0
-	beqz	$3, .L7
+	beqz	$3, .L6
 	movh	$3, 0xe000
 	or3	$3, $3, 0x10
 	mov	$2, -1 # 0xffff
 	sw	$2, ($3)
-	bra	.L8
-.L7:
+	bra	.L7
+.L6:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	compat_IRQ7_handleCmd
-.L8:
+.L7:
 	movu	$2, .LC6
 	mov	$1, 1
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	uart_print
+	mov	$1, 20
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	nop
 	lw	$gp, 16($sp)
 	lw	$tp, 20($sp)
@@ -216,10 +233,14 @@ c_OTHER_INT:
 	sw	$11, 4($sp)
 	mov	$5, $tp
 	mov	$6, $gp
-	di
 	mov	$tp, $5
 	mov	$gp, $6
-	bsr	debug_regdump
+	bsr	debug_s_regdump
+	mov	$1, 21
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
+	di
 	ldc	$2, $exc
 	ldc	$3, $epc
 	movu	$1, .LC7
@@ -227,8 +248,8 @@ c_OTHER_INT:
 	mov	$gp, $6
 	bsr	debug_printFormat
 	halt
-.L10:
-	bra	.L10
+.L9:
+	bra	.L9
 	.size	c_OTHER_INT, .-c_OTHER_INT
 	.section	.rodata
 	.p2align 2
@@ -250,10 +271,14 @@ c_OTHER_EXC:
 	sw	$11, 4($sp)
 	mov	$5, $tp
 	mov	$6, $gp
-	di
 	mov	$tp, $5
 	mov	$gp, $6
-	bsr	debug_regdump
+	bsr	debug_s_regdump
+	mov	$1, 22
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
+	di
 	ldc	$2, $exc
 	ldc	$3, $epc
 	movu	$1, .LC8
@@ -261,8 +286,8 @@ c_OTHER_EXC:
 	mov	$gp, $6
 	bsr	debug_printFormat
 	halt
-.L12:
-	bra	.L12
+.L11:
+	bra	.L11
 	.size	c_OTHER_EXC, .-c_OTHER_EXC
 	.section	.rodata
 	.p2align 2
@@ -286,10 +311,14 @@ PANIC:
 	mov	$6, $gp
 	sw	$1, 4($sp)
 	sw	$2, ($sp)
-	di
 	mov	$tp, $5
 	mov	$gp, $6
-	bsr	debug_regdump
+	bsr	debug_s_regdump
+	mov	$1, 23
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
+	di
 	lw	$3, ($sp)
 	lw	$2, 4($sp)
 	movu	$1, .LC9
@@ -297,8 +326,8 @@ PANIC:
 	mov	$gp, $6
 	bsr	debug_printFormat
 	halt
-.L14:
-	bra	.L14
+.L13:
+	bra	.L13
 	.size	PANIC, .-PANIC
 	.section	.rodata
 	.p2align 2
@@ -310,20 +339,36 @@ PANIC:
 	.globl c_DBG
 	.type	c_DBG, @function
 c_DBG:
-	# frame: 16   16 regs
-	add	$sp, -16
-	sw	$tp, 12($sp)
-	sw	$gp, 8($sp)
+	# frame: 24   24 regs
+	add	$sp, -24
+	sw	$5, 12($sp)
+	sw	$6, 8($sp)
+	sw	$tp, 20($sp)
+	sw	$gp, 16($sp)
 	ldc	$11, $lp
 	sw	$11, 4($sp)
+	mov	$5, $tp
+	mov	$6, $gp
+	mov	$1, 24
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	movu	$2, .LC10
 	mov	$1, 1
+	mov	$tp, $5
+	mov	$gp, $6
 	bsr	uart_print
+	mov	$1, 25
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	nop
-	lw	$gp, 8($sp)
-	lw	$tp, 12($sp)
+	lw	$gp, 16($sp)
+	lw	$tp, 20($sp)
+	lw	$6, 8($sp)
+	lw	$5, 12($sp)
 	lw	$11, 4($sp)
-	add	$sp, 16
+	add	$sp, 24
 	jmp	$11
 	.size	c_DBG, .-c_DBG
 	.ident	"GCC: (WTF TEAM MOLECULE IS AT IT AGAIN?!) 6.3.0"

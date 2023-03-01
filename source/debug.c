@@ -3,6 +3,7 @@
 #include "include/clib.h"
 #include "include/utils.h"
 #include "include/defs.h"
+#include "include/gpio.h"
 #include "include/debug.h"
 
 static const char debug_hexbase[] = "0123456789ABCDEF";
@@ -90,6 +91,14 @@ void debug_printRange(char* addr, uint32_t size, bool show_addr) {
     print(" \n");
 }
 
+void debug_setGpoCode(uint8_t code) {
+    volatile unsigned int* gpio_regs = GPIO_REGS(0);
+    gpio_regs[3] = 0xff0000;
+    gpio_regs[0xD];
+    gpio_regs[2] = (code & 0xff) << 0x10;
+    gpio_regs[0xD];
+}
+
 #ifdef ENABLE_REGDUMP
 #ifndef REGDUMP_SMALL
 static const char* regdump_registers[48] = {
@@ -102,90 +111,7 @@ static const char* regdump_registers[48] = {
 };
 #endif
 
-void debug_regdump(void) {
-    asm(
-        "sw $0, 0x0($gp)\n"
-        "sw $1, 0x4($gp)\n"
-        "sw $2, 0x8($gp)\n"
-        "sw $3, 0xC($gp)\n"
-        "sw $4, 0x10($gp)\n"
-        "sw $5, 0x14($gp)\n"
-        "sw $6, 0x18($gp)\n"
-        "sw $7, 0x1C($gp)\n"
-        "sw $8, 0x20($gp)\n"
-        "sw $9, 0x24($gp)\n"
-        "sw $10, 0x28($gp)\n"
-        "sw $11, 0x2C($gp)\n"
-        "sw $12, 0x30($gp)\n"
-        "sw $tp, 0x34($gp)\n"
-        "sw $gp, 0x38($gp)\n"
-        "sw $sp, 0x3C($gp)\n"
-        "ldc $0, $pc\n"
-        "sw $0, 0x40($gp)\n"
-        "ldc $0, $lp\n"
-        "sw $0, 0x44($gp)\n"
-        "ldc $0, $sar\n"
-        "sw $0, 0x48($gp)\n"
-        "ldc $0, 3\n"
-        "sw $0, 0x4C($gp)\n"
-        "ldc $0, $rpb\n"
-        "sw $0, 0x50($gp)\n"
-        "ldc $0, $rpe\n"
-        "sw $0, 0x54($gp)\n"
-        "ldc $0, $rpc\n"
-        "sw $0, 0x58($gp)\n"
-        "ldc $0, $hi\n"
-        "sw $0, 0x5C($gp)\n"
-        "ldc $0, $lo\n"
-        "sw $0, 0x60($gp)\n"
-        "ldc $0, 9\n"
-        "sw $0, 0x64($0)\n"
-        "ldc $0, 10\n"
-        "sw $0, 0x68($gp)\n"
-        "ldc $0, 11\n"
-        "sw $0, 0x6C($gp)\n"
-        "ldc $0, $mb0\n"
-        "sw $0, 0x70($gp)\n"
-        "ldc $0, $me0\n"
-        "sw $0, 0x74($gp)\n"
-        "ldc $0, $mb1\n"
-        "sw $0, 0x78($gp)\n"
-        "ldc $0, $me1\n"
-        "sw $0, 0x7C($gp)\n"
-        "ldc $0, $psw\n"
-        "sw $0, 0x80($gp)\n"
-        "ldc $0, $id\n"
-        "sw $0, 0x84($gp)\n"
-        "ldc $0, $tmp\n"
-        "sw $0, 0x88($gp)\n"
-        "ldc $0, $epc\n"
-        "sw $0, 0x8C($gp)\n"
-        "ldc $0, $exc\n"
-        "sw $0, 0x90($gp)\n"
-        "ldc $0, $cfg\n"
-        "sw $0, 0x94($gp)\n"
-        "ldc $0, 22\n"
-        "sw $0, 0x98($gp)\n"
-        "ldc $0, $npc\n"
-        "sw $0, 0x9C($gp)\n"
-        "ldc $0, $dbg\n"
-        "sw $0, 0xA0($gp)\n"
-        "ldc $0, $depc\n"
-        "sw $0, 0xA4($gp)\n"
-        "ldc $0, $opt\n"
-        "sw $0, 0xA8($gp)\n"
-        "ldc $0, $rcfg\n"
-        "sw $0, 0xAC($gp)\n"
-        "ldc $0, $ccfg\n"
-        "sw $0, 0xB0($gp)\n"
-        "ldc $0, 29\n"
-        "sw $0, 0xB4($gp)\n"
-        "ldc $0, 30\n"
-        "sw $0, 0xB8($gp)\n"
-        "ldc $0, 31\n"
-        "sw $0, 0xBC($gp)\n"
-    );
-
+void debug_c_regdump(void) {
     register uint32_t gp asm("gp");
     uint32_t start = gp;
 

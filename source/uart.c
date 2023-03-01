@@ -1,10 +1,13 @@
 #include "include/types.h"
-#include "include/maika.h"
+#include "include/perv.h"
 #include "include/uart.h"
 
 void uart_init(int bus, unsigned int clk) {
     volatile unsigned int* uart_regs = UART_REGS(bus);
     volatile unsigned int* uartclkgen_regs = UARTCLKGEN_REGS(bus);
+
+    pervasive_clock_enable_uart(bus);
+    pervasive_reset_exit_uart(bus);
 
     uart_regs[1] = 0; // disable device
 

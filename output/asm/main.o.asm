@@ -30,20 +30,28 @@ ce_framework:
 	mov	$2, 105
 	sb	$2, 3($3)
 	lw	$8, 4($3)
+	mov	$1, 10
+	bsr	debug_setGpoCode
 	mov	$1, 0
 	bsr	enable_icache
-	lw	$6, ($5)
+	mov	$1, 11
 	mov	$7, $0
+	bsr	debug_setGpoCode
+	lw	$6, ($5)
 	add3	$2, $6, 3
 	lw	$1, 8($6)
 	jsr	$8
 	sw	$0, 12($6)
+	mov	$1, 12
+	bsr	debug_setGpoCode
 	mov	$1, $7
 	bsr	enable_icache
 	lw	$3, ($5)
-	mov	$0, 1
+	mov	$1, 13
 	lb	$2, 2($3)
 	sb	$2, 3($3)
+	bsr	debug_setGpoCode
+	mov	$0, 1
 .L1:
 	lw	$8, 8($sp)
 	lw	$7, 12($sp)
@@ -73,10 +81,14 @@ ce_framework:
 init:
 	# frame: 16   16 regs
 	add	$sp, -16
+	sw	$5, 4($sp)
 	ldc	$11, $lp
-	sw	$11, 4($sp)
+	mov	$5, $1
+	sw	$11, ($sp)
 	di
-	lw	$3, ($1)
+	mov	$1, 1
+	bsr	debug_setGpoCode
+	lw	$3, ($5)
 	sw	$3, (options)
 	beqz	$3, .L8
 	mov	$2, 0
@@ -92,7 +104,7 @@ init:
 	mov	$2, -1 # 0xffff
 	sw	$2, ($3)
 .L8:
-	lw	$3, 4($1)
+	lw	$3, 4($5)
 	sw	$3, (options+4)
 	beqz	$3, .L10
 	mov	$2, 0
@@ -100,6 +112,8 @@ init:
 	lb	$2, 2($3)
 	sb	$2, 3($3)
 .L10:
+	mov	$1, 2
+	bsr	debug_setGpoCode
 	movu	$2, 65562
 	mov	$1, 1
 	bsr	uart_init
@@ -108,7 +122,29 @@ init:
 	movu	$3, init
 	movu	$1, .LC0
 	bsr	debug_printFormat
+	mov	$1, 3
+	bsr	debug_setGpoCode
 	bsr	test
+	mov	$1, 4
+	bsr	debug_setGpoCode
+	mov	$1, 1
+	bsr	enable_icache
+	movh	$3, 0x1
+	mov	$2, 0
+	movh	$1, 0x30
+	bsr	memset
+	mov	$1, 5
+	bsr	debug_setGpoCode
+#APP
+;# 92 "source/main.c" 1
+	jmp vectors_exceptions
+
+;# 0 "" 2
+#NO_APP
+	lw	$5, 4($sp)
+	lw	$11, ($sp)
+	add	$sp, 16
+	jmp	$11
 	.size	init, .-init
 	.section	.rodata
 	.p2align 2
@@ -119,19 +155,23 @@ init:
 	.string	"[BOB] killing arm...\n"
 	.p2align 2
 .LC3:
-	.string	"[BOB] infinilooping, but you dont see this\n"
+	.string	"[BOB] arm is dead, test gpios\n"
+	.p2align 2
+.LC4:
+	.string	"[BOB] all tests done\n"
 	.text
 	.core
 	.p2align 1
 	.globl test
 	.type	test, @function
 test:
-	# frame: 24   16 regs   8 locals
+	# frame: 24   24 regs
 	add	$sp, -24
 	ldc	$11, $lp
 	movu	$1, .LC1
-	sw	$11, 8($sp)
+	sw	$11, 4($sp)
 	sw	$5, 12($sp)
+	sw	$6, 8($sp)
 	bsr	debug_printFormat
 	mov	$1, 1
 	bsr	set_dbg_mode
@@ -146,38 +186,39 @@ test:
 	sw	$2, ($3)
 	mov	$1, 10000 # 0x2710
 	bsr	delay
-	movh	$3, 0x1111
-	or3	$3, $3, 0x1111
-	mov	$4, 1
-	mov	$2, 0
-	sw	$3, 4($sp)
-	add3	$1, $sp, 4
-	mov	$3, 4
-	bsr	jig_update_shared_buffer
-	mov	$1, 10000 # 0x2710
-	bsr	delay
-	movh	$3, 0x2222
-	or3	$3, $3, 0x2222
-	mov	$4, 1
-	mov	$2, 0
-	sw	$3, 4($sp)
-	add3	$1, $sp, 4
-	mov	$3, 4
-	bsr	jig_update_shared_buffer
-	mov	$1, 200
-	bsr	delay
-	mov	$1, 20000 # 0x4e20
-	bsr	delay
 	movu	$1, .LC3
 	bsr	debug_printFormat
-	mov	$5, 2048 # 0x800
+	mov	$1, 49
+	bsr	debug_setGpoCode
+	mov	$3, 1
+	mov	$2, 128
+	movh	$1, 0x4
+	bsr	debug_printRange
+	mov	$1, 50
+	bsr	debug_setGpoCode
+	bsr	debug_s_regdump
+	mov	$1, 105
+	bsr	debug_setGpoCode
+	movh	$5, 0x4
+	movu	$6, 262272
 .L21:
-	mov	$3, 2
-	mov	$2, $5
-	mov	$1, 8323 # 0x2083
-	bsr	ernie_exec_cmd_short
-	mov	$1, 20000 # 0x4e20
+	mov	$1, $5
+	mov	$4, 1
+	mov	$3, 16
+	mov	$2, 0
+	add	$5, 16
+	bsr	jig_update_shared_buffer
+	bne	$5, $6, .L21
+	mov	$1, 72
+	bsr	debug_setGpoCode
+	movu	$1, .LC4
+	bsr	debug_printFormat
+	movu	$1, 100000
 	bsr	delay
-	bra	.L21
+	lw	$6, 8($sp)
+	lw	$5, 12($sp)
+	lw	$11, 4($sp)
+	add	$sp, 24
+	jmp	$11
 	.size	test, .-test
 	.ident	"GCC: (WTF TEAM MOLECULE IS AT IT AGAIN?!) 6.3.0"
