@@ -1,4 +1,23 @@
-# reg test
+# reg research
+## 0xE00C0000
+### SoC v2.0
+- 0xE00C0020 bit 4 or 1 : hangs - to test from outside priv, likely CPU
+- 0xE00C1420 bit 4 or 1 : controls readas access to/from f00d?
+- 0xE00C4020 bit 4 or 1 : controls f00d access to E000
+- 0xE00C4420 bit 4 or 1 : controls f00d access to E001
+- 0xE00C4820 bit 4 or 1 : controls f00d access to E002
+- 0xE00C4C20 bit 4 or 1 : controls f00d access to E004
+- 0xE00C5020 bit 4 or 1 : controls f00d access to E005
+- 0xE00C5420 bit 4 or 1 : controls f00d access to E003 AND E006
+- 0xE00C5820 bit 4 or 1 : controls f00d access to E007
+- 0xE00C5C20 bit 4 or 1 : controls f00d access to E008
+- 0xE00C6020 bit 4 or 1 : controls f00d UART1 access?
+- 0xE00CA020 bit 4 or 1 : controls f00d UART1 access?
+## 0xE0010000
+### SoC v4.2
+- 0xE0010010
+
+# reg feedback
 ## 0xE0000000
 ### run 1,2 : -1
 - 0xE0000000 : 0x00000000 -> 0xFFFFFFFF

@@ -107,19 +107,18 @@ crypto_memset:
 	sw	$6, 24($sp)
 	sll3	$0, $1, 7
 	movh	$6, 0xe005
-	sw	$5, 28($sp)
 	ldc	$11, $lp
-	mov	$5, 0
 	add3	$0, $6, $0
-	mov	$1, 12
+	sw	$5, 28($sp)
 	sw	$11, 20($sp)
+	mov	$5, 0
 	sw	$4, 52($0)
+	mov	$0, 12
 	sw	$5, 12($sp)
 	sw	$5, 8($sp)
 	sw	$5, 4($sp)
-	sw	$1, ($sp)
+	sw	$0, ($sp)
 	mov	$4, $3
-	mov	$1, 0
 	mov	$3, $2
 	mov	$2, 0
 	bsr	crypto_bigmacDefaultCmd

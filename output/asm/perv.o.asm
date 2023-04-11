@@ -75,6 +75,57 @@ pervasive_reset_exit_gpio:
 	jmp	$11
 	.size	pervasive_reset_exit_gpio, .-pervasive_reset_exit_gpio
 	.p2align 1
+	.globl pervasive_clock_enable_spi
+	.type	pervasive_clock_enable_spi, @function
+pervasive_clock_enable_spi:
+	# frame: 16   16 regs
+	movh	$3, 0xe310
+	add	$sp, -16
+	sll3	$0, $1, 2
+	or3	$3, $3, 0x2104
+	ldc	$11, $lp
+	add3	$1, $0, $3
+	sw	$11, 4($sp)
+	bsr	pervasive_mask_or.constprop.1
+	lw	$11, 4($sp)
+	add	$sp, 16
+	jmp	$11
+	.size	pervasive_clock_enable_spi, .-pervasive_clock_enable_spi
+	.p2align 1
+	.globl pervasive_clock_disable_spi
+	.type	pervasive_clock_disable_spi, @function
+pervasive_clock_disable_spi:
+	# frame: 16   16 regs
+	movh	$3, 0xe310
+	add	$sp, -16
+	sll3	$0, $1, 2
+	or3	$3, $3, 0x2104
+	ldc	$11, $lp
+	add3	$1, $0, $3
+	sw	$11, 4($sp)
+	bsr	pervasive_mask_and_not.constprop.0
+	lw	$11, 4($sp)
+	add	$sp, 16
+	jmp	$11
+	.size	pervasive_clock_disable_spi, .-pervasive_clock_disable_spi
+	.p2align 1
+	.globl pervasive_reset_exit_spi
+	.type	pervasive_reset_exit_spi, @function
+pervasive_reset_exit_spi:
+	# frame: 16   16 regs
+	movh	$3, 0xe310
+	add	$sp, -16
+	sll3	$0, $1, 2
+	or3	$3, $3, 0x1104
+	ldc	$11, $lp
+	add3	$1, $0, $3
+	sw	$11, 4($sp)
+	bsr	pervasive_mask_and_not.constprop.0
+	lw	$11, 4($sp)
+	add	$sp, 16
+	jmp	$11
+	.size	pervasive_reset_exit_spi, .-pervasive_reset_exit_spi
+	.p2align 1
 	.type	pervasive_mask_and_not.constprop.0, @function
 pervasive_mask_and_not.constprop.0:
 	lw	$3, ($1)

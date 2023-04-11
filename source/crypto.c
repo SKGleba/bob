@@ -54,7 +54,7 @@ void crypto_waitStopBigmacOps(bool disable_future_ops) {
 uint32_t crypto_memset(bool second_channel, uint32_t addr, uint32_t len, uint32_t fill_value32) {
     volatile crypto_bigmac_if_t* bigmac_if = (crypto_bigmac_if_t*)CRYPTO_BIGMAC;
     bigmac_if->chan[second_channel].fill_v32 = fill_value32;
-    uint32_t ret = crypto_bigmacDefaultCmd(false, 0, addr, len, CRYPTO_DMAC4_FUNC_MEMSET, 0, 0, 0);
+    uint32_t ret = crypto_bigmacDefaultCmd(second_channel, 0, addr, len, CRYPTO_DMAC4_FUNC_MEMSET, 0, 0, 0);
     bigmac_if->unk_status = 0;
     return ret;
 }

@@ -248,5 +248,63 @@ ernie_exec_cmd_short:
 	add3	$2, $sp, 4
 	bra	.L26
 	.size	ernie_exec_cmd_short, .-ernie_exec_cmd_short
+	.p2align 1
+	.globl ernie_init
+	.type	ernie_init, @function
+ernie_init:
+	# frame: 16   16 regs
+	add	$sp, -16
+	ldc	$11, $lp
+	sw	$5, 4($sp)
+	mov	$5, $1
+	mov	$1, 0
+	sw	$11, ($sp)
+	bsr	spi_init
+	mov	$3, 1
+	mov	$2, 3
+	mov	$1, 0
+	bsr	gpio_set_port_mode
+	mov	$3, 0
+	mov	$2, 4
+	mov	$1, 0
+	bsr	gpio_set_port_mode
+	mov	$3, 3
+	mov	$2, 4
+	mov	$1, 0
+	bsr	gpio_set_intr_mode
+	beqz	$5, .L28
+	mov	$3, 0
+	mov	$2, 0
+	mov	$1, 1
+	bsr	ernie_exec_cmd_short
+	movu	$1, g_ernie_comms
+	lbu	$2, 37($1)
+	lbu	$0, 36($1)
+	lbu	$3, 38($1)
+	sll	$2, 8
+	or	$2, $0
+	lbu	$0, 39($1)
+	sll	$3, 16
+	or	$2, $3
+	movh	$3, 0x100
+	sll	$0, 24
+	or3	$3, $3, 0x4
+	or	$0, $2
+	sltu3	$0, $0, $3
+	mov	$3, 2
+	bnez	$0, .L30
+	mov	$2, 18
+.L34:
+	mov	$1, 128
+	bsr	ernie_exec_cmd_short
+.L28:
+	lw	$5, 4($sp)
+	lw	$11, ($sp)
+	add	$sp, 16
+	jmp	$11
+.L30:
+	mov	$2, 2
+	bra	.L34
+	.size	ernie_init, .-ernie_init
 	.comm	g_ernie_comms,64,1
 	.ident	"GCC: (WTF TEAM MOLECULE IS AT IT AGAIN?!) 6.3.0"

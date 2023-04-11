@@ -32,3 +32,15 @@ void pervasive_clock_enable_gpio(void) {
 void pervasive_reset_exit_gpio(void) {
     pervasive_mask_and_not(PERVASIVE_RESET_BASE_ADDR + 0x100, 1);
 }
+
+void pervasive_clock_enable_spi(int bus) {
+    pervasive_mask_or(PERVASIVE_GATE_BASE_ADDR + 0x104 + 4 * bus, 1);
+}
+
+void pervasive_clock_disable_spi(int bus) {
+    pervasive_mask_and_not(PERVASIVE_GATE_BASE_ADDR + 0x104 + 4 * bus, 1);
+}
+
+void pervasive_reset_exit_spi(int bus) {
+    pervasive_mask_and_not(PERVASIVE_RESET_BASE_ADDR + 0x104 + 4 * bus, 1);
+}

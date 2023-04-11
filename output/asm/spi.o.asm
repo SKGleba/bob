@@ -2,22 +2,57 @@
 	.text
 	.core
 	.p2align 1
+	.globl spi_init
+	.type	spi_init, @function
+spi_init:
+	# frame: 24   24 regs
+	add	$sp, -24
+	sw	$6, 8($sp)
+	sll3	$0, $1, 16
+	mov	$6, $1
+	ldc	$11, $lp
+	movh	$3, 0xe0a0
+	sw	$5, 12($sp)
+	sw	$11, 4($sp)
+	add3	$5, $0, $3
+	bsr	pervasive_clock_enable_spi
+	mov	$1, $6
+	bsr	pervasive_reset_exit_spi
+	bnei	$6, 2, .L2
+	movu	$3, 196609
+	sw	$3, 8($5)
+	mov	$3, 15
+	sw	$3, 20($5)
+	mov	$3, 3
+	sw	$3, 12($5)
+.L2:
+	mov	$3, 0
+	sw	$3, 32($5)
+	lw	$3, 32($5)
+	syncm
+	lw	$6, 8($sp)
+	lw	$5, 12($sp)
+	lw	$11, 4($sp)
+	add	$sp, 24
+	jmp	$11
+	.size	spi_init, .-spi_init
+	.p2align 1
 	.globl spi_write_start
 	.type	spi_write_start, @function
 spi_write_start:
 	sll3	$0, $1, 16
 	movh	$3, 0xe0a0
 	add3	$0, $0, $3
-.L2:
+.L4:
 	lw	$3, 40($0)
-	bnez	$3, .L3
+	bnez	$3, .L5
 	lw	$3, 44($0)
 	mov	$3, 1536 # 0x600
 	sw	$3, 36($0)
 	ret
-.L3:
+.L5:
 	lw	$3, ($0)
-	bra	.L2
+	bra	.L4
 	.size	spi_write_start, .-spi_write_start
 	.p2align 1
 	.globl spi_write_end

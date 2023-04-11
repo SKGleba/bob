@@ -25,6 +25,7 @@ extern ernie_comms_t g_ernie_comms;
 // ernie commands & their args
 enum ERNIE_COMMANDS {
     ERNIE_CMD_GET_HWINFO = 5,
+    ERNIE_CMD_SET_KERMIT_BUFSZ = 0x80,
     ERNIE_CMD_GET_SCRATCHPAD = 0x90,
     ERNIE_CMD_SET_SCRATCHPAD = 0x91,
     ERNIE_CMD_SET_UART0 = 0x190,
@@ -39,7 +40,8 @@ enum ERNIE_UART0_SWITCH_MODES {
 };
 
 // cfuncs
-void ernie_write(uint8_t *data, uint8_t size);
+void ernie_init(bool init_kbsz);
+void ernie_write(uint8_t* data, uint8_t size);
 bool ernie_read(uint8_t *data, uint8_t max_size);
 void ernie_exec(ernie_comms_t *comms);
 int ernie_exec_cmd(uint16_t cmd, void *data_in, uint8_t data_in_size);

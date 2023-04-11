@@ -1,6 +1,25 @@
 #include "include/types.h"
 #include "include/utils.h"
+#include "include/perv.h"
 #include "include/spi.h"
+
+void spi_init(int bus) {
+    volatile unsigned int* spi_regs = SPI_REGS(bus);
+
+    pervasive_clock_enable_spi(bus);
+    pervasive_reset_exit_spi(bus);
+
+    if (bus == 2) {
+        spi_regs[2] = 0x30001;
+        spi_regs[5] = 0xF;
+        spi_regs[3] = 3;
+    }
+
+    spi_regs[8] = 0;
+    spi_regs[8];
+
+    _MEP_SYNC_BUS_
+}
 
 void spi_write_start(int bus) {
     volatile unsigned int* spi_regs = SPI_REGS(bus);

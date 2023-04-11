@@ -68,6 +68,44 @@ gpio_port_clear:
 	ret
 	.size	gpio_port_clear, .-gpio_port_clear
 	.p2align 1
+	.globl gpio_set_intr_mode
+	.type	gpio_set_intr_mode, @function
+gpio_set_intr_mode:
+	movh	$0, 0xe20a
+	beqz	$1, .L14
+	movh	$0, 0xe010
+.L14:
+	movh	$1, 0x8000
+	or3	$1, $1, 0xf
+	and	$1, $2
+	bgei	$1, 0, .L15
+	add	$1, -1
+	mov	$9, -16 # 0xfff0
+	or	$1, $9
+	add	$1, 1
+.L15:
+	sll	$1, 1
+	bgei	$2, 0, .L16
+	add	$2, 15
+.L16:
+	sra	$2, 4
+	add	$2, 5
+	sll	$2, 2
+	add3	$2, $0, $2
+	mov	$0, 3
+	lw	$10, ($2)
+	lw	$9, ($2)
+	sll	$0, $1
+	sll	$3, $1
+	nor	$0, $0
+	and	$0, $10
+	or	$3, $9
+	or	$3, $0
+	sw	$3, ($2)
+	syncm
+	ret
+	.size	gpio_set_intr_mode, .-gpio_set_intr_mode
+	.p2align 1
 	.globl gpio_query_intr
 	.type	gpio_query_intr, @function
 gpio_query_intr:
@@ -77,9 +115,9 @@ gpio_query_intr:
 	sw	$6, 8($sp)
 	sw	$7, 4($sp)
 	movh	$9, 0xe20a
-	beqz	$1, .L14
+	beqz	$1, .L19
 	movh	$9, 0xe010
-.L14:
+.L19:
 	lw	$7, 56($9)
 	lw	$3, 28($9)
 	lw	$6, 60($9)
@@ -128,9 +166,9 @@ gpio_acquire_intr:
 	sw	$7, 4($sp)
 	sll	$9, $2
 	movh	$3, 0xe20a
-	beqz	$1, .L17
+	beqz	$1, .L22
 	movh	$3, 0xe010
-.L17:
+.L22:
 	lw	$7, 56($3)
 	lw	$2, 28($3)
 	lw	$6, 60($3)
@@ -185,7 +223,7 @@ gpio_init:
 	sw	$6, 8($sp)
 	bsr	pervasive_clock_enable_gpio
 	bsr	pervasive_reset_exit_gpio
-	beqz	$5, .L19
+	beqz	$5, .L24
 	mov	$3, 1
 	mov	$2, 7
 	mov	$1, 0
@@ -196,14 +234,14 @@ gpio_init:
 	bsr	gpio_set_port_mode
 	mov	$5, 16
 	mov	$6, 24
-.L21:
+.L26:
 	mov	$2, $5
 	mov	$3, 1
 	mov	$1, 0
 	add	$5, 1
 	bsr	gpio_set_port_mode
-	bne	$5, $6, .L21
-.L19:
+	bne	$5, $6, .L26
+.L24:
 	lw	$6, 8($sp)
 	lw	$5, 12($sp)
 	lw	$11, 4($sp)

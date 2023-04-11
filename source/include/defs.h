@@ -15,4 +15,6 @@
 //#define REGDUMP_SMALL // only display register number at regdump
 #endif
 
+#define RPC_DELAY 10000 // delay between RPC checks
+
 #endif

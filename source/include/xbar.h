@@ -33,6 +33,10 @@
 #define XBAR_SUBLCD_MASTER_BUS 0xEE500000
 #define XBAR_CAMERA_REG_BUS 0xEE600000
 
+/*
+IA - can initiate bus transfer?
+TA - can be targeted by a bus transfer?
+*/
 enum XBAR_CONFIG_FAMILIES {
     XBAR_CFG_FAMILY_F00D_CUSTOM = 0, // only for XBAR_F00D_BUS
     XBAR_CFG_FAMILY_IA = 4,

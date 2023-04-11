@@ -1,10 +1,4 @@
 	.file	"jig.c"
-	.section .sbss,"aw"
-	.p2align 1
-	.type	l_current_request_no,@object
-	.size	l_current_request_no,2
-l_current_request_no:
-	.zero	2
 	.text
 	.core
 	.p2align 1
@@ -13,7 +7,7 @@ l_current_request_no:
 jig_update_shared_buffer:
 	# frame: 72   32 regs   36 locals
 	extub	$2
-	mov	$0, 63
+	mov	$0, 39
 	add3	$sp, $sp, -72 # 0xffb8
 	ldc	$11, $lp
 	sltu3	$0, $0, $2
@@ -26,11 +20,11 @@ jig_update_shared_buffer:
 	and3	$5, $3, 255
 	mov	$7, $4
 	bnez	$0, .L8
-	mov	$0, 64
+	mov	$0, 40
 	sltu3	$0, $0, $5
 	bnez	$0, .L8
 	add3	$2, $2, $5
-	slt3	$2, $2, 65
+	slt3	$2, $2, 41
 	beqz	$2, .L8
 	mov	$8, 0
 	mov	$2, -1 # 0xffff
@@ -113,7 +107,7 @@ jig_update_shared_buffer:
 jig_read_shared_buffer:
 	# frame: 72   32 regs   36 locals
 	extub	$2
-	mov	$0, 63
+	mov	$0, 39
 	add3	$sp, $sp, -72 # 0xffb8
 	ldc	$11, $lp
 	sltu3	$0, $0, $2
@@ -125,11 +119,11 @@ jig_read_shared_buffer:
 	mov	$6, $1
 	and3	$5, $3, 255
 	bnez	$0, .L18
-	mov	$0, 64
+	mov	$0, 40
 	sltu3	$0, $0, $5
 	bnez	$0, .L18
 	add3	$2, $2, $5
-	slt3	$2, $2, 65
+	slt3	$2, $2, 41
 	beqz	$2, .L18
 	mov	$3, $5
 	mov	$2, 0

@@ -63,6 +63,10 @@ glitch_init:
 	bsr	gpio_init
 	mov	$1, 7
 	bsr	debug_setGpoCode
+	mov	$1, 1
+	bsr	ernie_init
+	mov	$1, 8
+	bsr	debug_setGpoCode
 	movh	$3, 0xcafe
 	or3	$3, $3, 0xbabe
 	mov	$4, 1
@@ -71,7 +75,7 @@ glitch_init:
 	mov	$3, 4
 	add3	$1, $sp, 4
 	bsr	jig_update_shared_buffer
-	mov	$1, 8
+	mov	$1, 9
 	bsr	debug_setGpoCode
 	movu	$2, 65562
 	mov	$1, 1
@@ -81,7 +85,7 @@ glitch_init:
 	movu	$3, glitch_init
 	movu	$1, .LC0
 	bsr	debug_printFormat
-	mov	$1, 9
+	mov	$1, 10
 	bsr	debug_setGpoCode
 	bsr	glitch_test
 	lw	$11, 12($sp)

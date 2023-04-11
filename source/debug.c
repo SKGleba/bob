@@ -132,4 +132,12 @@ void debug_c_regdump(void) {
 #endif
     
 }
+
+#else
+
+void debug_c_regdump(void) {
+    print("[BOB] regdump called when disabled!");
+    _MEP_SYNC_BUS_
+}
+
 #endif

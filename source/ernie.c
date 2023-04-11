@@ -68,3 +68,19 @@ int ernie_exec_cmd(uint16_t cmd, void *data_in, uint8_t data_in_size) {
 int ernie_exec_cmd_short(uint16_t cmd, uint32_t data_in, uint8_t data_in_size) {
     return ernie_exec_cmd(cmd, (data_in_size) ? &data_in : NULL, data_in_size);
 }
+
+void ernie_init(bool init_kbsz) {
+    spi_init(0);
+    gpio_set_port_mode(0, GPIO_PORT_ERNIE_OUT, GPIO_PORT_MODE_OUTPUT);
+    gpio_set_port_mode(0, GPIO_PORT_ERNIE_IN, GPIO_PORT_MODE_INPUT);
+    gpio_set_intr_mode(0, GPIO_PORT_ERNIE_IN, GPIO_INT_MODE_FALLING_EDGE);
+
+    if (init_kbsz) { // set transaction buffer size
+        ernie_exec_cmd_short(1, 0, 0);
+        if (*(uint32_t*)(&g_ernie_comms.rx[ERNIE_RX_DATA(0)]) > 0x1000003)
+            ernie_exec_cmd_short(ERNIE_CMD_SET_KERMIT_BUFSZ, 0x12, 2); // 0x40
+        else
+            ernie_exec_cmd_short(ERNIE_CMD_SET_KERMIT_BUFSZ, 0x2, 2);
+    }
+    
+}

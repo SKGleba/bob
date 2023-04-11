@@ -5,6 +5,10 @@
 
 #define GPIO_PORT_MODE_INPUT	0
 #define GPIO_PORT_MODE_OUTPUT	1
+#define GPIO_INT_MODE_HIGH_LEVEL_SENS	0
+#define GPIO_INT_MODE_LOW_LEVEL_SENS	1
+#define GPIO_INT_MODE_RISING_EDGE	2
+#define GPIO_INT_MODE_FALLING_EDGE	3
 #define GPIO_PORT_OLED		0
 #define GPIO_PORT_ERNIE_OUT	3
 #define GPIO_PORT_ERNIE_IN	4
@@ -19,6 +23,7 @@ void gpio_set_port_mode(int bus, int port, int mode);
 int gpio_port_read(int bus, int port);
 void gpio_port_set(int bus, int port);
 void gpio_port_clear(int bus, int port);
+void gpio_set_intr_mode(int bus, int port, int mode);
 int gpio_query_intr(int bus, int port);
 int gpio_acquire_intr(int bus, int port);
 void gpio_init(bool init_leds);

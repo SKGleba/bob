@@ -28,6 +28,16 @@ void gpio_port_clear(int bus, int port) {
     _MEP_SYNC_BUS_
 }
 
+void gpio_set_intr_mode(int bus, int port, int mode) {
+    volatile unsigned int* gpio_regs = GPIO_REGS(bus);
+    unsigned int reg = 5 + port / 16;
+    unsigned int off = 2 * (port % 16);
+
+    gpio_regs[reg] |= (gpio_regs[reg] & ~(3 << off)) | (mode << off);
+
+    _MEP_SYNC_BUS_
+}
+
 int gpio_query_intr(int bus, int port) {
     volatile unsigned int* gpio_regs = GPIO_REGS(bus);
     return (1 << port) & ((gpio_regs[0x0E] & ~gpio_regs[0x07]) |

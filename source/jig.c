@@ -3,8 +3,6 @@
 #include "include/clib.h"
 #include "include/jig.h"
 
-static uint16_t l_current_request_no;
-
 int jig_update_shared_buffer(uint8_t* msg, uint8_t offset, uint8_t size, bool push) {
     int ret = -1;
     if (offset >= JIG_KERMIT_SHBUF_SIZE || size > JIG_KERMIT_SHBUF_SIZE || offset + size > JIG_KERMIT_SHBUF_SIZE)
@@ -59,52 +57,3 @@ int jig_read_shared_buffer(uint8_t* msg, uint8_t offset, uint8_t size) {
     }
     return ret;
 }
-
-/*
-
-static void jig_bert_check_exec_rx_cmd(void) {
-    jig_kermit_bert_shbuf_s msg;
-READ_PRE:
-    jig_read_shared_buffer(&msg, 0, sizeof(msg));
-    if (!(msg.magic == JIG_KERMIT_BERT_MAGIC))
-        return;
-    if (msg.req_no != msg.completed_req_no)
-        goto READ_PRE;
-    if (msg.req_no == l_current_request_no)
-        return;
-    if (msg.req_id & JIG_BERT_REQ_FLAG_ISREPLY)
-        return;
-    
-}
-
-int jig_bert_exec_tx_cmd(uint16_t cmd, void *data, uint16_t data_size) {
-    jig_kermit_bert_shbuf_s msg;
-    memset(&msg, 0, sizeof(msg));
-    msg.magic = JIG_KERMIT_BERT_MAGIC;
-    msg.req_no = -1;
-    jig_bert_check_exec_my_cmd(); // complete pending ops
-    jig_update_shared_buffer(&msg, 0, sizeof(msg), false); // stop new ops
-    msg.req_no = l_current_request_no + 1;
-    msg.req_id = cmd;
-    msg.full_data_size = data_size;
-    memcpy(msg.data, data, data_size);
-    msg.completed_req_no = msg.req_no;
-    l_current_request_no = msg.req_no;
-    jig_update_shared_buffer(&msg, 0, sizeof(msg), true);
-    while(1) {
-        jig_read_shared_buffer(&msg, 0, sizeof(msg));
-        if (msg.magic != JIG_KERMIT_BERT_MAGIC)
-            return;
-        if (msg.completed_req_no == msg.req_no) {
-            if (msg.req_no != l_current_request_no) {
-                if (msg.req_id & JIG_BERT_REQ_FLAG_ISREPLY)
-                    return 
-            }
-        }
-    };
-}
-
-void jig_bert_printn(char *str, int n) {
-
-}
-*/
