@@ -26,14 +26,15 @@ jig_update_shared_buffer:
 	add3	$2, $2, $5
 	slt3	$2, $2, 41
 	beqz	$2, .L8
+	beqz	$1, .L9
 	mov	$8, 0
 	mov	$2, -1 # 0xffff
-.L3:
+.L4:
 	add3	$9, $8, 24
 	sltu3	$0, $5, $9
-	beqz	$0, .L4
-	sltu3	$0, $8, $5
 	beqz	$0, .L5
+	sltu3	$0, $8, $5
+	beqz	$0, .L3
 	mov	$3, 27
 	mov	$2, 0
 	add3	$1, $sp, 13
@@ -53,7 +54,7 @@ jig_update_shared_buffer:
 	add3	$3, $9, 3
 	bsr	ernie_exec_cmd
 	mov	$2, $0
-.L5:
+.L3:
 	beqz	$7, .L1
 	mov	$3, 27
 	mov	$2, 0
@@ -76,7 +77,7 @@ jig_update_shared_buffer:
 	lw	$11, 44($sp)
 	add3	$sp, $sp, 72
 	jmp	$11
-.L4:
+.L5:
 	mov	$3, 27
 	mov	$2, 0
 	add3	$1, $sp, 13
@@ -96,6 +97,9 @@ jig_update_shared_buffer:
 	lw	$9, 4($sp)
 	mov	$2, $0
 	and3	$8, $9, 255
+	bra	.L4
+.L9:
+	mov	$2, -1 # 0xffff
 	bra	.L3
 .L8:
 	mov	$2, -1 # 0xffff
@@ -118,24 +122,24 @@ jig_read_shared_buffer:
 	sw	$11, 44($sp)
 	mov	$6, $1
 	and3	$5, $3, 255
-	bnez	$0, .L18
+	bnez	$0, .L19
 	mov	$0, 40
 	sltu3	$0, $0, $5
-	bnez	$0, .L18
+	bnez	$0, .L19
 	add3	$2, $2, $5
 	slt3	$2, $2, 41
-	beqz	$2, .L18
+	beqz	$2, .L19
 	mov	$3, $5
 	mov	$2, 0
 	bsr	memset
 	mov	$7, 0
 	mov	$8, -1 # 0xffff
-.L14:
+.L15:
 	add3	$9, $7, 24
 	sltu3	$0, $5, $9
-	beqz	$0, .L15
+	beqz	$0, .L16
 	sltu3	$0, $7, $5
-	beqz	$0, .L12
+	beqz	$0, .L13
 	mov	$3, 26
 	mov	$2, 0
 	add3	$1, $sp, 14
@@ -152,7 +156,7 @@ jig_read_shared_buffer:
 	movu	$2, g_ernie_comms+36
 	add3	$1, $6, $7
 	bsr	memcpy
-.L12:
+.L13:
 	mov	$0, $8
 	lw	$7, 52($sp)
 	lw	$8, 48($sp)
@@ -161,7 +165,7 @@ jig_read_shared_buffer:
 	lw	$11, 44($sp)
 	add3	$sp, $sp, 72
 	jmp	$11
-.L15:
+.L16:
 	mov	$3, 26
 	mov	$2, 0
 	add3	$1, $sp, 14
@@ -181,9 +185,9 @@ jig_read_shared_buffer:
 	bsr	memcpy
 	lw	$9, 4($sp)
 	and3	$7, $9, 255
-	bra	.L14
-.L18:
+	bra	.L15
+.L19:
 	mov	$8, -1 # 0xffff
-	bra	.L12
+	bra	.L13
 	.size	jig_read_shared_buffer, .-jig_read_shared_buffer
 	.ident	"GCC: (WTF TEAM MOLECULE IS AT IT AGAIN?!) 6.3.0"

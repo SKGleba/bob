@@ -343,7 +343,7 @@ compat_IRQ7_handleCmd:
 	# frame: 16   16 regs
 	add	$sp, -16
 	ldc	$11, $lp
-	mov	$1, 32
+	mov	$1, 33
 	sw	$5, 4($sp)
 	sw	$11, ($sp)
 	bsr	debug_setGpoCode
@@ -386,7 +386,7 @@ compat_IRQ7_handleCmd:
 	bnez	$0, .L41
 	mov	$3, 1537 # 0x601
 	beq	$5, $3, .L43
-	mov	$1, 30
+	mov	$1, 31
 	bsr	debug_setGpoCode
 	bsr	compat_IRQ7_armPanic
 .L34:
@@ -396,7 +396,7 @@ compat_IRQ7_handleCmd:
 	and3	$3, $3, 0x4
 	beqz	$3, .L46
 .L37:
-	mov	$1, 27
+	mov	$1, 28
 	bsr	debug_setGpoCode
 	bsr	compat_IRQ7_resetPervDevice
 	xor3	$1, $5, 0xc01
@@ -408,16 +408,16 @@ compat_IRQ7_handleCmd:
 	bsr	compat_IRQ7_setSomeEmmcDatax14
 	bra	.L46
 .L38:
-	mov	$1, 29
+	mov	$1, 30
 	bsr	debug_setGpoCode
 	bsr	compat_IRQ7_genSKSO
 	bra	.L46
 .L43:
-	mov	$1, 31
+	mov	$1, 32
 	bsr	debug_setGpoCode
 	bsr	compat_IRQ7_forceExitSm
 .L41:
-	mov	$1, 28
+	mov	$1, 29
 	bsr	debug_setGpoCode
 	movu	$1, 0x802d
 	bsr	compat_Cry2Arm0

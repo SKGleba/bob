@@ -22,7 +22,7 @@ c_RESET:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_s_regdump
-	mov	$1, 15
+	mov	$1, 16
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_setGpoCode
@@ -35,7 +35,7 @@ c_RESET:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	uart_print
-	mov	$1, 14
+	mov	$1, 15
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_setGpoCode
@@ -70,7 +70,7 @@ c_SWI:
 	sw	$11, 4($sp)
 	mov	$5, $tp
 	mov	$6, $gp
-	mov	$1, 16
+	mov	$1, 17
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_setGpoCode
@@ -84,7 +84,7 @@ c_SWI:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	uart_print
-	mov	$1, 17
+	mov	$1, 18
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_setGpoCode
@@ -120,7 +120,7 @@ c_IRQ:
 	sw	$11, 4($sp)
 	mov	$5, $tp
 	mov	$6, $gp
-	mov	$1, 18
+	mov	$1, 19
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_setGpoCode
@@ -134,7 +134,7 @@ c_IRQ:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	uart_print
-	mov	$1, 19
+	mov	$1, 20
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_setGpoCode
@@ -170,7 +170,7 @@ c_ARM_REQ:
 	sw	$11, 4($sp)
 	mov	$5, $tp
 	mov	$6, $gp
-	mov	$1, 20
+	mov	$1, 21
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_setGpoCode
@@ -200,7 +200,7 @@ c_ARM_REQ:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	uart_print
-	mov	$1, 21
+	mov	$1, 22
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_setGpoCode
@@ -236,7 +236,7 @@ c_OTHER_INT:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_s_regdump
-	mov	$1, 22
+	mov	$1, 23
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_setGpoCode
@@ -274,7 +274,7 @@ c_OTHER_EXC:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_s_regdump
-	mov	$1, 23
+	mov	$1, 24
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_setGpoCode
@@ -314,7 +314,7 @@ PANIC:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_s_regdump
-	mov	$1, 24
+	mov	$1, 25
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_setGpoCode
@@ -349,7 +349,7 @@ c_DBG:
 	sw	$11, 4($sp)
 	mov	$5, $tp
 	mov	$6, $gp
-	mov	$1, 25
+	mov	$1, 26
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_setGpoCode
@@ -358,7 +358,7 @@ c_DBG:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	uart_print
-	mov	$1, 26
+	mov	$1, 27
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_setGpoCode

@@ -88,6 +88,9 @@ glitch_init:
 	mov	$1, 10
 	bsr	debug_setGpoCode
 	bsr	glitch_test
+	mov	$1, 11
+	bsr	debug_setGpoCode
+	bsr	rpc_loop
 	lw	$11, 12($sp)
 	add	$sp, 24
 	jmp	$11

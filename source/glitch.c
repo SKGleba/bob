@@ -14,6 +14,7 @@
 #include "include/gpio.h"
 #include "include/perv.h"
 #include "include/spi.h"
+#include "include/rpc.h"
 
 #include "include/glitch.h"
 
@@ -59,4 +60,8 @@ void glitch_init(void) {
     // test test stuff
     statusled(STATUS_GLINIT_TEST);
     glitch_test();
+
+    // start the rpc server
+    statusled(STATUS_GLINIT_RPC);
+    rpc_loop();
 }

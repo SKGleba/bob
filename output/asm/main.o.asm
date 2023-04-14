@@ -30,11 +30,11 @@ ce_framework:
 	mov	$2, 105
 	sb	$2, 3($3)
 	lw	$8, 4($3)
-	mov	$1, 11
+	mov	$1, 12
 	bsr	debug_setGpoCode
 	mov	$1, 0
 	bsr	enable_icache
-	mov	$1, 12
+	mov	$1, 13
 	mov	$7, $0
 	bsr	debug_setGpoCode
 	lw	$6, ($5)
@@ -42,12 +42,12 @@ ce_framework:
 	lw	$1, 8($6)
 	jsr	$8
 	sw	$0, 12($6)
-	mov	$1, 13
+	mov	$1, 14
 	bsr	debug_setGpoCode
 	mov	$1, $7
 	bsr	enable_icache
 	lw	$3, ($5)
-	mov	$1, 14
+	mov	$1, 15
 	lb	$2, 2($3)
 	sb	$2, 3($3)
 	bsr	debug_setGpoCode
