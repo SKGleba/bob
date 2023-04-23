@@ -29,11 +29,13 @@ void c_RESET(void) {
 }
 
 __attribute__((optimize("O0")))
-void c_SWI(void) {
+void c_SWI(int a0, int a1, int a2, int a3) {
     statusled(STATUS_SWI_HIT);
-    print("[BOB] entering SWI\n");
+    printf("[BOB] entering SWI %X %X %X %X\n", a0, a1, a2, a3);
 
-    // TODO
+    //TODO
+
+    delay(0x6000);
 
     print("[BOB] exiting SWI\n");
     statusled(STATUS_SWI_QUIT);
@@ -45,6 +47,8 @@ void c_IRQ(void) {
     print("[BOB] entering IRQ\n");
 
     // TODO
+
+    delay(0x6000);
 
     print("[BOB] exiting IRQ\n");
     statusled(STATUS_IRQ_QUIT);

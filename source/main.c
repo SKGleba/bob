@@ -108,15 +108,19 @@ void test(void) {
     printf("[BOB] arm is dead, disable the OLED screen...\n");
     gpio_port_clear(0, GPIO_PORT_OLED);
 
-    printf("[BOB] test stuff\n");
+    printf("[BOB] test test stuff\n");
 
     rpc_loop();
 
     printf("[BOB] all tests done\n");
 
-    delay(40 * 1000 * 5);
+    /* [PROTO 0995 IPM] manually signal we are done
+    fm_nfo* ce_framework_parms = (fm_nfo*)0x1c000000;
+    ce_framework_parms->resp = 0;
+    ce_framework_parms->status = ce_framework_parms->exp_status;
 
-    //while (1) {};
+    while (1) {};
+*/
 }
 
 /*

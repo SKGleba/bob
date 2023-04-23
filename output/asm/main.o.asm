@@ -158,7 +158,7 @@ init:
 	.string	"[BOB] arm is dead, disable the OLED screen...\n"
 	.p2align 2
 .LC4:
-	.string	"[BOB] test stuff\n"
+	.string	"[BOB] test test stuff\n"
 	.p2align 2
 .LC5:
 	.string	"[BOB] all tests done\n"
@@ -195,8 +195,6 @@ test:
 	bsr	rpc_loop
 	movu	$1, .LC5
 	bsr	debug_printFormat
-	movu	$1, 200000
-	bsr	delay
 	lw	$11, 4($sp)
 	add	$sp, 16
 	jmp	$11

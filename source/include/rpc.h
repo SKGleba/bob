@@ -14,6 +14,7 @@ enum RPC_COMMANDS {
     RPC_CMD_SET_DELAY,
     RPC_CMD_STOP_RPC,
     RPC_CMD_SET_PUSH,
+    RPC_CMD_HEXDUMP,
     RPC_CMD_COPYTO = RPC_FLAG_EXTRA,
     RPC_CMD_COPYFROM,
     RPC_CMD_EXEC, // exec arg0(arg1, arg2, &extra) | ret to arg0

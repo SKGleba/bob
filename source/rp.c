@@ -11,7 +11,8 @@ void rpc_loop(void) {
     uint32_t cret = 0; // rpc cmd exit return val
     rpc_buf_s rpc_buf; // full rpc cmd & data buf
     bool push_reply = true; // push msg to server
-    uint32_t delay_cval = RPC_DELAY; // delay val
+    uint32_t delay_cval = RPC_READ_DELAY; // recv
+    uint32_t delay_rval = RPC_WRITE_DELAY; //send
     uint32_t(*ccode)() = NULL;
     printf("[BOB] entering RPC mode, delay %X\n", delay_cval);
     while (true) {
@@ -60,6 +61,7 @@ void rpc_loop(void) {
         case RPC_CMD_SET_DELAY:
             cret = delay_cval;
             delay_cval = rpc_buf.cmd.args[0];
+            delay_rval = rpc_buf.cmd.args[1];
             break;
         case RPC_CMD_STOP_RPC:
             cret = 0;
@@ -67,6 +69,10 @@ void rpc_loop(void) {
         case RPC_CMD_SET_PUSH:
             cret = push_reply;
             push_reply = (int)rpc_buf.cmd.args[0];
+            break;
+        case RPC_CMD_HEXDUMP:
+            hexdump(rpc_buf.cmd.args[0], rpc_buf.cmd.args[1], rpc_buf.cmd.args[2]);
+            cret = 0;
             break;
         case RPC_CMD_COPYTO:
             cret = (uint32_t)memcpy((void*)rpc_buf.cmd.args[0], rpc_buf.extra_data, rpc_buf.cmd.args[1]);
@@ -90,12 +96,24 @@ void rpc_loop(void) {
             break;
         }
 
+        statusled(STATUS_RPC_WAIT);
+        delay(delay_rval);
+
         printf("[BOB] RPC RET %X\n", cret);
         statusled(STATUS_RPC_WRITE);
         
         rpc_buf.cmd.args[0] = cret;
         rpc_buf.cmd.cmd_id |= RPC_FLAG_REPLY;
-        jig_update_shared_buffer((uint8_t*)&rpc_buf, 0, sizeof(rpc_cmd_s) + xsize, push_reply);
+        rpc_buf.cmd.hash = 0;
+        for (uint8_t i = 3; i < sizeof(rpc_cmd_s); i++) // start from after hash
+            rpc_buf.cmd.hash += *(uint8_t*)((uint8_t*)&rpc_buf.cmd + i);
+        
+        if (push_reply)
+            jig_update_shared_buffer((uint8_t*)&rpc_buf, 0, sizeof(rpc_cmd_s) + xsize, true);
+        else {
+            jig_update_shared_buffer((uint8_t*)&rpc_buf + 3, 0, sizeof(rpc_cmd_s) + xsize, false);
+            jig_update_shared_buffer((uint8_t*)&rpc_buf.cmd, 0, 3, false);
+        }
 
         if (rpc_buf.cmd.cmd_id == (RPC_CMD_STOP_RPC & ~RPC_FLAG_REPLY))
             break;

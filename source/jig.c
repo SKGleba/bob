@@ -12,7 +12,7 @@ int jig_update_shared_buffer(uint8_t* msg, uint8_t offset, uint8_t size, bool pu
     if (msg) {
         while ((copied + sizeof(cmd_buffer.data)) <= size) {
             memset(&cmd_buffer, 0, sizeof(cmd_buffer));
-            cmd_buffer.offset = copied;
+            cmd_buffer.offset = offset + copied;
             cmd_buffer.size = sizeof(cmd_buffer.data);
             memcpy(cmd_buffer.data, msg + copied, sizeof(cmd_buffer.data));
             ret = ernie_exec_cmd(ERNIE_CMD_SET_KERMITJIG_SHBUF, &cmd_buffer, sizeof(cmd_buffer));
@@ -20,7 +20,7 @@ int jig_update_shared_buffer(uint8_t* msg, uint8_t offset, uint8_t size, bool pu
         }
         if (copied < size) {
             memset(&cmd_buffer, 0, sizeof(cmd_buffer));
-            cmd_buffer.offset = copied;
+            cmd_buffer.offset = offset + copied;
             cmd_buffer.size = size - copied;
             memcpy(cmd_buffer.data, msg + copied, size - copied);
             ret = ernie_exec_cmd(ERNIE_CMD_SET_KERMITJIG_SHBUF, &cmd_buffer, (sizeof(cmd_buffer) - sizeof(cmd_buffer.data)) + (size - copied));
@@ -44,7 +44,7 @@ int jig_read_shared_buffer(uint8_t* msg, uint8_t offset, uint8_t size) {
     uint8_t copied = 0;
     while ((copied + sizeof(cmd_buffer.data)) <= size) {
         memset(&cmd_buffer, 0, sizeof(cmd_buffer));
-        cmd_buffer.offset = copied;
+        cmd_buffer.offset = offset + copied;
         cmd_buffer.size = sizeof(cmd_buffer.data);
         ret = ernie_exec_cmd(ERNIE_CMD_GET_KERMITJIG_SHBUF, &cmd_buffer, sizeof(cmd_buffer) - sizeof(cmd_buffer.data));
         memcpy(msg + copied, &g_ernie_comms.rx[ERNIE_RX_DATA(0)], sizeof(cmd_buffer.data));
@@ -52,7 +52,7 @@ int jig_read_shared_buffer(uint8_t* msg, uint8_t offset, uint8_t size) {
     }
     if (copied < size) {
         memset(&cmd_buffer, 0, sizeof(cmd_buffer));
-        cmd_buffer.offset = copied;
+        cmd_buffer.offset = offset + copied;
         cmd_buffer.size = size - copied;
         ret = ernie_exec_cmd(ERNIE_CMD_GET_KERMITJIG_SHBUF, &cmd_buffer, sizeof(cmd_buffer) - sizeof(cmd_buffer.data));
         memcpy(msg + copied, &g_ernie_comms.rx[ERNIE_RX_DATA(0)], size - copied);

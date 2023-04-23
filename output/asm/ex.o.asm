@@ -50,7 +50,7 @@ c_RESET:
 	.section	.rodata
 	.p2align 2
 .LC1:
-	.string	"[BOB] entering SWI\n"
+	.string	"[BOB] entering SWI %X %X %X %X\n"
 	.p2align 2
 .LC2:
 	.string	"[BOB] exiting SWI\n"
@@ -60,25 +60,37 @@ c_RESET:
 	.globl c_SWI
 	.type	c_SWI, @function
 c_SWI:
-	# frame: 24   24 regs
-	add	$sp, -24
-	sw	$5, 12($sp)
-	sw	$6, 8($sp)
-	sw	$tp, 20($sp)
-	sw	$gp, 16($sp)
+	# frame: 48   24 regs   16 locals   4 args
+	add3	$sp, $sp, -48 # 0xffd0
+	sw	$5, 36($sp)
+	sw	$6, 32($sp)
+	sw	$tp, 44($sp)
+	sw	$gp, 40($sp)
 	ldc	$11, $lp
-	sw	$11, 4($sp)
+	sw	$11, 28($sp)
 	mov	$5, $tp
 	mov	$6, $gp
+	sw	$1, 20($sp)
+	sw	$2, 16($sp)
+	sw	$3, 12($sp)
+	sw	$4, 8($sp)
 	mov	$1, 17
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_setGpoCode
-	movu	$2, .LC1
-	mov	$1, 1
+	lw	$3, 8($sp)
+	sw	$3, ($sp)
+	lw	$4, 12($sp)
+	lw	$3, 16($sp)
+	lw	$2, 20($sp)
+	movu	$1, .LC1
 	mov	$tp, $5
 	mov	$gp, $6
-	bsr	uart_print
+	bsr	debug_printFormat
+	mov	$1, 24576 # 0x6000
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	delay
 	movu	$2, .LC2
 	mov	$1, 1
 	mov	$tp, $5
@@ -89,12 +101,12 @@ c_SWI:
 	mov	$gp, $6
 	bsr	debug_setGpoCode
 	nop
-	lw	$gp, 16($sp)
-	lw	$tp, 20($sp)
-	lw	$6, 8($sp)
-	lw	$5, 12($sp)
-	lw	$11, 4($sp)
-	add	$sp, 24
+	lw	$gp, 40($sp)
+	lw	$tp, 44($sp)
+	lw	$6, 32($sp)
+	lw	$5, 36($sp)
+	lw	$11, 28($sp)
+	add3	$sp, $sp, 48
 	jmp	$11
 	.size	c_SWI, .-c_SWI
 	.section	.rodata
@@ -129,6 +141,10 @@ c_IRQ:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	uart_print
+	mov	$1, 24576 # 0x6000
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	delay
 	movu	$2, .LC4
 	mov	$1, 1
 	mov	$tp, $5

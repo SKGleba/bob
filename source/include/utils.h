@@ -20,7 +20,7 @@
 #define _MEP_DEBUG_BREAK_ mep_dbreak();
 #define _MEP_DEBUG_RETURN_ mep_dret();
 
-// delay for ~n * 200 cycles
+// wait for ~n * 200 cycles
 void delay(int n);
 
 // read control bus
