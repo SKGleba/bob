@@ -89,7 +89,7 @@ void init(bob_config* arg_config) {
 
     statusled(STATUS_INIT_RESET);
 
-    // jump to reset (dynamic)
+    // jump to reset
     asm("jmp vectors_exceptions\n");
 }
 
@@ -113,32 +113,4 @@ void test(void) {
     rpc_loop();
 
     printf("[BOB] all tests done\n");
-
-    /* [PROTO 0995 IPM] manually signal we are done
-    fm_nfo* ce_framework_parms = (fm_nfo*)0x1c000000;
-    ce_framework_parms->resp = 0;
-    ce_framework_parms->status = ce_framework_parms->exp_status;
-
-    while (1) {};
-*/
 }
-
-/*
-0xE00C0028 : 0x00000010 => 0x10000010
-0xE00C0058 : 0x00000000 => 0x84000100
-*/
-
-/* SXBAR
-SXBAR_TA_E000 : 0xE00C4000
-SXBAR_TA_E001 : 0xE00C4400
-SXBAR_TA_E002 : 0xE00C4800
-SXBAR_TA_E003_E006 : 0xE00C5400
-SXBAR_TA_E004 : 0xE00C4C00
-SXBAR_TA_E005 : 0xE00C5000
-SXBAR_TA_E007 : 0xE00C5800
-SXBAR_TA_E008 : 0xE00C5C00
-*/
-
-/* writable ranges unus:
-    0xE0000030 - readback all
-*/

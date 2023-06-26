@@ -13,9 +13,37 @@
 - 0xE00C5C20 bit 4 or 1 : controls f00d access to E008
 - 0xE00C6020 bit 4 or 1 : controls f00d UART1 access?
 - 0xE00CA020 bit 4 or 1 : controls f00d UART1 access?
-## 0xE0010000
+## 0xE0010000 : reset controller
 ### SoC v4.2
-- 0xE0010010
+- 0xE0010000 bits:
+  - 0 : f00d reset
+- 0xE0010008 bits:
+  - 0 : f00d reset2
+- 0xE001000C bits:
+  - 0 : bigmac reset [e005]
+  - 1 : bignum reset [e004]
+- 0xE0010010 bits:
+  - 0 : unk, set by default
+  - 1 : unk
+  - 2 : unk
+  - 3 : emmc_crypto_ctrl reset [e007]
+  - 4 : unk
+  - 5 : keyring_ctrl reset [e003]
+  - 6 : unk
+  - 7 : unk
+  - 8 : unk
+  - 9 : unk
+  - 10 : readas/some dmac reset
+## 0xE0020000
+### SoC v4.2
+- 0xE0020004 : write-only, TODO
+## 0xE0050000
+### SoC v4.2
+- 0xE0050108 : changes by writing 0 to [channel]->status
+- 0xE0050118 : bigmac regs oob read paddr
+- 0xE005011C : bigmac regs oob read status
+ - bit & 0x100 : attempted to write restricted area
+ - bit & 0x200 : attempted to read restricted area
 
 # reg feedback
 ## 0xE0000000
@@ -67,6 +95,7 @@
 ### run 1,2 : -1
 - crashes the kernel (emmc disabled probs)
 - 0xE0070000 : 0x00000001 -> 0x00030001
+- 0xE0070004 : 0x00000001 -> 0x00000000 // on second run
 - 0xE007000C : 0x00000002 -> 0x00000003
 - 0xE0070010 : 0x00000000 -> 0xFFFFFFFF
 ### run 3,4 : 0

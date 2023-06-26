@@ -1,7 +1,12 @@
 # bob
 An open source monolithic kernel for Playstation Vita's Toshiba MeP security processor
 
-### loading bob
+## TODOs
+ - SCE SM support (load/unload, compat irq/swi)
+   - preferably decrypted, or keys provided by the loader
+ - documentation & proper readmes
+
+## loading bob
 mep (spl/broombroom):
 ```C
 typedef unsigned int uint32_t;
