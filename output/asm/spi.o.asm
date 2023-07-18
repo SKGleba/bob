@@ -7,17 +7,26 @@
 spi_init:
 	# frame: 24   24 regs
 	add	$sp, -24
-	sw	$6, 8($sp)
+	sw	$7, 4($sp)
 	sll3	$0, $1, 16
-	mov	$6, $1
-	ldc	$11, $lp
 	movh	$3, 0xe0a0
+	add3	$7, $1, 65
 	sw	$5, 12($sp)
-	sw	$11, 4($sp)
+	sw	$6, 8($sp)
+	ldc	$11, $lp
+	mov	$6, $1
 	add3	$5, $0, $3
-	bsr	pervasive_clock_enable_spi
-	mov	$1, $6
-	bsr	pervasive_reset_exit_spi
+	mov	$4, 0
+	mov	$3, 1
+	mov	$2, 1
+	mov	$1, $7
+	sw	$11, ($sp)
+	bsr	pervasive_control_gate
+	mov	$4, 0
+	mov	$3, 0
+	mov	$2, 1
+	mov	$1, $7
+	bsr	pervasive_control_reset
 	bnei	$6, 2, .L2
 	movu	$3, 196609
 	sw	$3, 8($5)
@@ -30,9 +39,10 @@ spi_init:
 	sw	$3, 32($5)
 	lw	$3, 32($5)
 	syncm
+	lw	$7, 4($sp)
 	lw	$6, 8($sp)
 	lw	$5, 12($sp)
-	lw	$11, 4($sp)
+	lw	$11, ($sp)
 	add	$sp, 24
 	jmp	$11
 	.size	spi_init, .-spi_init

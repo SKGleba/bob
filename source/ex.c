@@ -4,6 +4,8 @@
 #include "include/utils.h"
 #include "include/main.h"
 #include "include/glitch.h"
+#include "include/paddr.h"
+#include "include/maika.h"
 #include "include/ex.h"
 
 __attribute__((optimize("O0"), noreturn))
@@ -60,7 +62,7 @@ void c_ARM_REQ(void) {
     print("[BOB] entering ARM req\n");
 
     if (ce_framework(false))
-        p 0xE0000010 = 0xFFFFFFFF;
+        ((maika_s*)(MAIKA_OFFSET))->mailbox.arm2cry[0] = -1;
     else
         compat_IRQ7_handleCmd();
 

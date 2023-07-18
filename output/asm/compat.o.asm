@@ -67,20 +67,23 @@ compat_Cry2Arm0:
 	.p2align 1
 	.type	compat_IRQ7_resetPervDevice, @function
 compat_IRQ7_resetPervDevice:
-	movh	$3, 0xe310
-	or3	$3, $3, 0x1190
+	# frame: 16   16 regs
+	add	$sp, -16
+	ldc	$11, $lp
+	mov	$4, 0
+	mov	$3, 1
 	mov	$2, 1
-	sw	$2, ($3)
-	mov	$2, 0
-	sw	$2, ($3)
-	erepeat	.L17
-	nop
-.L17:
-	lw	$2, ($3)
-	beqz	$2, .L18
-	# erepeat end
-.L18:
-	ret
+	mov	$1, 100
+	sw	$11, 4($sp)
+	bsr	pervasive_control_reset
+	mov	$4, 1
+	mov	$3, 0
+	mov	$2, 1
+	mov	$1, 100
+	bsr	pervasive_control_reset
+	lw	$11, 4($sp)
+	add	$sp, 16
+	jmp	$11
 	.size	compat_IRQ7_resetPervDevice, .-compat_IRQ7_resetPervDevice
 	.p2align 1
 	.type	compat_IRQ7_setEmmcKeyslots, @function
@@ -98,13 +101,13 @@ compat_IRQ7_setEmmcKeyslots:
 	or3	$3, $3, 0x8
 	or3	$2, $2, 0x20f
 	sw	$2, ($3)
-	beqz	$1, .L20
-	mov	$2, 1
 	movh	$3, 0xe007
-	sw	$2, ($3)
-.L20:
+	beqz	$1, .L16
 	mov	$2, 0
-	movh	$3, 0xe007
+	sw	$2, ($3)
+	ret
+.L16:
+	mov	$2, 1
 	sw	$2, ($3)
 	ret
 	.size	compat_IRQ7_setEmmcKeyslots, .-compat_IRQ7_setEmmcKeyslots
@@ -116,16 +119,16 @@ compat_IRQ7_setSomeEmmcDatax14:
 	lw	$3, ($3)
 	mov	$2, 32
 	and	$1, $3
-	beq	$1, $2, .L24
+	beq	$1, $2, .L18
 	movu	$2, 16777215
 	and	$3, $2
 	mov	$2, 50
-	beq	$3, $2, .L24
+	beq	$3, $2, .L18
 	movh	$3, 0xe007
 	or3	$3, $3, 0x14
 	mov	$2, 6
 	sw	$2, ($3)
-.L24:
+.L18:
 	ret
 	.size	compat_IRQ7_setSomeEmmcDatax14, .-compat_IRQ7_setSomeEmmcDatax14
 	.p2align 1
@@ -194,7 +197,7 @@ compat_IRQ7_genSKSO:
 	mov	$1, 0
 	bsr	crypto_bigmacDefaultCmd
 	mov	$5, $0
-	bnez	$0, .L26
+	bnez	$0, .L20
 	mov	$4, 1301 # 0x515
 	mov	$3, 32
 	add3	$2, $sp, 16
@@ -216,7 +219,7 @@ compat_IRQ7_genSKSO:
 	mov	$2, $3
 	mov	$1, 0
 	bsr	crypto_bigmacDefaultCmd
-	bnez	$0, .L26
+	bnez	$0, .L20
 	movh	$1, 0x4001
 	mov	$3, 160
 	add3	$2, $sp, 48
@@ -232,7 +235,7 @@ compat_IRQ7_genSKSO:
 	mov	$1, 1
 	sb	$6, 16($sp)
 	bsr	keyring_slot_data
-.L26:
+.L20:
 	add3	$sp, $sp, 208
 	lw	$6, 8($sp)
 	lw	$5, 12($sp)
@@ -260,14 +263,14 @@ compat_IRQ7_armPanic:
 	mov	$1, 0
 	bsr	cbus_write
 #APP
-;# 87 "source/compat.c" 1
+;# 92 "source/compat.c" 1
 	mov $0, $0
 
 ;# 0 "" 2
 #NO_APP
 	syncm
 #APP
-;# 89 "source/compat.c" 1
+;# 94 "source/compat.c" 1
 	mov $0, $0
 
 ;# 0 "" 2
@@ -296,32 +299,21 @@ compat_IRQ7_forceExitSm:
 	movu	$2, 0x80a000
 	mov	$1, 0
 	bsr	crypto_memset
-	movh	$2, 0xe000
-	mov	$3, -1 # 0xffff
-	or3	$2, $2, 0x14
-	sw	$3, ($2)
-	movh	$2, 0xe000
-	or3	$2, $2, 0x18
-	sw	$3, ($2)
-	movh	$2, 0xe000
-	or3	$2, $2, 0x1c
-	sw	$3, ($2)
-	movh	$2, 0xe000
-	or3	$2, $2, 0x44
-	sw	$3, ($2)
-	movh	$2, 0xe000
-	or3	$2, $2, 0x48
-	sw	$3, ($2)
-	movh	$2, 0xe000
-	or3	$2, $2, 0x4c
-	sw	$3, ($2)
+	movh	$3, 0xe000
+	mov	$2, -1 # 0xffff
+	sw	$2, 20($3)
 	mov	$1, 7
+	sw	$2, 24($3)
+	sw	$2, 28($3)
+	sw	$2, 68($3)
+	sw	$2, 72($3)
+	sw	$2, 76($3)
 	mov	$2, 1
 	bsr	compat_f00dState
 	mov	$1, 260 # 0x104
 	bsr	compat_Cry2Arm0
 #APP
-;# 107 "source/compat.c" 1
+;# 113 "source/compat.c" 1
 	jmp vectors_exceptions
 
 ;# 0 "" 2
@@ -348,54 +340,52 @@ compat_IRQ7_handleCmd:
 	sw	$11, ($sp)
 	bsr	debug_setGpoCode
 	movh	$3, 0xe000
-	or3	$3, $3, 0x10
 	movu	$1, .LC2
-	lw	$5, ($3)
+	lw	$5, 16($3)
 	mov	$2, $5
 	bsr	debug_printFormat
 	mov	$0, 3073 # 0xc01
-	beq	$5, $0, .L34
+	beq	$5, $0, .L28
 	sltu3	$0, $0, $5
-	bnez	$0, .L35
+	bnez	$0, .L29
 	mov	$3, 1537 # 0x601
-	beq	$5, $3, .L44
-	mov	$3, 2817 # 0xb01
-	beq	$5, $3, .L37
-	mov	$3, 257 # 0x101
-	bne	$5, $3, .L46
-.L44:
-	mov	$3, 0
-	bra	.L36
-.L35:
-	mov	$3, 3585 # 0xe01
-	beq	$5, $3, .L37
-	mov	$3, 3841 # 0xf01
 	beq	$5, $3, .L38
+	mov	$3, 2817 # 0xb01
+	beq	$5, $3, .L31
+	mov	$3, 257 # 0x101
+	bne	$5, $3, .L40
+.L38:
+	mov	$3, 0
+	bra	.L30
+.L29:
+	mov	$3, 3585 # 0xe01
+	beq	$5, $3, .L31
+	mov	$3, 3841 # 0xf01
+	beq	$5, $3, .L32
 	mov	$3, 3329 # 0xd01
-	beq	$5, $3, .L34
-.L46:
+	beq	$5, $3, .L28
+.L40:
 	mov	$3, 1
-.L36:
-	movh	$2, 0xe000
-	or3	$2, $2, 0x10
+.L30:
 	mov	$1, -1 # 0xffff
-	sw	$1, ($2)
-	bnez	$3, .L32
+	movh	$2, 0xe000
+	sw	$1, 16($2)
+	bnez	$3, .L26
 	mov	$1, 0
 	bsr	compat_Cry2Arm0
-	bnez	$0, .L41
+	bnez	$0, .L35
 	mov	$3, 1537 # 0x601
-	beq	$5, $3, .L43
+	beq	$5, $3, .L37
 	mov	$1, 31
 	bsr	debug_setGpoCode
 	bsr	compat_IRQ7_armPanic
-.L34:
+.L28:
 	movh	$3, 0xe006
 	or3	$3, $3, 0x2180
 	lw	$3, ($3)
 	and3	$3, $3, 0x4
-	beqz	$3, .L46
-.L37:
+	beqz	$3, .L40
+.L31:
 	mov	$1, 28
 	bsr	debug_setGpoCode
 	bsr	compat_IRQ7_resetPervDevice
@@ -404,24 +394,24 @@ compat_IRQ7_handleCmd:
 	xor3	$1, $1, 0x1
 	bsr	compat_IRQ7_setEmmcKeyslots
 	mov	$3, 3585 # 0xe01
-	bne	$5, $3, .L46
+	bne	$5, $3, .L40
 	bsr	compat_IRQ7_setSomeEmmcDatax14
-	bra	.L46
-.L38:
+	bra	.L40
+.L32:
 	mov	$1, 30
 	bsr	debug_setGpoCode
 	bsr	compat_IRQ7_genSKSO
-	bra	.L46
-.L43:
+	bra	.L40
+.L37:
 	mov	$1, 32
 	bsr	debug_setGpoCode
 	bsr	compat_IRQ7_forceExitSm
-.L41:
+.L35:
 	mov	$1, 29
 	bsr	debug_setGpoCode
 	movu	$1, 0x802d
 	bsr	compat_Cry2Arm0
-.L32:
+.L26:
 	lw	$5, 4($sp)
 	lw	$11, ($sp)
 	add	$sp, 16
@@ -443,8 +433,8 @@ compat_pListCopy:
 	mov	$8, $3
 	mov	$7, $4
 	sw	$11, 4($sp)
-.L48:
-	bnez	$8, .L51
+.L42:
+	bnez	$8, .L45
 	lw	$8, 8($sp)
 	lw	$7, 12($sp)
 	lw	$6, 16($sp)
@@ -452,22 +442,22 @@ compat_pListCopy:
 	lw	$11, 4($sp)
 	add3	$sp, $sp, 32
 	jmp	$11
-.L51:
+.L45:
 	lw	$3, 4($5)
-	beqz	$7, .L49
+	beqz	$7, .L43
 	lw	$1, ($5)
 	mov	$2, $6
 	bsr	memcpy
-.L50:
+.L44:
 	lw	$3, 4($5)
 	add	$8, -1
 	add	$5, 8
 	add3	$6, $6, $3
-	bra	.L48
-.L49:
+	bra	.L42
+.L43:
 	lw	$2, ($5)
 	mov	$1, $6
 	bsr	memcpy
-	bra	.L50
+	bra	.L44
 	.size	compat_pListCopy, .-compat_pListCopy
 	.ident	"GCC: (WTF TEAM MOLECULE IS AT IT AGAIN?!) 6.3.0"

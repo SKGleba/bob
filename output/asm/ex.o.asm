@@ -202,9 +202,8 @@ c_ARM_REQ:
 	mov	$3, $0
 	beqz	$3, .L6
 	movh	$3, 0xe000
-	or3	$3, $3, 0x10
 	mov	$2, -1 # 0xffff
-	sw	$2, ($3)
+	sw	$2, 16($3)
 	bra	.L7
 .L6:
 	mov	$tp, $5

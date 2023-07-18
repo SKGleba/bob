@@ -5,9 +5,9 @@
 	.globl gpio_set_port_mode
 	.type	gpio_set_port_mode, @function
 gpio_set_port_mode:
-	movh	$0, 0xe20a
-	beqz	$1, .L2
 	movh	$0, 0xe010
+	bnez	$1, .L2
+	movh	$0, 0xe20a
 .L2:
 	mov	$1, 1
 	lw	$9, ($0)
@@ -24,9 +24,9 @@ gpio_set_port_mode:
 	.globl gpio_port_read
 	.type	gpio_port_read, @function
 gpio_port_read:
-	movh	$3, 0xe20a
-	beqz	$1, .L5
 	movh	$3, 0xe010
+	bnez	$1, .L5
+	movh	$3, 0xe20a
 .L5:
 	lw	$0, 4($3)
 	srl	$0, $2
@@ -37,9 +37,9 @@ gpio_port_read:
 	.globl gpio_port_set
 	.type	gpio_port_set, @function
 gpio_port_set:
-	movh	$0, 0xe20a
-	beqz	$1, .L8
 	movh	$0, 0xe010
+	bnez	$1, .L8
+	movh	$0, 0xe20a
 .L8:
 	lw	$1, 8($0)
 	mov	$3, 1
@@ -54,9 +54,9 @@ gpio_port_set:
 	.globl gpio_port_clear
 	.type	gpio_port_clear, @function
 gpio_port_clear:
-	movh	$0, 0xe20a
-	beqz	$1, .L11
 	movh	$0, 0xe010
+	bnez	$1, .L11
+	movh	$0, 0xe20a
 .L11:
 	lw	$1, 12($0)
 	mov	$3, 1
@@ -71,9 +71,9 @@ gpio_port_clear:
 	.globl gpio_set_intr_mode
 	.type	gpio_set_intr_mode, @function
 gpio_set_intr_mode:
-	movh	$0, 0xe20a
-	beqz	$1, .L14
 	movh	$0, 0xe010
+	bnez	$1, .L14
+	movh	$0, 0xe20a
 .L14:
 	movh	$1, 0x8000
 	or3	$1, $1, 0xf
@@ -114,9 +114,9 @@ gpio_query_intr:
 	sw	$5, 12($sp)
 	sw	$6, 8($sp)
 	sw	$7, 4($sp)
-	movh	$9, 0xe20a
-	beqz	$1, .L19
 	movh	$9, 0xe010
+	bnez	$1, .L19
+	movh	$9, 0xe20a
 .L19:
 	lw	$7, 56($9)
 	lw	$3, 28($9)
@@ -165,9 +165,9 @@ gpio_acquire_intr:
 	sw	$6, 8($sp)
 	sw	$7, 4($sp)
 	sll	$9, $2
-	movh	$3, 0xe20a
-	beqz	$1, .L22
 	movh	$3, 0xe010
+	bnez	$1, .L22
+	movh	$3, 0xe20a
 .L22:
 	lw	$7, 56($3)
 	lw	$2, 28($3)
@@ -216,13 +216,21 @@ gpio_acquire_intr:
 gpio_init:
 	# frame: 24   24 regs
 	add	$sp, -24
-	ldc	$11, $lp
 	sw	$5, 12($sp)
-	sw	$11, 4($sp)
+	ldc	$11, $lp
 	mov	$5, $1
+	mov	$4, 0
+	mov	$3, 1
+	mov	$2, 1
+	mov	$1, 64
 	sw	$6, 8($sp)
-	bsr	pervasive_clock_enable_gpio
-	bsr	pervasive_reset_exit_gpio
+	sw	$11, 4($sp)
+	bsr	pervasive_control_gate
+	mov	$4, 0
+	mov	$3, 0
+	mov	$2, 1
+	mov	$1, 64
+	bsr	pervasive_control_reset
 	beqz	$5, .L24
 	mov	$3, 1
 	mov	$2, 7

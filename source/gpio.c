@@ -1,6 +1,7 @@
 #include "include/types.h"
 #include "include/utils.h"
 #include "include/perv.h"
+
 #include "include/gpio.h"
 
 void gpio_set_port_mode(int bus, int port, int mode) {
@@ -66,8 +67,8 @@ int gpio_acquire_intr(int bus, int port) {
 }
 
 void gpio_init(bool init_leds) {
-    pervasive_clock_enable_gpio();
-    pervasive_reset_exit_gpio();
+    pervasive_control_gate(PERV_CTRL_GATE_DEV_GPIO, 0b1, true, false);
+    pervasive_control_reset(PERV_CTRL_RESET_DEV_GPIO, 0b1, false, false);
     if (init_leds) {
         gpio_set_port_mode(0, GPIO_PORT_PS_LED, GPIO_PORT_MODE_OUTPUT);
         gpio_set_port_mode(0, GPIO_PORT_GAMECARD_LED, GPIO_PORT_MODE_OUTPUT);

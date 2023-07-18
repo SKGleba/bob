@@ -1,42 +1,51 @@
 #include "include/types.h"
 #include "include/clib.h"
+#include "include/paddr.h"
 #include "include/maika.h"
 
 // --maika::readas--
-static volatile readas32_t* const READAS32 = (void*)READAS_REG;
-
 uint32_t readAs(uint32_t addr, uint32_t mode) {
-    READAS32->addr = addr;
-    READAS32->data = 0xDEADBABE;
-    READAS32->mode = mode;
+    maika_s* maika = (maika_s*)MAIKA_OFFSET;
+    
+    maika->aio.readAs.addr = addr;
+    maika->aio.readAs.data = 0xDEADBABE;
+    maika->aio.readAs.mode = mode;
 
-    while (READAS32->data == 0xDEADBABE) {} // wait until RAS replies
+    while (maika->aio.readAs.data == 0xDEADBABE) {} // wait until RAS replies
 
-    return READAS32->data;
+    return maika->aio.readAs.data;
 }
 
 void writeAs(uint32_t addr, uint32_t data, uint32_t mode) {
-    READAS32->addr = addr;
-    READAS32->data = data;
-    READAS32->mode = mode | RAS_MODE_WRITE;
+    maika_s* maika = (maika_s*)MAIKA_OFFSET;
+    
+    maika->aio.readAs.addr = addr;
+    maika->aio.readAs.data = data;
+    maika->aio.readAs.mode = mode | MAIKA_RAS_MODE_WRITE;
 }
 
 
 // --maika::krctrl--
-static volatile keyring_ctrl_t* const KRCTRL = (void*)KEYRING_CONTROLLER;
-
-uint32_t keyring_slot_data(int set, void* data, int datasize, uint32_t keyslot) {
-    if (set) {
-        memcpy((void *)KRCTRL->data, data, datasize);
-        KRCTRL->keyslot = (uint32_t)keyslot;
-    } else
-        memcpy(data, (void*)KEYRING_SLOT(keyslot), datasize);
-    return KRCTRL->resp;
+uint32_t keyring_slot_data(bool set, void* data, int datasize, uint32_t keyslot) {
+    maika_s* maika = (maika_s*)MAIKA_OFFSET;
+    if (datasize > MAIKA_KEYSLOT_SIZE || keyslot > (MAIKA_KEYSLOT_COUNT * 2))
+        return -1;
+    if (!set) {
+        if (keyslot < MAIKA_KEYSLOT_COUNT)
+            return -2;
+        keyslot = keyslot - MAIKA_KEYSLOT_COUNT; // first 0x400 keyslots are in bigmac
+        memcpy(data, (maika_s*)maika->keyring[keyslot], datasize);
+        return keyslot;
+    }
+    memcpy((void*)maika->keyring_ctrl.data, data, datasize);
+    maika->keyring_ctrl.keyslot = (uint32_t)keyslot;
+    return maika->keyring_ctrl.resp;
 }
 
-uint32_t keyring_slot_prot(int set, uint32_t prot, uint32_t keyslot) {
+uint32_t keyring_slot_prot(bool set, uint32_t prot, uint32_t keyslot) {
+    maika_s* maika = (maika_s*)MAIKA_OFFSET;
     if (set)
-        KRCTRL->set_prot = (uint32_t)((prot << 16) | keyslot);
-    KRCTRL->get_prot = keyslot;
-    return KRCTRL->resp;
+        maika->keyring_ctrl.set_prot = (uint32_t)((prot << 16) | keyslot);
+    maika->keyring_ctrl.get_prot = keyslot;
+    return maika->keyring_ctrl.resp;
 }

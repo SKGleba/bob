@@ -14,6 +14,7 @@
 #include "include/gpio.h"
 #include "include/perv.h"
 #include "include/rpc.h"
+#include "include/paddr.h"
 
 #include "include/main.h"
 
@@ -52,7 +53,7 @@ void init(bob_config* arg_config) {
 
     _MEP_INTR_DISABLE_ // disable interrupts
 
-        statusled(STATUS_INIT_CEFW);
+    statusled(STATUS_INIT_CEFW);
 
     // foreground framework (only runs from arm request)
     options.ce_framework_parms[0] = arg_config->ce_framework_parms[0];
@@ -60,7 +61,7 @@ void init(bob_config* arg_config) {
         options.ce_framework_parms[0]->resp = 0;
         if (options.ce_framework_parms[0]->exp_status)
             options.ce_framework_parms[0]->status = options.ce_framework_parms[0]->exp_status;
-        *(uint32_t*)0xE0000010 = 0xFFFFFFFF;
+        ((maika_s*)(MAIKA_OFFSET))->mailbox.arm2cry[0] = -1;
     }
 
     // background framework (runs when idle)
@@ -85,7 +86,7 @@ void init(bob_config* arg_config) {
 
     // enable and clean icache
     enable_icache(true);
-    memset((void*)0x00300000, 0, 0x00010000);
+    memset((void*)F00D_ICACHE_OFFSET, 0, F00D_ICACHE_SIZE);
 
     statusled(STATUS_INIT_RESET);
 
@@ -101,8 +102,8 @@ void test(void) {
     _MEP_SYNC_BUS_;
 
     printf("[BOB] killing arm...\n");
-    vp XBAR_CONFIG_REG(XBAR_MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_LPDDR0, XBAR_ACCESS_CONTROL_WHITELIST) = 0;
-    //vp XBAR_CONFIG_REG(XBAR_MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_SPAD32K, XBAR_ACCESS_CONTROL_WHITELIST) = 0;
+    vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_LPDDR0, XBAR_ACCESS_CONTROL_WHITELIST) = 0;
+    //vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_SPAD32K, XBAR_ACCESS_CONTROL_WHITELIST) = 0;
     delay(10000);
 
     printf("[BOB] arm is dead, disable the OLED screen...\n");

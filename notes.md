@@ -44,6 +44,15 @@
 - 0xE005011C : bigmac regs oob read status
  - bit & 0x100 : attempted to write restricted area
  - bit & 0x200 : attempted to read restricted area
+## 0xE0070000
+### SoC v4.2
+- 0xE0070000 - mgr - bits: 
+  - 0 : enable/disable emmc crypto
+  - 16: unk
+  - 17: unk
+- 0xE0070004 - status - bits:
+  - 0 : failed to fetch keyslots
+- 0xE0070008 : keyslots to copy keys from
 
 # reg feedback
 ## 0xE0000000

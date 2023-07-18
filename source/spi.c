@@ -6,8 +6,8 @@
 void spi_init(int bus) {
     volatile unsigned int* spi_regs = SPI_REGS(bus);
 
-    pervasive_clock_enable_spi(bus);
-    pervasive_reset_exit_spi(bus);
+    pervasive_control_gate((PERV_CTRL_GATE_DEV_SPI0 + bus), 1, true, false);
+    pervasive_control_reset((PERV_CTRL_RESET_DEV_SPI0 + bus), 1, false, false);
 
     if (bus == 2) {
         spi_regs[2] = 0x30001;

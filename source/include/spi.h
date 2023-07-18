@@ -1,8 +1,9 @@
 #ifndef __SPI_H__
 #define __SPI_H__
 
-#define SPI_BASE_ADDR	0xE0A00000
-#define SPI_REGS(i)	((void *)(SPI_BASE_ADDR + (i) * 0x10000))
+#include "paddr.h"
+
+#define SPI_REGS(i)	((void *)(SPI0_OFFSET + (i) * SPI0_SIZE))
 
 #define SPI_ERNIE_BUS 0
 

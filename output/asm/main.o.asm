@@ -99,10 +99,9 @@ init:
 	lb	$2, 2($3)
 	sb	$2, 3($3)
 .L9:
-	movh	$3, 0xe000
-	or3	$3, $3, 0x10
 	mov	$2, -1 # 0xffff
-	sw	$2, ($3)
+	movh	$3, 0xe000
+	sw	$2, 16($3)
 .L8:
 	lw	$3, 4($5)
 	sw	$3, (options+4)
@@ -136,7 +135,7 @@ init:
 	mov	$1, 5
 	bsr	debug_setGpoCode
 #APP
-;# 93 "source/main.c" 1
+;# 94 "source/main.c" 1
 	jmp vectors_exceptions
 
 ;# 0 "" 2

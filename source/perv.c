@@ -13,46 +13,52 @@ static inline void pervasive_mask_and_not(unsigned int addr, unsigned int val) {
     *(uint32_t*)addr;
 }
 
-unsigned int pervasive_read_misc(unsigned int offset) {
-    return *(unsigned int*)(PERVASIVE_MISC_BASE_ADDR + offset);
+uint32_t pervasive_control_reset(int device, unsigned int mask, bool reset, bool wait) {
+    uint32_t addr = PERV_GET_REG(PERV_CTRL_RESET, device);
+    
+    if (reset)
+        vp addr |= mask;
+    else
+        vp addr &= ~mask;
+    
+    _MEP_SYNC_BUS_
+        
+    vp addr;
+
+    if (wait) {
+        if (reset) {
+            while (!(vp(addr) & mask))
+                ;
+        } else {
+            while (vp(addr) & mask)
+                ;
+        }
+    }
+
+    return vp addr;
 }
 
-void pervasive_clock_enable_uart(int bus) {
-    pervasive_mask_or(PERVASIVE_GATE_BASE_ADDR + 0x120 + 4 * bus, 1);
-}
+uint32_t pervasive_control_gate(int device, unsigned int mask, bool open, bool wait) {
+    uint32_t addr = PERV_GET_REG(PERV_CTRL_GATE, device);
 
-void pervasive_reset_exit_uart(int bus) {
-    pervasive_mask_and_not(PERVASIVE_RESET_BASE_ADDR + 0x120 + 4 * bus, 1);
-}
+    if (open)
+        vp addr |= mask;
+    else
+        vp addr &= ~mask;
 
-void pervasive_clock_enable_gpio(void) {
-    pervasive_mask_or(PERVASIVE_GATE_BASE_ADDR + 0x100, 1);
-}
+    _MEP_SYNC_BUS_
 
-void pervasive_reset_exit_gpio(void) {
-    pervasive_mask_and_not(PERVASIVE_RESET_BASE_ADDR + 0x100, 1);
-}
+    vp addr;
 
-void pervasive_clock_disable_gpio(void) {
-    pervasive_mask_and_not(PERVASIVE_GATE_BASE_ADDR + 0x100, 1);
-}
+    if (wait) {
+        if (open) {
+            while (!(vp(addr) & mask))
+                ;
+        } else {
+            while (vp(addr) & mask)
+                ;
+        }
+    }
 
-void pervasive_reset_enter_gpio(void) {
-    pervasive_mask_or(PERVASIVE_RESET_BASE_ADDR + 0x100, 1);
-}
-
-void pervasive_clock_enable_spi(int bus) {
-    pervasive_mask_or(PERVASIVE_GATE_BASE_ADDR + 0x104 + 4 * bus, 1);
-}
-
-void pervasive_clock_disable_spi(int bus) {
-    pervasive_mask_and_not(PERVASIVE_GATE_BASE_ADDR + 0x104 + 4 * bus, 1);
-}
-
-void pervasive_reset_enter_spi(int bus) {
-    pervasive_mask_or(PERVASIVE_RESET_BASE_ADDR + 0x104 + 4 * bus, 1);
-}
-
-void pervasive_reset_exit_spi(int bus) {
-    pervasive_mask_and_not(PERVASIVE_RESET_BASE_ADDR + 0x104 + 4 * bus, 1);
+    return vp addr;
 }

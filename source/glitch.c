@@ -21,7 +21,7 @@
 void glitch_test(void) {
     statusled(0x31);
     for (uint32_t d_addr = 0x40000; d_addr < 0x60000; d_addr += 0x10)
-        jig_update_shared_buffer(d_addr, 0, 0x10, true);
+        jig_update_shared_buffer((uint8_t*)d_addr, 0, 0x10, true);
 
 #ifndef SILENT
     statusled(0x32);
@@ -49,7 +49,7 @@ void glitch_init(void) {
 
     statusled(STATUS_GLINIT_JIG);
     uint32_t msg = 0xCAFEBABE;
-    jig_update_shared_buffer(&msg, 0, 4, true);
+    jig_update_shared_buffer((uint8_t*)&msg, 0, 4, true);
 
 #ifndef SILENT
     statusled(STATUS_GLINIT_UART);

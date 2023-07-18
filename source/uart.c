@@ -4,14 +4,14 @@
 
 void uart_init(int bus, unsigned int clk) {
     volatile unsigned int* uart_regs = UART_REGS(bus);
-    volatile unsigned int* uartclkgen_regs = UARTCLKGEN_REGS(bus);
+    volatile unsigned int* uart_clkgen = (volatile unsigned int* )PERV_GET_REG(PERV_CTRL_UARTCLKGEN, bus);
 
-    pervasive_clock_enable_uart(bus);
-    pervasive_reset_exit_uart(bus);
+    pervasive_control_gate((PERV_CTRL_GATE_DEV_UART0 + bus), 1, true, false);
+    pervasive_control_reset((PERV_CTRL_RESET_DEV_UART0 + bus), 1, false, false);
 
     uart_regs[1] = 0; // disable device
 
-    *uartclkgen_regs = clk; // Baudrate
+    *uart_clkgen = clk; // Baudrate
 
     uart_regs[8] = 3;
     uart_regs[4] = 1;
