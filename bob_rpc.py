@@ -16,6 +16,7 @@ RPC_COMMANDS = {
     "stop" : 0x6,
     "push" : 0x7, # dont use this
     "hexdump" : 0x8,
+    "memset32" : 0x9,
     "copyto" : 0x40,
     "copyfrom" : 0x41,
     "exec" : 0x42, # exec arg0(arg1, arg2, &extra) | ret to arg0
@@ -65,7 +66,6 @@ def exec_cmd(cmd_base):
         print_cmd("BOB", line.hex()[10:-4].upper())
 
     return line.hex()[10:-4].upper()
-    
 
 def handle_cmd(user_cmd, argv):
     match user_cmd:
@@ -118,6 +118,7 @@ def helper(in_interactive, caller):
     print(caller + " read32 [OFF]                                : read u32 from given offset")
     print(caller + " write32 [OFF] [DATA]                        : write u32 to given offset")
     print(caller + " memset [OFF] [FILLu8] [SIZE]                : memset")
+    print(caller + " memset32 [OFF] [FILLu32] [SIZE]             : memset (32-bit)")
     print(caller + " memcpy [DST] [SRC] [SIZE]                   : memcpy")
     print(caller + " delay [READ] [WRITE]                        : set RPC server check and reply delays")
     print(caller + " stop                                        : stop the RPC server")
