@@ -1,5 +1,5 @@
 	.file	"debug.c"
-	.section	.rodata
+	.section .frodata,"a"
 	.p2align 2
 	.type	debug_hexbase, @object
 	.size	debug_hexbase, 17
@@ -27,32 +27,32 @@ debug_printU32:
 	bnez	$5, .L4
 	mov	$3, 0
 .L2:
-	movh	$10, %hi(debug_hexbase)
 	sb	$3, 14($sp)
-	mov	$0, $sp
+	mov	$9, $sp
 	mov	$3, 0
-	add3	$1, $sp, 12
-	add3	$10, $10, %lo(debug_hexbase)
-	mov	$2, 3
+	add3	$0, $sp, 12
+	mov	$1, 3
 	sb	$3, 15($sp)
-	repeat	$2,.L6
+	repeat	$1,.L6
 .L3:
-	lb	$3, ($0)
-	add	$1, -2
-	add	$0, 1
-	and3	$9, $3, 0xf
-	sra	$3, 4
-	and3	$3, $3, 0xf
-	add3	$9, $10, $9
-	add3	$3, $10, $3
-	lb	$9, ($9)
+	lb	$2, ($9)
+	movh	$3, %hi(debug_hexbase)
+	add3	$3, $3, %lo(debug_hexbase)
+	and3	$10, $2, 0xf
+	sra	$2, 4
+	and3	$2, $2, 0xf
+	add3	$10, $3, $10
+	add3	$3, $3, $2
+	lb	$10, ($10)
 	lb	$3, ($3)
+	add	$9, 1
+	sb	$10, 1($0)
 .L6:
-	sb	$9, 3($1)
-	sb	$3, 2($1)
+	sb	$3, ($0)
+	add	$0, -2
 	# repeat end
 	add3	$2, $sp, 4
-	mov	$1, 1
+	mov	$1, 0
 	bsr	uart_print
 	lw	$5, 20($sp)
 	lw	$11, 16($sp)
@@ -98,7 +98,7 @@ debug_printFormat:
 	mov	$3, $8
 	sub	$3, $9
 	add3	$2, $5, $9
-	mov	$1, 1
+	mov	$1, 0
 	bsr	uart_printn
 .L7:
 	lw	$8, 40($sp)
@@ -115,7 +115,7 @@ debug_printFormat:
 	mov	$3, $8
 	sub	$3, $9
 	add3	$2, $5, $9
-	mov	$1, 1
+	mov	$1, 0
 	sw	$9, ($sp)
 	bsr	uart_printn
 	add3	$2, $8, 1
@@ -173,7 +173,7 @@ debug_printFormat:
 	sw	$2, 24($sp)
 .L18:
 	lw	$2, ($3)
-	mov	$1, 1
+	mov	$1, 0
 	bsr	uart_print
 	bra	.L16
 .L17:
@@ -218,19 +218,20 @@ debug_printRange:
 	sb	$3, 7($sp)
 .L31:
 	lb	$1, -1($6)
-	movu	$2, debug_hexbase
-	mov	$3, $1
-	sra	$3, 4
-	and3	$3, $3, 0xf
-	add3	$3, $2, $3
+	movh	$3, %hi(debug_hexbase)
+	add3	$3, $3, %lo(debug_hexbase)
+	mov	$2, $1
+	sra	$2, 4
 	and3	$1, $1, 0xf
+	and3	$2, $2, 0xf
+	add3	$2, $3, $2
+	add3	$3, $3, $1
+	lb	$2, ($2)
 	lb	$3, ($3)
-	add3	$2, $2, $1
-	mov	$1, 1
-	sb	$3, 4($sp)
-	lb	$3, ($2)
-	add3	$2, $sp, 4
+	mov	$1, 0
+	sb	$2, 4($sp)
 	sb	$3, 5($sp)
+	add3	$2, $sp, 4
 	mov	$3, 32
 	sb	$3, 6($sp)
 	bsr	uart_print
@@ -238,7 +239,7 @@ debug_printRange:
 	add	$5, 1
 	bnei	$3, 15, .L29
 	movu	$2, .LC1
-	mov	$1, 1
+	mov	$1, 0
 	bsr	uart_print
 	beqz	$8, .L29
 	sltu3	$0, $5, $7
@@ -250,7 +251,7 @@ debug_printRange:
 	add	$6, 1
 	bne	$7, $5, .L31
 	movu	$2, .LC1
-	mov	$1, 1
+	mov	$1, 0
 	bsr	uart_print
 .L25:
 	lw	$8, 16($sp)
@@ -425,7 +426,7 @@ debug_setGpoCode:
 	.p2align 2
 .LC49:
 	.string	"31"
-	.data
+	.section .far,"aw"
 	.p2align 2
 	.type	regdump_registers, @object
 	.size	regdump_registers, 192
@@ -496,29 +497,30 @@ regdump_registers:
 debug_c_regdump:
 	# frame: 32   32 regs
 	add	$sp, -32
-	sw	$7, 12($sp)
 	ldc	$11, $lp
 	movu	$2, .LC50
-	mov	$1, 1
-	movu	$7, regdump_registers
+	mov	$1, 0
 	sw	$5, 20($sp)
 	sw	$6, 16($sp)
+	sw	$7, 12($sp)
 	sw	$8, 8($sp)
 	sw	$11, 4($sp)
-	mov	$5, 0
 	bsr	uart_print
-	mov	$6, 48
-	mov	$8, $7
+	movh	$8, %hi(regdump_registers)
+	add3	$8, $8, %lo(regdump_registers)
+	mov	$6, $8
+	mov	$5, 0
+	mov	$7, 48
 .L45:
-	mov	$3, $8
-	sub	$3, $7
+	mov	$3, $6
+	sub	$3, $8
 	add3	$3, $3, $gp
-	lw	$2, ($8)
+	lw	$2, ($6)
 	lw	$3, ($3)
 	movu	$1, .LC52
 	add	$5, 1
 	bsr	debug_printFormat
-	bne	$5, $6, .L47
+	bne	$5, $7, .L47
 	lw	$8, 8($sp)
 	lw	$7, 12($sp)
 	lw	$6, 16($sp)
@@ -530,10 +532,10 @@ debug_c_regdump:
 	mov	$3, 16
 	bne	$5, $3, .L46
 	movu	$2, .LC51
-	mov	$1, 1
+	mov	$1, 0
 	bsr	uart_print
 .L46:
-	add	$8, 4
+	add	$6, 4
 	bra	.L45
 	.size	debug_c_regdump, .-debug_c_regdump
 	.ident	"GCC: (WTF TEAM MOLECULE IS AT IT AGAIN?!) 6.3.0"

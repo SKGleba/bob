@@ -1,5 +1,5 @@
 	.file	"compat.c"
-	.section	.rodata
+	.section .frodata,"a"
 	.p2align 2
 	.type	skso_iv, @object
 	.size	skso_iv, 16
@@ -20,21 +20,27 @@ skso_iv:
 	.byte	-53
 	.byte	77
 	.byte	-4
-	.local	compat_state
-	.comm	compat_state,4,2
+	.section .farbss,"aw"
+	.p2align 1
+	.type	compat_state,@object
+	.size	compat_state,4
+compat_state:
+	.zero	4
 	.text
 	.core
 	.p2align 1
 	.globl compat_f00dState
 	.type	compat_f00dState, @function
 compat_f00dState:
+	movh	$3, %hi(compat_state)
 	beqz	$2, .L2
-	movu	$3, compat_state
-	sh	$1, ($3)
+	mov	$2, $3
+	add3	$2, $2, %lo(compat_state)
+	sh	$1, ($2)
 	srl	$1, 16
-	sh	$1, 2($3)
+	sh	$1, 2($2)
 .L2:
-	movu	$3, compat_state
+	add3	$3, $3, %lo(compat_state)
 	lhu	$0, 2($3)
 	lhu	$2, ($3)
 	sll	$0, 16
@@ -208,7 +214,8 @@ compat_IRQ7_genSKSO:
 	add3	$2, $sp, 16
 	or3	$1, $1, 0x200
 	bsr	memcpy
-	movu	$3, skso_iv
+	movh	$3, %hi(skso_iv)
+	add3	$3, $3, %lo(skso_iv)
 	sw	$3, 8($sp)
 	mov	$3, 8585 # 0x2189
 	sw	$3, ($sp)
@@ -263,14 +270,14 @@ compat_IRQ7_armPanic:
 	mov	$1, 0
 	bsr	cbus_write
 #APP
-;# 92 "source/compat.c" 1
+;# 96 "source/compat.c" 1
 	mov $0, $0
 
 ;# 0 "" 2
 #NO_APP
 	syncm
 #APP
-;# 94 "source/compat.c" 1
+;# 98 "source/compat.c" 1
 	mov $0, $0
 
 ;# 0 "" 2
@@ -313,7 +320,7 @@ compat_IRQ7_forceExitSm:
 	mov	$1, 260 # 0x104
 	bsr	compat_Cry2Arm0
 #APP
-;# 113 "source/compat.c" 1
+;# 117 "source/compat.c" 1
 	jmp vectors_exceptions
 
 ;# 0 "" 2
@@ -335,13 +342,11 @@ compat_IRQ7_handleCmd:
 	# frame: 16   16 regs
 	add	$sp, -16
 	ldc	$11, $lp
-	mov	$1, 33
+	movh	$3, 0xe000
 	sw	$5, 4($sp)
 	sw	$11, ($sp)
-	bsr	debug_setGpoCode
-	movh	$3, 0xe000
-	movu	$1, .LC2
 	lw	$5, 16($3)
+	movu	$1, .LC2
 	mov	$2, $5
 	bsr	debug_printFormat
 	mov	$0, 3073 # 0xc01
@@ -376,8 +381,6 @@ compat_IRQ7_handleCmd:
 	bnez	$0, .L35
 	mov	$3, 1537 # 0x601
 	beq	$5, $3, .L37
-	mov	$1, 31
-	bsr	debug_setGpoCode
 	bsr	compat_IRQ7_armPanic
 .L28:
 	movh	$3, 0xe006
@@ -386,8 +389,6 @@ compat_IRQ7_handleCmd:
 	and3	$3, $3, 0x4
 	beqz	$3, .L40
 .L31:
-	mov	$1, 28
-	bsr	debug_setGpoCode
 	bsr	compat_IRQ7_resetPervDevice
 	xor3	$1, $5, 0xc01
 	sltu3	$1, $1, 1
@@ -398,17 +399,11 @@ compat_IRQ7_handleCmd:
 	bsr	compat_IRQ7_setSomeEmmcDatax14
 	bra	.L40
 .L32:
-	mov	$1, 30
-	bsr	debug_setGpoCode
 	bsr	compat_IRQ7_genSKSO
 	bra	.L40
 .L37:
-	mov	$1, 32
-	bsr	debug_setGpoCode
 	bsr	compat_IRQ7_forceExitSm
 .L35:
-	mov	$1, 29
-	bsr	debug_setGpoCode
 	movu	$1, 0x802d
 	bsr	compat_Cry2Arm0
 .L26:

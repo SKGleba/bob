@@ -2,6 +2,8 @@
 #include "include/perv.h"
 #include "include/uart.h"
 
+int g_uart_bus = UART_BUS;
+
 void uart_init(int bus, unsigned int clk) {
     volatile unsigned int* uart_regs = UART_REGS(bus);
     volatile unsigned int* uart_clkgen = (volatile unsigned int* )PERV_GET_REG(PERV_CTRL_UARTCLKGEN, bus);

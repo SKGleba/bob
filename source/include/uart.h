@@ -20,6 +20,8 @@ enum UART_BAUD_TO_CLKGEN {
     UART_BAUD_38400 = 0x1004E,
 };
 
+extern int g_uart_bus;
+
 void uart_init(int bus, unsigned int clk);
 void uart_write(int bus, unsigned int data);
 void uart_print(int bus, char* str);

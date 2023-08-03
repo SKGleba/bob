@@ -5,6 +5,8 @@
 #include "include/jig.h"
 #include "include/rpc.h"
 
+int g_rpc_status = 0;
+
 void rpc_loop(void) {
     uint8_t xsize = 0; // rpc cmd extra return sz
     uint8_t chash = 0; // calculated cmd checksum
@@ -14,10 +16,23 @@ void rpc_loop(void) {
     uint32_t delay_cval = RPC_READ_DELAY; // recv
     uint32_t delay_rval = RPC_WRITE_DELAY; //send
     uint32_t(*ccode)() = NULL;
+    if (g_rpc_status < 0) {
+        printf("[BOB] RPC mode disabled, status: %X\n", g_rpc_status);
+        return;
+    }
     printf("[BOB] entering RPC mode, delay %X\n", delay_cval);
+    g_rpc_status |= RPC_STATUS_RUNNING;
     while (true) {
         statusled(STATUS_RPC_WAIT);
         delay(delay_cval);
+
+        if (g_rpc_status & RPC_STATUS_REQUEST_BLOCK) {
+            g_rpc_status |= RPC_STATUS_BLOCKED;
+            while (g_rpc_status & RPC_STATUS_REQUEST_BLOCK) {
+                delay(RPC_BLOCKED_DELAY);
+            }
+            g_rpc_status &= ~RPC_STATUS_BLOCKED;
+        }
 
         statusled(STATUS_RPC_READ);
         memset(&rpc_buf, 0, sizeof(rpc_buf_s));
@@ -38,6 +53,8 @@ void rpc_loop(void) {
 
         printf("[BOB] RPC CMD %X\n", rpc_buf.cmd.cmd_id);
         statusled(STATUS_RPC_EXECUTE);
+
+        g_rpc_status |= RPC_STATUS_INCMD;
 
         cret = -1;
         xsize = 0;
@@ -74,6 +91,10 @@ void rpc_loop(void) {
             hexdump(rpc_buf.cmd.args[0], rpc_buf.cmd.args[1], rpc_buf.cmd.args[2]);
             cret = 0;
             break;
+        case RPC_CMD_MEMSET32:
+            cret = (uint32_t)memset32((void*)rpc_buf.cmd.args[0], rpc_buf.cmd.args[1], rpc_buf.cmd.args[2]);
+            break;
+            
         case RPC_CMD_COPYTO:
             cret = (uint32_t)memcpy((void*)rpc_buf.cmd.args[0], rpc_buf.extra_data, rpc_buf.cmd.args[1]);
             break;
@@ -96,6 +117,8 @@ void rpc_loop(void) {
             break;
         }
 
+        g_rpc_status &= ~RPC_STATUS_INCMD;
+
         statusled(STATUS_RPC_WAIT);
         delay(delay_rval);
 
@@ -117,7 +140,12 @@ void rpc_loop(void) {
 
         if (rpc_buf.cmd.cmd_id == (RPC_CMD_STOP_RPC & ~RPC_FLAG_REPLY))
             break;
+
+        if (g_rpc_status & RPC_STATUS_REQUEST_STOP)
+            break;
     }
+
+    g_rpc_status &= 0xFFFFFF00; // clear status, keep requests
 
     printf("[BOB] exiting RPC mode\n");
     statusled(STATUS_RPC_EXIT);

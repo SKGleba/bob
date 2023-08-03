@@ -1,20 +1,30 @@
 #include "include/types.h"
+#include "include/clib.h"
 #include "include/utils.h"
 #include "include/ex.h"
 #include "include/maika.h"
 #include "include/paddr.h"
 #include "include/crypto.h"
 
-int crypto_bigmacDefaultCmd(bool second_channel, uint32_t src, uint32_t dst, uint32_t sz, uint32_t cmd, uint32_t work_ks, uint32_t iv, uint32_t unk_status) {
+int crypto_bigmacDefaultCmd(bool second_channel, uint32_t src, uint32_t dst, uint32_t sz, uint32_t cmd, uint32_t work_key, uint32_t iv, uint32_t unk_status) {
 
     maika_s* maika = (maika_s*)MAIKA_OFFSET;
 
     maika->bigmac_ctrl.channel[second_channel].src = src;
     maika->bigmac_ctrl.channel[second_channel].dst = dst;
     maika->bigmac_ctrl.channel[second_channel].sz = sz;
-    maika->bigmac_ctrl.channel[second_channel].work_ks = work_ks;
+    
+    if (cmd & CRYPTO_BIGMAC_FUNC_FLAG_USE_EXT_KEY) {
+        if (second_channel)
+            memcpy((void*)maika->bigmac_ctrl.external_key_ch1, (void*)work_key, 8 + ((cmd & 0x300) >> 5));
+        else
+            memcpy((void*)maika->bigmac_ctrl.external_key_ch0, (void*)work_key, 8 + ((cmd & 0x300) >> 5));
+    } else
+        maika->bigmac_ctrl.channel[second_channel].work_ks = work_key;
+    
     if (iv)
         maika->bigmac_ctrl.channel[second_channel].iv = iv;
+    
     maika->bigmac_ctrl.channel[second_channel].func = cmd;
 
     maika->bigmac_ctrl.unk_status = unk_status;
@@ -55,7 +65,7 @@ void crypto_waitStopBigmacOps(bool disable_future_ops) {
 uint32_t crypto_memset(bool second_channel, uint32_t addr, uint32_t len, uint32_t fill_value32) {
     maika_s* maika = (maika_s*)MAIKA_OFFSET;
     maika->bigmac_ctrl.channel[second_channel].fill_v32 = fill_value32;
-    uint32_t ret = crypto_bigmacDefaultCmd(second_channel, 0, addr, len, CRYPTO_DMAC4_FUNC_MEMSET, 0, 0, 0);
+    uint32_t ret = crypto_bigmacDefaultCmd(second_channel, 0, addr, len, CRYPTO_BIGMAC_FUNC_MEMSET, 0, 0, 0);
     maika->bigmac_ctrl.unk_status = 0;
     return ret;
 }

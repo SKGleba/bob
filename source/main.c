@@ -71,16 +71,19 @@ void init(bob_config* arg_config) {
         options.ce_framework_parms[1]->status = options.ce_framework_parms[1]->exp_status;
     }
 
+    g_uart_bus = (options.uart_params & 0x0F000000) >> 0x18;
+
 #ifndef SILENT
     statusled(STATUS_INIT_UART);
-    uart_init(UART_BUS, UART_RATE);
+    uart_init(g_uart_bus, options.uart_params & 0xFFFFF);
     printf("[BOB] init bob [%X], me @ %X\n", get_build_timestamp(), init);
 #endif
 
-    statusled(STATUS_INIT_TEST);
-
     // test test stuff
-    test();
+    if (options.run_tests) {
+        statusled(STATUS_INIT_TEST);
+        test();
+    }
 
     statusled(STATUS_INIT_ICACHE);
 
@@ -102,9 +105,7 @@ void test(void) {
     _MEP_SYNC_BUS_;
 
     printf("[BOB] killing arm...\n");
-    vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_LPDDR0, XBAR_ACCESS_CONTROL_WHITELIST) = 0;
-    //vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_SPAD32K, XBAR_ACCESS_CONTROL_WHITELIST) = 0;
-    delay(10000);
+    pervasive_control_reset(PERV_CTRL_RESET_DEV_ARM, 0xFFFFFFFF, true, true);
 
     printf("[BOB] arm is dead, disable the OLED screen...\n");
     gpio_port_clear(0, GPIO_PORT_OLED);

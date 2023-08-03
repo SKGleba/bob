@@ -1,6 +1,10 @@
 	.file	"main.c"
-	.local	options
-	.comm	options,8,4
+	.section .farbss,"aw"
+	.p2align 2
+	.type	options,@object
+	.size	options,16
+options:
+	.zero	16
 	.text
 	.core
 	.p2align 1
@@ -10,8 +14,9 @@ ce_framework:
 	# frame: 32   32 regs
 	add	$sp, -32
 	sw	$5, 20($sp)
+	movh	$5, %hi(options)
+	add3	$5, $5, %lo(options)
 	sll3	$0, $1, 2
-	movu	$5, options
 	ldc	$11, $lp
 	add3	$5, $5, $0
 	sw	$6, 16($sp)
@@ -30,28 +35,20 @@ ce_framework:
 	mov	$2, 105
 	sb	$2, 3($3)
 	lw	$8, 4($3)
-	mov	$1, 12
-	bsr	debug_setGpoCode
 	mov	$1, 0
 	bsr	enable_icache
-	mov	$1, 13
-	mov	$7, $0
-	bsr	debug_setGpoCode
 	lw	$6, ($5)
+	mov	$7, $0
 	add3	$2, $6, 3
 	lw	$1, 8($6)
 	jsr	$8
 	sw	$0, 12($6)
-	mov	$1, 14
-	bsr	debug_setGpoCode
 	mov	$1, $7
 	bsr	enable_icache
 	lw	$3, ($5)
-	mov	$1, 15
+	mov	$0, 1
 	lb	$2, 2($3)
 	sb	$2, 3($3)
-	bsr	debug_setGpoCode
-	mov	$0, 1
 .L1:
 	lw	$8, 8($sp)
 	lw	$7, 12($sp)
@@ -81,15 +78,14 @@ ce_framework:
 init:
 	# frame: 16   16 regs
 	add	$sp, -16
-	sw	$5, 4($sp)
 	ldc	$11, $lp
-	mov	$5, $1
+	sw	$5, 4($sp)
 	sw	$11, ($sp)
 	di
-	mov	$1, 1
-	bsr	debug_setGpoCode
-	lw	$3, ($5)
-	sw	$3, (options)
+	movh	$2, %hi(options)
+	lw	$3, ($1)
+	mov	$5, $2
+	sw	$3, %lo(options)($2)
 	beqz	$3, .L8
 	mov	$2, 0
 	sw	$2, 12($3)
@@ -103,39 +99,43 @@ init:
 	movh	$3, 0xe000
 	sw	$2, 16($3)
 .L8:
-	lw	$3, 4($5)
-	sw	$3, (options+4)
+	lw	$3, 4($1)
+	mov	$2, $5
+	add3	$2, $2, %lo(options)
+	sw	$3, 4($2)
 	beqz	$3, .L10
 	mov	$2, 0
 	sw	$2, 12($3)
 	lb	$2, 2($3)
 	sb	$2, 3($3)
 .L10:
-	mov	$1, 2
-	bsr	debug_setGpoCode
-	movu	$2, 65562
-	mov	$1, 1
+	add3	$5, $5, %lo(options)
+	movh	$3, %hi(g_uart_bus)
+	lw	$2, 8($5)
+	mov	$1, $2
+	srl	$1, 24
+	and3	$1, $1, 0xf
+	sw	$1, %lo(g_uart_bus)($3)
+	movu	$3, 1048575
+	and	$2, $3
 	bsr	uart_init
 	bsr	get_build_timestamp
 	mov	$2, $0
 	movu	$3, init
 	movu	$1, .LC0
 	bsr	debug_printFormat
-	mov	$1, 3
-	bsr	debug_setGpoCode
+	lw	$3, 12($5)
+	beqz	$3, .L11
 	bsr	test
-	mov	$1, 4
-	bsr	debug_setGpoCode
+.L11:
 	mov	$1, 1
 	bsr	enable_icache
 	movh	$3, 0x1
 	mov	$2, 0
 	movh	$1, 0x30
 	bsr	memset
-	mov	$1, 5
-	bsr	debug_setGpoCode
 #APP
-;# 94 "source/main.c" 1
+;# 97 "source/main.c" 1
 	jmp vectors_exceptions
 
 ;# 0 "" 2
@@ -178,12 +178,11 @@ test:
 	syncm
 	movu	$1, .LC2
 	bsr	debug_printFormat
-	movh	$3, 0xec06
-	or3	$3, $3, 0x448
-	mov	$2, 0
-	sw	$2, ($3)
-	mov	$1, 10000 # 0x2710
-	bsr	delay
+	mov	$4, 1
+	mov	$3, 1
+	mov	$2, -1 # 0xffff
+	mov	$1, 0
+	bsr	pervasive_control_reset
 	movu	$1, .LC3
 	bsr	debug_printFormat
 	mov	$2, 0

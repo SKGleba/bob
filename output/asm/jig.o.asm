@@ -155,8 +155,9 @@ jig_read_shared_buffer:
 	bsr	ernie_exec_cmd
 	mov	$7, $0
 	lw	$0, 4($sp)
+	movh	$2, %hi(g_ernie_comms+36)
 	mov	$3, $5
-	movu	$2, g_ernie_comms+36
+	add3	$2, $2, %lo(g_ernie_comms+36)
 	add3	$1, $0, $8
 	bsr	memcpy
 .L13:
@@ -184,9 +185,10 @@ jig_read_shared_buffer:
 	bsr	ernie_exec_cmd
 	mov	$7, $0
 	lw	$0, 4($sp)
+	movh	$2, %hi(g_ernie_comms+36)
 	mov	$3, 24
-	movu	$2, g_ernie_comms+36
 	add3	$1, $0, $8
+	add3	$2, $2, %lo(g_ernie_comms+36)
 	bsr	memcpy
 	lw	$10, ($sp)
 	and3	$8, $10, 255

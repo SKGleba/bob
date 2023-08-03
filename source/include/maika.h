@@ -24,6 +24,7 @@ struct _maika_mailbox {
     reg cry2sc_inv[2];
     reg sc2cry_inv[2];
     reg unk_inv[4]; // guessed
+    reg incoming_state_80; // overlord writing sc2cry changes this
 };
 typedef struct _maika_mailbox maika_mailbox;
 

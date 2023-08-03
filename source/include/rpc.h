@@ -5,6 +5,14 @@
 #define RPC_FLAG_REPLY 0b10000000 // data is my reply
 #define RPC_FLAG_EXTRA 0b01000000 // use extra_data
 
+#define RPC_STATUS_RUNNING 0b1
+#define RPC_STATUS_BLOCKED 0xb10
+#define RPC_STATUS_INCMD 0xb100
+
+#define RPC_STATUS_REQUEST_STOP 0x8000
+#define RPC_STATUS_REQUEST_BLOCK 0x800000
+#define RPC_STATUS_DISABLED 0x80000000
+
 enum RPC_COMMANDS {
     RPC_CMD_NOP,
     RPC_CMD_READ32,
@@ -15,6 +23,7 @@ enum RPC_COMMANDS {
     RPC_CMD_STOP_RPC,
     RPC_CMD_SET_PUSH,
     RPC_CMD_HEXDUMP,
+    RPC_CMD_MEMSET32,
     RPC_CMD_COPYTO = RPC_FLAG_EXTRA,
     RPC_CMD_COPYFROM,
     RPC_CMD_EXEC, // exec arg0(arg1, arg2, &extra) | ret to arg0
@@ -34,6 +43,8 @@ struct _rpc_buf_s { // size is 0x40
     uint8_t extra_data[JIG_KERMIT_SHBUF_SIZE - sizeof(rpc_cmd_s)];
 } __attribute__((packed));
 typedef struct _rpc_buf_s rpc_buf_s;
+
+extern int g_rpc_status;
 
 void rpc_loop(void);
 

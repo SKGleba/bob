@@ -211,6 +211,22 @@ gpio_acquire_intr:
 	ret
 	.size	gpio_acquire_intr, .-gpio_acquire_intr
 	.p2align 1
+	.globl gpio_enable_port
+	.type	gpio_enable_port, @function
+gpio_enable_port:
+	mov	$3, 1
+	sll	$3, $2
+	movh	$2, 0xe010
+	bnez	$1, .L25
+	movh	$2, 0xe20a
+.L25:
+	lw	$1, 28($2)
+	nor	$3, $3
+	and	$3, $1
+	sw	$3, 28($2)
+	ret
+	.size	gpio_enable_port, .-gpio_enable_port
+	.p2align 1
 	.globl gpio_init
 	.type	gpio_init, @function
 gpio_init:
@@ -231,7 +247,7 @@ gpio_init:
 	mov	$2, 1
 	mov	$1, 64
 	bsr	pervasive_control_reset
-	beqz	$5, .L24
+	beqz	$5, .L27
 	mov	$3, 1
 	mov	$2, 7
 	mov	$1, 0
@@ -242,14 +258,14 @@ gpio_init:
 	bsr	gpio_set_port_mode
 	mov	$5, 16
 	mov	$6, 24
-.L26:
+.L29:
 	mov	$2, $5
 	mov	$3, 1
 	mov	$1, 0
 	add	$5, 1
 	bsr	gpio_set_port_mode
-	bne	$5, $6, .L26
-.L24:
+	bne	$5, $6, .L29
+.L27:
 	lw	$6, 8($sp)
 	lw	$5, 12($sp)
 	lw	$11, 4($sp)

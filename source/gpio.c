@@ -6,7 +6,7 @@
 
 void gpio_set_port_mode(int bus, int port, int mode) {
     volatile unsigned int* gpio_regs = GPIO_REGS(bus);
-    gpio_regs[0] = (gpio_regs[0] & ~(1 << port)) | (mode << port);
+    gpio_regs[0] = (mode << port) | (gpio_regs[0] & ~(1 << port));
     _MEP_SYNC_BUS_
 }
 
@@ -64,6 +64,12 @@ int gpio_acquire_intr(int bus, int port) {
     gpio_regs[0x12] = mask;
     _MEP_SYNC_BUS_
     return ret;
+}
+
+void gpio_enable_port(int bus, int port) {
+    unsigned int mask = 1 << port;
+    volatile unsigned int* gpio_regs = GPIO_REGS(bus);
+    gpio_regs[0x07] = ~(mask | ~gpio_regs[0x07]);
 }
 
 void gpio_init(bool init_leds) {

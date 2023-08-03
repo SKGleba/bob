@@ -43,5 +43,6 @@ void gpio_set_intr_mode(int bus, int port, int mode);
 int gpio_query_intr(int bus, int port);
 int gpio_acquire_intr(int bus, int port);
 void gpio_init(bool init_leds);
+void gpio_enable_port(int bus, int port);
 
 #endif

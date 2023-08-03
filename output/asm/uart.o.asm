@@ -1,4 +1,11 @@
 	.file	"uart.c"
+	.globl g_uart_bus
+	.section .far,"aw"
+	.p2align 2
+	.type	g_uart_bus, @object
+	.size	g_uart_bus, 4
+g_uart_bus:
+	.zero	4
 	.text
 	.core
 	.p2align 1
@@ -60,7 +67,7 @@ uart_init:
 	jmp	$11
 .L3:
 #APP
-;# 27 "source/uart.c" 1
+;# 29 "source/uart.c" 1
 	syncm
 
 ;# 0 "" 2
@@ -82,7 +89,7 @@ uart_write:
 	ret
 .L6:
 #APP
-;# 34 "source/uart.c" 1
+;# 36 "source/uart.c" 1
 	syncm
 
 ;# 0 "" 2

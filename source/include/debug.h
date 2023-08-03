@@ -80,6 +80,7 @@ void debug_printRange(char* addr, uint32_t size, int show_addr);
 void debug_setGpoCode(uint8_t code);
 
 #ifdef ENABLE_REGDUMP
+extern void debug_s_regdump(void);
 #define regdump debug_s_regdump
 #endif
 

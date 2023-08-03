@@ -15,25 +15,26 @@
 #include "include/perv.h"
 #include "include/spi.h"
 #include "include/rpc.h"
+#include "include/paddr.h"
+#include "include/compat.h"
 
 #include "include/glitch.h"
 
 void glitch_test(void) {
     statusled(0x31);
+    hexdump(0x40000, 0x20000, true);
+
+    statusled(0x32);
     for (uint32_t d_addr = 0x40000; d_addr < 0x60000; d_addr += 0x10)
         jig_update_shared_buffer((uint8_t*)d_addr, 0, 0x10, true);
 
-#ifndef SILENT
-    statusled(0x32);
-    hexdump(0x40000, 0x20000, true);
-#endif
-
     statusled(0x33);
-
-    delay(20 * 1000 * 5);
+    delay(0x10000);
 }
 
 void glitch_init(void) {
+    vp 0xe3103040 = 0x10007; // set max clock
+    
     _MEP_INTR_DISABLE_ // disable interrupts
 
 #ifndef NO_STATUS_LED
@@ -44,24 +45,38 @@ void glitch_init(void) {
     gpio_init(false);
 #endif
 
-    statusled(STATUS_GLINIT_ERNIE);
-    ernie_init(true);
-
-    statusled(STATUS_GLINIT_JIG);
-    uint32_t msg = 0xCAFEBABE;
-    jig_update_shared_buffer((uint8_t*)&msg, 0, 4, true);
-
 #ifndef SILENT
     statusled(STATUS_GLINIT_UART);
     uart_init(UART_BUS, UART_RATE);
     printf("[BOB] glitch_init bob [%X], me @ %X\n", get_build_timestamp(), glitch_init);
+    for (int i = 0; i < 0x100; i++)
+        printf("ping pong ding dong "); // spam uart for the glitcher watchdog
 #endif
+
+    statusled(STATUS_GLINIT_ERNIE);
+    printf("[BOB] ernie init\n");
+    ernie_init(true, true);
+
+    statusled(STATUS_GLINIT_JIG);
+    printf("[BOB] jig init\n");
+    uint32_t msg = 0xCAFEBABE;
+    jig_update_shared_buffer((uint8_t*)&msg, 0, 0x10, true);
 
     // test test stuff
     statusled(STATUS_GLINIT_TEST);
+    printf("[BOB] test test test\n");
     glitch_test();
 
     // start the rpc server
     statusled(STATUS_GLINIT_RPC);
-    rpc_loop();
+    printf("[BOB] move stack & exit to rpc\n");
+    asm(
+        "movu $1, 0x5b800\n"
+        "mov $gp, $1\n"
+        "movu $0, 0x5aff0\n"
+        "mov $sp, $0\n"
+        "bsr rpc_loop\n"
+        "mov $0, $0\n"
+        "jmp vectors_exceptions\n"
+    );
 }

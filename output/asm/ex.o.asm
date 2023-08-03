@@ -22,23 +22,15 @@ c_RESET:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_s_regdump
-	mov	$1, 16
-	mov	$tp, $5
-	mov	$gp, $6
-	bsr	debug_setGpoCode
 	mov	$3, 0
 	stc	$3, $exc
 	mov	$3, 0
 	stc	$3, $tmp
 	movu	$2, .LC0
-	mov	$1, 1
+	mov	$1, 0
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	uart_print
-	mov	$1, 15
-	mov	$tp, $5
-	mov	$gp, $6
-	bsr	debug_setGpoCode
 	ei
 .L2:
 	mov	$1, 1
@@ -74,10 +66,6 @@ c_SWI:
 	sw	$2, 16($sp)
 	sw	$3, 12($sp)
 	sw	$4, 8($sp)
-	mov	$1, 17
-	mov	$tp, $5
-	mov	$gp, $6
-	bsr	debug_setGpoCode
 	lw	$3, 8($sp)
 	sw	$3, ($sp)
 	lw	$4, 12($sp)
@@ -92,14 +80,10 @@ c_SWI:
 	mov	$gp, $6
 	bsr	delay
 	movu	$2, .LC2
-	mov	$1, 1
+	mov	$1, 0
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	uart_print
-	mov	$1, 18
-	mov	$tp, $5
-	mov	$gp, $6
-	bsr	debug_setGpoCode
 	nop
 	lw	$gp, 40($sp)
 	lw	$tp, 44($sp)
@@ -132,12 +116,8 @@ c_IRQ:
 	sw	$11, 4($sp)
 	mov	$5, $tp
 	mov	$6, $gp
-	mov	$1, 19
-	mov	$tp, $5
-	mov	$gp, $6
-	bsr	debug_setGpoCode
 	movu	$2, .LC3
-	mov	$1, 1
+	mov	$1, 0
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	uart_print
@@ -146,14 +126,10 @@ c_IRQ:
 	mov	$gp, $6
 	bsr	delay
 	movu	$2, .LC4
-	mov	$1, 1
+	mov	$1, 0
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	uart_print
-	mov	$1, 20
-	mov	$tp, $5
-	mov	$gp, $6
-	bsr	debug_setGpoCode
 	nop
 	lw	$gp, 16($sp)
 	lw	$tp, 20($sp)
@@ -186,12 +162,8 @@ c_ARM_REQ:
 	sw	$11, 4($sp)
 	mov	$5, $tp
 	mov	$6, $gp
-	mov	$1, 21
-	mov	$tp, $5
-	mov	$gp, $6
-	bsr	debug_setGpoCode
 	movu	$2, .LC5
-	mov	$1, 1
+	mov	$1, 0
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	uart_print
@@ -211,14 +183,10 @@ c_ARM_REQ:
 	bsr	compat_IRQ7_handleCmd
 .L7:
 	movu	$2, .LC6
-	mov	$1, 1
+	mov	$1, 0
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	uart_print
-	mov	$1, 22
-	mov	$tp, $5
-	mov	$gp, $6
-	bsr	debug_setGpoCode
 	nop
 	lw	$gp, 16($sp)
 	lw	$tp, 20($sp)
@@ -251,10 +219,6 @@ c_OTHER_INT:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_s_regdump
-	mov	$1, 23
-	mov	$tp, $5
-	mov	$gp, $6
-	bsr	debug_setGpoCode
 	di
 	ldc	$2, $exc
 	ldc	$3, $epc
@@ -289,10 +253,6 @@ c_OTHER_EXC:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_s_regdump
-	mov	$1, 24
-	mov	$tp, $5
-	mov	$gp, $6
-	bsr	debug_setGpoCode
 	di
 	ldc	$2, $exc
 	ldc	$3, $epc
@@ -329,10 +289,6 @@ PANIC:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_s_regdump
-	mov	$1, 25
-	mov	$tp, $5
-	mov	$gp, $6
-	bsr	debug_setGpoCode
 	di
 	lw	$3, ($sp)
 	lw	$2, 4($sp)
@@ -354,36 +310,20 @@ PANIC:
 	.globl c_DBG
 	.type	c_DBG, @function
 c_DBG:
-	# frame: 24   24 regs
-	add	$sp, -24
-	sw	$5, 12($sp)
-	sw	$6, 8($sp)
-	sw	$tp, 20($sp)
-	sw	$gp, 16($sp)
+	# frame: 16   16 regs
+	add	$sp, -16
+	sw	$tp, 12($sp)
+	sw	$gp, 8($sp)
 	ldc	$11, $lp
 	sw	$11, 4($sp)
-	mov	$5, $tp
-	mov	$6, $gp
-	mov	$1, 26
-	mov	$tp, $5
-	mov	$gp, $6
-	bsr	debug_setGpoCode
 	movu	$2, .LC10
-	mov	$1, 1
-	mov	$tp, $5
-	mov	$gp, $6
+	mov	$1, 0
 	bsr	uart_print
-	mov	$1, 27
-	mov	$tp, $5
-	mov	$gp, $6
-	bsr	debug_setGpoCode
 	nop
-	lw	$gp, 16($sp)
-	lw	$tp, 20($sp)
-	lw	$6, 8($sp)
-	lw	$5, 12($sp)
+	lw	$gp, 8($sp)
+	lw	$tp, 12($sp)
 	lw	$11, 4($sp)
-	add	$sp, 24
+	add	$sp, 16
 	jmp	$11
 	.size	c_DBG, .-c_DBG
 	.ident	"GCC: (WTF TEAM MOLECULE IS AT IT AGAIN?!) 6.3.0"
