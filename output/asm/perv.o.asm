@@ -18,13 +18,13 @@ pervasive_control_reset:
 	lw	$0, ($1)
 	beqz	$4, .L4
 	beqz	$3, .L5
-	erepeat	.L16
+	erepeat	.L15
+	nop
+.L15:
 	lw	$3, ($1)
-.L16:
-	and	$3, $2
-	bnez	$3, .L17
+	beq	$2, $3, .L16
 	# erepeat end
-.L17:
+.L16:
 .L4:
 	lw	$0, ($1)
 	ret
@@ -36,13 +36,13 @@ pervasive_control_reset:
 	sw	$0, ($1)
 	bra	.L3
 .L5:
-	erepeat	.L18
+	erepeat	.L17
 	lw	$3, ($1)
-.L18:
+.L17:
 	and	$3, $2
-	beqz	$3, .L19
+	beqz	$3, .L18
 	# erepeat end
-.L19:
+.L18:
 	bra	.L4
 	.size	pervasive_control_reset, .-pervasive_control_reset
 	.p2align 1
@@ -53,40 +53,40 @@ pervasive_control_gate:
 	or3	$0, $0, 0x800
 	add3	$1, $1, $0
 	sll	$1, 2
-	beqz	$3, .L21
+	beqz	$3, .L20
 	lw	$0, ($1)
 	or	$0, $2
 	sw	$0, ($1)
-.L22:
+.L21:
 	syncm
 	lw	$0, ($1)
-	beqz	$4, .L23
-	beqz	$3, .L24
-	erepeat	.L35
+	beqz	$4, .L22
+	beqz	$3, .L23
+	erepeat	.L33
+	nop
+.L33:
 	lw	$3, ($1)
-.L35:
-	and	$3, $2
-	bnez	$3, .L36
+	beq	$2, $3, .L34
 	# erepeat end
-.L36:
-.L23:
+.L34:
+.L22:
 	lw	$0, ($1)
 	ret
-.L21:
+.L20:
 	lw	$9, ($1)
 	mov	$0, $2
 	nor	$0, $0
 	and	$0, $9
 	sw	$0, ($1)
-	bra	.L22
-.L24:
-	erepeat	.L37
+	bra	.L21
+.L23:
+	erepeat	.L35
 	lw	$3, ($1)
-.L37:
+.L35:
 	and	$3, $2
-	beqz	$3, .L38
+	beqz	$3, .L36
 	# erepeat end
-.L38:
-	bra	.L23
+.L36:
+	bra	.L22
 	.size	pervasive_control_gate, .-pervasive_control_gate
 	.ident	"GCC: (WTF TEAM MOLECULE IS AT IT AGAIN?!) 6.3.0"

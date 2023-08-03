@@ -651,8 +651,9 @@ rpcp:
 	mov	$2, 1
 	mov	$1, 0
 	bsr	set_sd_op_mode
+	movh	$3, %hi(g_uart_bus)
 	movu	$2, .LC24
-	mov	$1, 0
+	lw	$1, %lo(g_uart_bus)($3)
 	bsr	uart_print
 	mov	$0, 0
 .L61:

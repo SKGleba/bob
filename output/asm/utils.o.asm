@@ -108,7 +108,7 @@ dret
 	.type	get_build_timestamp, @function
 get_build_timestamp:
 	movh	$0, 0x64cc
-	or3	$0, $0, 0x2338
+	or3	$0, $0, 0x5129
 	ret
 	.size	get_build_timestamp, .-get_build_timestamp
 	.p2align 1

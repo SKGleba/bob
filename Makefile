@@ -42,7 +42,7 @@ output/bob.bin: bob.bin bob_glitch.bin
 	xxd -i $< >> output/bob.bin.h
 	readelf -sW bob.elf | awk '{if ($$5 == "GLOBAL" && ($$4 == "FUNC" || $$4 == "OBJECT")) printf("#define bob_%s_addr 0x%s\n", $$8, $$2)}' > output/bob_exports.h
 	readelf -sW bob.elf | awk '{if ($$5 == "GLOBAL" && $$4 == "FUNC") printf(".global %s\n%s:\njmp 0x%s\n\n", $$8, $$8, $$2)}' > output/bob_import.s
-	echo ".bob_linker : {" > output/bob_linker.x && readelf -sW bob.elf | awk '{if ($$5 == "GLOBAL" && $$4 == "FUNC") printf("\t%s = 0x%s;\n", $$8, $$2)}' >> output/bob_linker.x && echo "}" >> output/bob_linker.x
+	echo ".bob_linker : {" > output/bob_linker.x && readelf -sW bob.elf | awk '{if ($$5 == "GLOBAL" && ($$4 == "FUNC" || $$4 == "OBJECT")) printf("\t%s = 0x%s;\n", $$8, $$2)}' >> output/bob_linker.x && echo "}" >> output/bob_linker.x
 # readelf -sW bob.elf | awk '{if ($$5 == "GLOBAL" && ($$4 == "FUNC" || $$4 == "OBJECT")) print $$8}' | while IFS= read -r entry; do def=$$(grep -whR $$entry source/include/ | grep -v -e "#define" | grep -i ";" | sed 's/extern //'); [ -z "$$def" ] || echo "$${def%??} = (void *)bob_"$$entry"_addr;"; done > output/bob_imports.c
 	mv bob.elf output/bob.elf
 	mv bob.bin output/bob.bin

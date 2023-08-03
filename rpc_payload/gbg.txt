@@ -1,0 +1,1714 @@
+#define TEST_COUNT 2
+
+__attribute__((section(".text.rpcp")))
+int rpcp(uint32_t arg0, uint32_t arg1, void* extra_data) {
+    printf("\n[RPCP] hello world (%X, %X, %X)\n", arg0, arg1, (uint32_t)extra_data);
+
+    uint32_t ret = 0;
+    int testno = 0;
+    int test_count = TEST_COUNT;
+    if (arg1)
+        test_count = arg1;
+do_tests:
+    testno++;
+    printf("[RPCP] test number %X\n", testno);
+
+    //vp 0xE0010010 = 0; // activate the disabled device
+
+    printf("[RPCP] LOOP_START\n");
+    for (uint32_t i = 0xE0000000; i < 0xE0090000; i -= -4) {
+        if (i == 0xE0010000 || i == 0xE0010008)
+            continue;
+        if (i == 0xE0010010)
+            continue;
+        if (i == 0xE0020048)
+            continue;
+        if (i > 0xE0040000 && i < 0xE0050000)
+            continue;
+        if (i > 0xE0062020 && i < 0xE0068000)
+            continue;
+        ret = vp i;
+        _MEP_SYNC_BUS_;
+        vp i = arg0;
+        _MEP_SYNC_BUS_;
+        if (ret != vp i)
+            printf("[RPCP] %X: %X -> %X\n", i, ret, vp i);
+        else if (ret)
+            printf("[RPCP] %X: %X\n", i, ret);
+    }
+
+    printf("[RPCP] KR 0x207 PROT %X\n", keyring_slot_prot(false, 0, 0x207));
+    printf("[RPCP] KR 0x600 PROT %X\n", keyring_slot_prot(false, 0, 0x600));
+    printf("[RPCP] KR 0x605 PROT %X\n", keyring_slot_prot(false, 0, 0x605));
+
+    if (testno < test_count)
+        goto do_tests;
+
+    print("[RPCP] bye\n\n");
+    return ret;
+}
+
+/*
+ 0x0 loop 1:
+    [RPCP] 0xE0050108: 0x00000003
+ 0x0 loop 2+:
+    [RPCP] 0xE0050108: 0x00000003
+    [RPCP] 0xE0050118: 0xE0050400
+    [RPCP] 0xE005011C: 0x00260201 -> 0x00000000
+*/
+
+-------------------------------------- -
+
+__attribute__((section(".text.rpcp")))
+int rpcp(uint32_t arg0, uint32_t arg1, void* extra_data) {
+    printf("\n[RPCP] hello world (%X, %X, %X)\n", arg0, arg1, (uint32_t)extra_data);
+
+    uint32_t ret = 0;
+    int testno = 0;
+    int test_count = TEST_COUNT;
+    if (arg1)
+        test_count = arg1;
+do_tests:
+    testno++;
+    printf("[RPCP] test number %X\n", testno);
+
+    printf("\n[RPCP] mode %X\n", vp 0xE0010010);
+    printf("[RPCP] KR 0x207 PROT %X\n", keyring_slot_prot(false, 0, 0x207));
+    printf("[RPCP] KR 0x600 PROT %X\n", keyring_slot_prot(false, 0, 0x600));
+    printf("[RPCP] KR 0x605 PROT %X\n", keyring_slot_prot(false, 0, 0x605));
+    printp(0xE005003C);
+
+    vp 0xE0010010 = 0b0;
+    printf("\n[RPCP] mode %X\n", vp 0xE0010010);
+    printf("[RPCP] KR 0x207 PROT %X\n", keyring_slot_prot(false, 0, 0x207));
+    printf("[RPCP] KR 0x600 PROT %X\n", keyring_slot_prot(false, 0, 0x600));
+    printf("[RPCP] KR 0x605 PROT %X\n", keyring_slot_prot(false, 0, 0x605));
+    printp(0xE005003C);
+
+    vp 0xE0010010 = 0b10;
+    printf("\n[RPCP] mode %X\n", vp 0xE0010010);
+    printf("[RPCP] KR 0x207 PROT %X\n", keyring_slot_prot(false, 0, 0x207));
+    printf("[RPCP] KR 0x600 PROT %X\n", keyring_slot_prot(false, 0, 0x600));
+    printf("[RPCP] KR 0x605 PROT %X\n", keyring_slot_prot(false, 0, 0x605));
+    printp(0xE005003C);
+
+    vp 0xE0010010 = 0b100;
+    printf("\n[RPCP] mode %X\n", vp 0xE0010010);
+    printf("[RPCP] KR 0x207 PROT %X\n", keyring_slot_prot(false, 0, 0x207));
+    printf("[RPCP] KR 0x600 PROT %X\n", keyring_slot_prot(false, 0, 0x600));
+    printf("[RPCP] KR 0x605 PROT %X\n", keyring_slot_prot(false, 0, 0x605));
+    printp(0xE005003C);
+
+    vp 0xE0010010 = 0b1000;
+    printf("\n[RPCP] mode %X\n", vp 0xE0010010);
+    printf("[RPCP] KR 0x207 PROT %X\n", keyring_slot_prot(false, 0, 0x207));
+    printf("[RPCP] KR 0x600 PROT %X\n", keyring_slot_prot(false, 0, 0x600));
+    printf("[RPCP] KR 0x605 PROT %X\n", keyring_slot_prot(false, 0, 0x605));
+    printp(0xE005003C);
+
+    vp 0xE0010010 = 0b10000;
+    printf("\n[RPCP] mode %X\n", vp 0xE0010010);
+    printf("[RPCP] KR 0x207 PROT %X\n", keyring_slot_prot(false, 0, 0x207));
+    printf("[RPCP] KR 0x600 PROT %X\n", keyring_slot_prot(false, 0, 0x600));
+    printf("[RPCP] KR 0x605 PROT %X\n", keyring_slot_prot(false, 0, 0x605));
+    printp(0xE005003C);
+
+    vp 0xE0010010 = 0b100000;
+    printf("\n[RPCP] mode %X\n", vp 0xE0010010);
+    printf("[RPCP] KR 0x207 PROT %X\n", keyring_slot_prot(false, 0, 0x207));
+    printf("[RPCP] KR 0x600 PROT %X\n", keyring_slot_prot(false, 0, 0x600));
+    printf("[RPCP] KR 0x605 PROT %X\n", keyring_slot_prot(false, 0, 0x605));
+    printp(0xE005003C);
+
+    vp 0xE0010010 = 0b1000000;
+    printf("\n[RPCP] mode %X\n", vp 0xE0010010);
+    printf("[RPCP] KR 0x207 PROT %X\n", keyring_slot_prot(false, 0, 0x207));
+    printf("[RPCP] KR 0x600 PROT %X\n", keyring_slot_prot(false, 0, 0x600));
+    printf("[RPCP] KR 0x605 PROT %X\n", keyring_slot_prot(false, 0, 0x605));
+    printp(0xE005003C);
+
+    vp 0xE0010010 = 0b10000000;
+    printf("\n[RPCP] mode %X\n", vp 0xE0010010);
+    printf("[RPCP] KR 0x207 PROT %X\n", keyring_slot_prot(false, 0, 0x207));
+    printf("[RPCP] KR 0x600 PROT %X\n", keyring_slot_prot(false, 0, 0x600));
+    printf("[RPCP] KR 0x605 PROT %X\n", keyring_slot_prot(false, 0, 0x605));
+    printp(0xE005003C);
+
+    vp 0xE0010010 = 0b100000000;
+    printf("\n[RPCP] mode %X\n", vp 0xE0010010);
+    printf("[RPCP] KR 0x207 PROT %X\n", keyring_slot_prot(false, 0, 0x207));
+    printf("[RPCP] KR 0x600 PROT %X\n", keyring_slot_prot(false, 0, 0x600));
+    printf("[RPCP] KR 0x605 PROT %X\n", keyring_slot_prot(false, 0, 0x605));
+    printp(0xE005003C);
+
+    vp 0xE0010010 = 0b1000000000;
+    printf("\n[RPCP] mode %X\n", vp 0xE0010010);
+    printf("[RPCP] KR 0x207 PROT %X\n", keyring_slot_prot(false, 0, 0x207));
+    printf("[RPCP] KR 0x600 PROT %X\n", keyring_slot_prot(false, 0, 0x600));
+    printf("[RPCP] KR 0x605 PROT %X\n", keyring_slot_prot(false, 0, 0x605));
+    printp(0xE005003C);
+
+    vp 0xE0010010 = 0b10000000000;
+    printf("\n[RPCP] mode %X\n", vp 0xE0010010);
+    printf("[RPCP] KR 0x207 PROT %X\n", keyring_slot_prot(false, 0, 0x207));
+    printf("[RPCP] KR 0x600 PROT %X\n", keyring_slot_prot(false, 0, 0x600));
+    printf("[RPCP] KR 0x605 PROT %X\n", keyring_slot_prot(false, 0, 0x605));
+    printp(0xE005003C);
+
+    vp 0xE0010010 = 0b100000000000;
+    printf("\n[RPCP] mode %X\n", vp 0xE0010010);
+    printf("[RPCP] KR 0x207 PROT %X\n", keyring_slot_prot(false, 0, 0x207));
+    printf("[RPCP] KR 0x600 PROT %X\n", keyring_slot_prot(false, 0, 0x600));
+    printf("[RPCP] KR 0x605 PROT %X\n", keyring_slot_prot(false, 0, 0x605));
+    printp(0xE005003C);
+
+    vp 0xE0010010 = 0b1;
+    printf("\n[RPCP] mode %X\n", vp 0xE0010010);
+    printf("[RPCP] KR 0x207 PROT %X\n", keyring_slot_prot(false, 0, 0x207));
+    printf("[RPCP] KR 0x600 PROT %X\n", keyring_slot_prot(false, 0, 0x600));
+    printf("[RPCP] KR 0x605 PROT %X\n", keyring_slot_prot(false, 0, 0x605));
+    printp(0xE005003C);
+
+    if (testno < test_count)
+        goto do_tests;
+
+    print("[RPCP] bye\n\n");
+    return ret;
+}
+
+-------------------------------------------------
+
+__attribute__((section(".text.rpcp")))
+int rpcp(uint32_t arg0, uint32_t arg1, void* extra_data) {
+    printf("\n[RPCP] hello world (%X, %X, %X)\n", arg0, arg1, (uint32_t)extra_data);
+
+    uint32_t ret = 0;
+    int testno = 0;
+    int test_count = TEST_COUNT;
+    if (arg1)
+        test_count = arg1;
+do_tests:
+    testno++;
+    printf("[RPCP] test number %X\n", testno);
+
+    //vp 0xE0010010 = 0; // activate the disabled device
+
+    printf("[RPCP] LOOP_START\n");
+    vp 0xE005011C = 0;
+    printf("[RPCP] write32 0xE005FFA0\n");
+    vp 0xE005FFA0 = 0;
+    
+    printp(0xE0050118);
+    printp(0xE005011C);
+    vp 0xE005011C = 0;
+
+    printf("[RPCP] crypto memcpy 0x0005c000 -> %X\n", arg0);
+    crypto_memcpy(testno - 1, arg0, 0x0005c000, 0x20);
+
+    printp(0xE0050118);
+    printp(0xE005011C);
+    vp 0xE005011C = 0;
+
+    printf("[RPCP] crypto memcpy %X -> 0x0005c000\n", arg0);
+    crypto_memcpy(testno - 1, 0x0005c000, arg0, 0x20);
+
+    printp(0xE0050118);
+    printp(0xE005011C);
+
+    if (testno < test_count)
+        goto do_tests;
+
+    print("[RPCP] bye\n\n");
+    return ret;
+}
+
+------------------------------
+
+#include "../source/include/types.h"
+
+#include "../source/include/defs.h"
+#include "../source/include/uart.h"
+#include "../source/include/debug.h"
+#include "../source/include/utils.h"
+#include "../source/include/clib.h"
+#include "../source/include/maika.h"
+#include "../source/include/crypto.h"
+#include "../source/include/spi.h"
+#include "../source/include/perv.h"
+#include "../source/include/gpio.h"
+
+#define TEST_COUNT 1
+
+void spi_deinit(int bus) {
+    pervasive_reset_enter_spi(bus);
+    pervasive_clock_disable_spi(bus);
+    _MEP_SYNC_BUS_
+}
+
+__attribute__((section(".text.rpcp")))
+int rpcp(uint32_t arg0, uint32_t arg1, void* extra_data) {
+    printf("\n[RPCP] hello world (%X, %X, %X)\n", arg0, arg1, (uint32_t)extra_data);
+
+    uint32_t ret = 0;
+    int testno = 0;
+    int test_count = TEST_COUNT;
+    if (arg1)
+        test_count = arg1;
+do_tests:
+    testno++;
+    printf("[RPCP] test number %X\n", testno);
+
+    spi_deinit(0);
+    spi_deinit(1);
+    spi_deinit(2);
+
+    pervasive_reset_enter_gpio();
+    pervasive_clock_disable_gpio();
+    pervasive_clock_enable_gpio();
+    pervasive_reset_exit_gpio();
+
+    gpio_set_port_mode(0, 3, GPIO_PORT_MODE_OUTPUT);
+
+    vp 0xE0010010 = 0;
+
+    *(uint32_t*)0xE0020000 = 0xFF;
+    *(uint32_t*)0xE0020004 = 0xFF;
+
+    while (1) {
+        vp 0xE0000020 = 0xCAFEBABE;
+        vp 0xE0000024 = 0xF00DBEEF;
+        hexdump(0xE0000000, 0x80, true);
+        delay(0x3000);
+        vp 0xE0000028 = -1;
+        vp 0xE000002C = -1;
+        vp 0xE0000060 = -1;
+        vp 0xE0000064 = -1;
+    }
+
+    if (testno < test_count)
+        goto do_tests;
+
+    print("[RPCP] bye\n\n");
+    return ret;
+}
+
+-----------------------------
+
+__attribute__((section(".text.rpcp")))
+int rpcp(uint32_t arg0, uint32_t arg1, void* extra_data) {
+    printf("\n[RPCP] hello world (%X, %X, %X)\n", arg0, arg1, (uint32_t)extra_data);
+
+    uint32_t ret = 0;
+    int testno = 0;
+    int test_count = TEST_COUNT;
+    if (arg1)
+        test_count = arg1;
+do_tests:
+    testno++;
+    printf("[RPCP] test number %X\n", testno);
+
+    
+    for (uint32_t i = 0xE0000000; i < 0xE0100000; i -= -4) {
+        if (i == 0xE0040000)
+            i = 0xE0050000;
+        if (i == 0xE0058000)
+            i = 0xE0068000;
+        if (i == 0xE00C0000)
+            i = 0xE00D0000;
+        if (vp i)
+            printp(i);
+    }
+    
+    printf("[RPCP] kr600 %X\n", keyring_slot_prot(false, 0, 0x600));
+    hexdump(KEYRING_SLOT(0x600), 0x20, false);
+
+    printf("[RPCP] kr605 %X\n", keyring_slot_prot(false, 0, 0x605));
+    hexdump(KEYRING_SLOT(0x605), 0x20, false);
+
+    printf("[RPCP] ras_ns: %X\n", readAs(0x40000000, 4));
+    printf("[RPCP] ras_s2: %X\n", readAs(0x40000, 2));
+    printf("[RPCP] ras_s: %X\n", readAs(0x40000, 0));
+
+
+    if (testno < test_count)
+        goto do_tests;
+
+    print("[RPCP] bye\n\n");
+    return ret;
+}
+
+
+
+-------------------------
+
+    {
+        int (*brom_init_storages)(int id, int someflag) = (void*)0x5cf58;
+        int (*brom_init_mmc)(int id, void* ctx_out) = (void*)0x5dcbe;
+        int (*brom_read_sector_mmc)(uint32_t ctx, uint32_t sector, void* dst, uint32_t count) = (void*)0x5dbce;
+        uint32_t ctx[2];
+        memset32(0x4b000, 0, 0x200);
+        ret = brom_init_storages(0, (((vp 0xE0064060) >> 0x10) & 1) == 0);
+        printf("[RPCP] brom_init_storages %X\n", ret);
+        if (ret >= 0) {
+            ret = brom_init_mmc(0, ctx);
+            printf("[RPCP] brom_init_mmc %X | ctx: %X\n", ret, ctx[0]);
+            if (ret >= 0) {
+                ret = brom_read_sector_mmc(ctx[0], 0, 0x4b000, 1);
+                printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                if (ret >= 0) {
+                    hexdump(0x4b000, 0x200, true);
+                    memset32(0x4b000, 0, 0x200);
+                    
+                    vp 0xE0070008 = 0x020E020F;
+                    vp 0xE0070000 = 1;
+                    vp 0xE0070000 = 0;
+                    
+                    ret = brom_read_sector_mmc(ctx[0], 1, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b000, 0x200, true);
+                }
+            }
+        }
+    }
+
+------------------------
+
+
+ {
+        int (*brom_init_storages)(int id, int someflag) = (void*)0x5cf58;
+        int (*brom_init_mmc)(int id, void* ctx_out) = (void*)0x5dcbe;
+        int (*brom_read_sector_mmc)(uint32_t ctx, uint32_t sector, void* dst, uint32_t count) = (void*)0x5dbce;
+        uint32_t ctx[2];
+        memset32(0x4b000, 0, 0x200);
+        ret = brom_init_storages(0, (((vp 0xE0064060) >> 0x10) & 1) == 0);
+        printf("[RPCP] brom_init_storages %X\n", ret);
+        if (ret >= 0) {
+            ret = brom_init_mmc(0, ctx);
+            printf("[RPCP] brom_init_mmc %X | ctx: %X\n", ret, ctx[0]);
+            if (ret >= 0) {
+                ret = brom_read_sector_mmc(ctx[0], 0, 0x4b000, 1);
+                printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                if (ret >= 0) {
+                    printf("[RPCP] default:\n");
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, true);
+
+                    printf("[RPCP] try 0x02120213:\n");
+                    vp 0xE0070008 = 0x02120213;
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, true);
+
+                    printf("[RPCP] try 0x02040205:\n");
+                    vp 0xE0070008 = 0x02040205;
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, true);
+
+                    printf("[RPCP] try 0x020E020E:\n");
+                    vp 0xE0070008 = 0x020E020E;
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, true);
+
+                    printf("[RPCP] try 0x01000100:\n");
+                    vp 0xE0070008 = 0x01000100;
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, true);
+
+                    printf("[RPCP] end with 0x020E020F:\n");
+                    vp 0xE0070008 = 0x020E020F;
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, true);
+                }
+            }
+        }
+    }
+
+
+--------------------------------------
+
+{
+        int (*brom_init_storages)(int id, int someflag) = (void*)0x5cf58;
+        int (*brom_init_mmc)(int id, void* ctx_out) = (void*)0x5dcbe;
+        int (*brom_read_sector_mmc)(uint32_t ctx, uint32_t sector, void* dst, uint32_t count) = (void*)0x5dbce;
+        uint32_t ctx[2];
+        memset32(0x4b000, 0, 0x200);
+        ret = brom_init_storages(0, (((vp 0xE0064060) >> 0x10) & 1) == 0);
+        printf("[RPCP] brom_init_storages %X\n", ret);
+        if (ret >= 0) {
+            ret = brom_init_mmc(0, ctx);
+            printf("[RPCP] brom_init_mmc %X | ctx: %X\n", ret, ctx[0]);
+            if (ret >= 0) {
+                ret = brom_read_sector_mmc(ctx[0], 0, 0x4b000, 1);
+                printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                if (ret >= 0) {
+                    printf("[RPCP] default:\n");
+                    memset32(0x4b000, 0, 0x200);
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, true);
+
+                    printf("[RPCP] try invalid:\n");
+                    memset32(0x4b000, 0, 0x200);
+                    vp 0xE0070008 = 0x08000800;
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, true);
+
+                    printf("[RPCP] try 0x02120213:\n");
+                    memset32(0x4b000, 0, 0x200);
+                    vp 0xE0070008 = 0x02120213;
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, true);
+
+                    printf("[RPCP] try 0x02040205:\n");
+                    memset32(0x4b000, 0, 0x200);
+                    vp 0xE0070008 = 0x02040205;
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, true);
+
+                    printf("[RPCP] try 0x01000100 filled with 00:\n");
+                    memset32(0x4b000, 0, 0x200);
+                    crypto_bigmacDefaultCmd(false, 0x4b000, 0x100, 0x20, 0x10000000 | CRYPTO_DMAC4_FUNC_MEMCPY, 0, 0, 0);
+                    vp 0xE0070008 = 0x01000100;
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, true);
+
+                    printf("[RPCP] try 0x01000100 filled with FF:\n");
+                    memset32(0x4b000, 0xFFFFFFFF, 0x200);
+                    crypto_bigmacDefaultCmd(false, 0x4b000, 0x100, 0x20, 0x10000000 | CRYPTO_DMAC4_FUNC_MEMCPY, 0, 0, 0);
+                    vp 0xE0070008 = 0x01000100;
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, true);
+
+                    printf("[RPCP] end with 0x020E020F:\n");
+                    vp 0xE0070008 = 0x020E020F;
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, true);
+                }
+            }
+        }
+    }
+
+---------------------------------------
+
+
+{
+        int (*brom_init_storages)(int id, int someflag) = (void*)0x5cf58;
+        int (*brom_init_mmc)(int id, void* ctx_out) = (void*)0x5dcbe;
+        int (*brom_read_sector_mmc)(uint32_t ctx, uint32_t sector, void* dst, uint32_t count) = (void*)0x5dbce;
+        uint32_t ctx[2];
+        memset32(0x4b000, 0, 0x200);
+        ret = brom_init_storages(0, (((vp 0xE0064060) >> 0x10) & 1) == 0);
+        printf("[RPCP] brom_init_storages %X\n", ret);
+        if (ret >= 0) {
+            ret = brom_init_mmc(0, ctx);
+            printf("[RPCP] brom_init_mmc %X | ctx: %X\n", ret, ctx[0]);
+            if (ret >= 0) {
+                ret = brom_read_sector_mmc(ctx[0], 0, 0x4b000, 1);
+                printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                if (ret >= 0) {
+                    printf("[RPCP] default:\n");
+                    memset32(0x4b000, 0, 0x200);
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, true);
+
+                    printf("[RPCP] try invalid:\n");
+                    memset32(0x4b000, 0, 0x200);
+                    vp 0xE0070008 = 0x08000800;
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, true);
+
+                    {
+                        printf("[RPCP] starting search\n");
+                        for (uint32_t off = 0x500000; off < 0x500800; off -= -2) {
+                            memset32(0x4b000, 0xAABBCCDD, 0x400);
+                            brom_read_sector_mmc(ctx[0], off, 0x4b000, 1);
+                            brom_read_sector_mmc(ctx[0], off + 1, 0x4b200, 1);
+                            if (memcmp(0x4b000, 0x4b200, 0x200) == 0) {
+                                printf("[RPCP] FOUND sector %X == sector %X\n", off, off + 1);
+                                printf("[RPCP] sector %X first 0x20:\n", off);
+                                hexdump(0x4b000, 0x20, false);
+                                printf("[RPCP] sector %X with default keypair, first 0x20:\n", off);
+                                vp 0xE0070008 = 0x020E020F;
+                                brom_read_sector_mmc(ctx[0], off, 0x4b000, 1);
+                                hexdump(0x4b000, 0x20, false);
+                                break;
+                            }
+                        }
+                    }
+
+                    printf("[RPCP] end with 0x020E020F:\n");
+                    vp 0xE0070008 = 0x020E020F;
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, true);
+                }
+            }
+        }
+    }
+
+----------------------------
+
+ {
+        int (*brom_init_storages)(int id, int someflag) = (void*)0x5cf58;
+        int (*brom_init_mmc)(int id, void* ctx_out) = (void*)0x5dcbe;
+        int (*brom_read_sector_mmc)(uint32_t ctx, uint32_t sector, void* dst, uint32_t count) = (void*)0x5dbce;
+        uint32_t ctx[2];
+        memset32(0x4b000, 0, 0x200);
+        ret = brom_init_storages(0, (((vp 0xE0064060) >> 0x10) & 1) == 0);
+        printf("[RPCP] brom_init_storages %X\n", ret);
+        if (ret >= 0) {
+            ret = brom_init_mmc(0, ctx);
+            printf("[RPCP] brom_init_mmc %X | ctx: %X\n", ret, ctx[0]);
+            if (ret >= 0) {
+                ret = brom_read_sector_mmc(ctx[0], 0, 0x4b000, 1);
+                printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                if (ret >= 0) {
+                    printf("[RPCP] default:\n");
+                    memset32(0x4b000, 0, 0x200);
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, true);
+
+                    {
+                        printf("[RPCP] disable encryption\n");
+                        vp 0xE0070008 = 0x08000800;
+                        printf("[RPCP] dump sector 0 and 1\n");
+                        memset32(0x4b000, 0, 0x400);
+                        ret = brom_read_sector_mmc(ctx[0], 0, 0x4b000, 1);
+                        if (ret < 0)
+                            printf("read failed\n");
+                        ret = brom_read_sector_mmc(ctx[0], 1, 0x4b200, 1);
+                        if (ret < 0)
+                            printf("read2 failed\n");
+                        hexdump(0x4b000, 0x400, false);
+
+                        
+                        printf("[RPCP] set keypair to 00\n");
+                        memset32(0x4b000, 0, 0x200);
+                        crypto_bigmacDefaultCmd(false, 0x4b000, 0x100, 0x20, 0x10000000 | CRYPTO_DMAC4_FUNC_MEMCPY, 0, 0, 0);
+                        vp 0xE0070008 = 0x01000100;
+                        printf("[RPCP] dump sector 0 and 1\n");
+                        memset32(0x4b000, 0, 0x400);
+                        ret = brom_read_sector_mmc(ctx[0], 0, 0x4b000, 1);
+                        if (ret < 0)
+                            printf("read failed\n");
+                        ret = brom_read_sector_mmc(ctx[0], 1, 0x4b200, 1);
+                        if (ret < 0)
+                            printf("read2 failed\n");
+                        hexdump(0x4b000, 0x400, false);
+
+
+                        printf("[RPCP] set keypair to FF\n");
+                        memset32(0x4b000, 0xFFFFFFFF, 0x200);
+                        crypto_bigmacDefaultCmd(false, 0x4b000, 0x100, 0x20, 0x10000000 | CRYPTO_DMAC4_FUNC_MEMCPY, 0, 0, 0);
+                        vp 0xE0070008 = 0x01000100;
+                        printf("[RPCP] dump sector 0 and 1\n");
+                        memset32(0x4b000, 0, 0x400);
+                        ret = brom_read_sector_mmc(ctx[0], 0, 0x4b000, 1);
+                        if (ret < 0)
+                            printf("read failed\n");
+                        ret = brom_read_sector_mmc(ctx[0], 1, 0x4b200, 1);
+                        if (ret < 0)
+                            printf("read2 failed\n");
+                        hexdump(0x4b000, 0x400, false);
+
+                        
+                        printf("[RPCP] set keypair to default\n");
+                        vp 0xE0070008 = 0x020E020F;
+                        printf("[RPCP] dump sector 0 and 1\n");
+                        memset32(0x4b000, 0, 0x400);
+                        ret = brom_read_sector_mmc(ctx[0], 0, 0x4b000, 1);
+                        if (ret < 0)
+                            printf("read failed\n");
+                        ret = brom_read_sector_mmc(ctx[0], 1, 0x4b200, 1);
+                        if (ret < 0)
+                            printf("read2 failed\n");
+                        hexdump(0x4b000, 0x400, false);
+
+                    }
+
+
+                    printf("[RPCP] restore 0x020E020F:\n");
+                    vp 0xE0070008 = 0x020E020F;
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, true);
+                }
+            }
+        }
+    }
+
+
+--------------------------------------------------------------
+
+{
+        int (*brom_init_storages)(int id, int someflag) = (void*)0x5cf58;
+        int (*brom_init_mmc)(int id, void* ctx_out) = (void*)0x5dcbe;
+        int (*brom_read_sector_mmc)(uint32_t ctx, uint32_t sector, void* dst, uint32_t count) = (void*)0x5dbce;
+        uint32_t ctx[2];
+        memset32(0x4b000, 0, 0x200);
+        ret = brom_init_storages(0, (((vp 0xE0064060) >> 0x10) & 1) == 0);
+        printf("[RPCP] brom_init_storages %X\n", ret);
+        if (ret >= 0) {
+            ret = brom_init_mmc(0, ctx);
+            printf("[RPCP] brom_init_mmc %X | ctx: %X\n", ret, ctx[0]);
+            if (ret >= 0) {
+                ret = brom_read_sector_mmc(ctx[0], 0, 0x4b000, 1);
+                printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                if (ret >= 0) {
+                    printf("[RPCP] default:\n");
+                    memset32(0x4b000, 0, 0x200);
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, true);
+
+                    {
+                        printf("[RPCP] disable encryption\n");
+                        vp 0xE0070008 = 0x08000800;
+                        printf("[RPCP] dump sector 0\n");
+                        memset32(0x4b000, 0, 0x200);
+                        ret = brom_read_sector_mmc(ctx[0], 0, 0x4b000, 1);
+                        if (ret < 0)
+                            printf("read failed\n");
+                        hexdump(0x4b000, 0x40, false);
+
+                        printf("[RPCP] set keyslot 0x30\n");
+                        memset32(0x4b000, 0, 0x20);
+                        crypto_bigmacDefaultCmd(false, 0x4b000, 0x30, 0x20, 0x10000000 | CRYPTO_DMAC4_FUNC_MEMCPY, 0, 0, 0);
+                        printf("[RPCP] set keyslot 0x31\n");
+                        memset32(0x4b000, 0xFFFFFFFF, 0x20);
+                        crypto_bigmacDefaultCmd(false, 0x4b000, 0x31, 0x20, 0x10000000 | CRYPTO_DMAC4_FUNC_MEMCPY, 0, 0, 0);
+                        printf("[RPCP] set emmc keypair to 0x00300031\n");
+                        vp 0xE0070008 = 0x00300031;
+                        printf("[RPCP] dump sector 0 and 1\n");
+                        memset32(0x4b000, 0, 0x200);
+                        ret = brom_read_sector_mmc(ctx[0], 0, 0x4b000, 1);
+                        if (ret < 0)
+                            printf("read failed\n");
+                        ret = brom_read_sector_mmc(ctx[0], 1, 0x4b200, 1);
+                        if (ret < 0)
+                            printf("read failed2\n");
+                        hexdump(0x4b000, 0x400, false);
+                    }
+
+
+                    printf("[RPCP] restore 0x020E020F:\n");
+                    vp 0xE0070008 = 0x020E020F;
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, true);
+                }
+            }
+        }
+    }
+
+
+
+------------------------------------------
+
+{
+                        
+                        printf("[RPCP] disable encryption\n");
+                        vp 0xE0070008 = 0x08000800; // invalid keyslots
+                        printf("[RPCP] dump sector 0\n");
+                        memset32(0x4b200, 0, 0x200);
+                        ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b200, 1);
+                        if (ret < 0)
+                            printf("read failed\n");
+                        else
+                            hexdump(0x4b200, 0x10, false);
+                        
+                        vp 0xE0070000 = -1;
+
+                        uint32_t ksks = 0;
+                        for (int i = 0; i < 0x10000; i++) {
+                            ksks = (i * 0x10000) | i;
+                            vp 0xE0070008 = ksks;
+                            vp 0xE0070008;
+                            if (vp(0xE0070004) != 1)
+                                printx(ksks);
+                        }
+
+                        printf("[RPCP] D\n");
+                        vp 0xE0070000 = 1;
+
+                    }
+
+
+                    printf("[RPCP] restore 0x020E020F:\n");
+                    vp 0xE0070008 = 0x020E020F;
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                    if (ret >= 0)
+                        hexdump(0x4b020, 0x10, false);
+                }
+
+---------------------------------
+
+void diff_e00(bool prep) {
+    if (prep) {
+        memset32(0x1c100000, 0, 0x00100000);
+        memcpy(0x1c100000, 0xE0000000, 0x00100000);
+    } else {
+        for (uint32_t off = 0; off < 0x00100000; off -= -4) {
+            // ignorelist
+            if (off == 0x0005003C || off == 0x000500BC) // rng32
+                continue;
+            if (off == 0x00050118 || off == 0x0005011C) // error status
+                continue;
+            if ((off & 0x000F00FF) == 0x000C0028) // s_xbar status
+                continue;
+
+            if (vp(0xE0000000 + off) != vp(0x1c100000 + off))
+                printf("DIFF %X | %X => %X\n", 0xE0000000 + off, vp(0x1c100000 + off), vp(0xE0000000 + off));
+        }
+    }
+}
+
+__attribute__((section(".text.rpcp")))
+int rpcp(uint32_t arg0, uint32_t arg1, void* extra_data) {
+    printf("\n[RPCP] hello world (%X, %X, %X)\n", arg0, arg1, (uint32_t)extra_data);
+
+    int ret = 0;
+    int testno = 0;
+    int test_count = TEST_COUNT;
+    if (arg1)
+        test_count = arg1;
+do_tests:
+    testno++;
+    printf("[RPCP] test number %X\n", testno);
+
+    { // playground: 0x1c100000-0x1c200000
+        if (arg0) { // snapshot current config
+            printf("[RPCP] backing up current E000\n");
+            diff_e00(true);
+        }
+
+        // diff
+        printf("[RPCP] diffing\n");
+        diff_e00(false);
+    }
+
+    if (testno < test_count)
+        goto do_tests;
+
+    print("[RPCP] bye\n\n");
+    return ret;
+}
+
+
+
+--------------------------------------------
+
+NW
+void diff_e00(bool prep, uint32_t update_addr) {
+    uint32_t xoff, ioff;
+    if (prep) {
+        memset32(0x1c100000, 0, 0x00100000);
+        memcpy(0x1c100000, 0xE0000000, 0x00100000);
+    } else {
+        if (update_addr) {
+            xoff = 0xE0000000 + (update_addr & 0x000FFFFF);
+            ioff = 0x1c100000 + (update_addr & 0x000FFFFF);
+            vp(ioff) = vp(xoff);
+        }
+
+        for (uint32_t off = 0; off < 0x00100000; off -= -4) {
+            // ignorelist
+            if (off == 0x0005003C || off == 0x000500BC) // rng32
+                continue;
+            if (off == 0x00050118 || off == 0x0005011C) // error status
+                continue;
+            if ((off & 0x000F00FF) == 0x000C0028) // s_xbar status
+                continue;
+
+            // cmp
+            xoff = 0xE0000000 + off;
+            ioff = 0x1c100000 + off;
+            if (vp(xoff) != vp(ioff)) {
+                if (update_addr)
+                    printf("%X CGD %X : %X => %X\n", xoff, vp ioff, vp xoff);
+                else
+                    printf("DIFF %X : %X => %X\n", xoff, vp ioff, vp xoff);
+            }
+        }
+    }
+}
+
+__attribute__((section(".text.rpcp")))
+int rpcp(uint32_t arg0, uint32_t arg1, void* extra_data) {
+    printf("\n[RPCP] hello world (%X, %X, %X)\n", arg0, arg1, (uint32_t)extra_data);
+
+    int ret = 0;
+    int testno = 0;
+    int test_count = TEST_COUNT;
+    if (arg1)
+        test_count = arg1;
+do_tests:
+    testno++;
+    printf("[RPCP] test number %X\n", testno);
+
+    { // playground: 0x1c100000-0x1c200000
+        printf("[RPCP] backing up current E000\n");
+        diff_e00(true, 0);
+
+        printf("[RPCP] loopin\n");
+        uint32_t buf = 0;
+        for (uint32_t off = 0xE0010000; off < 0xE0090000; off -= -4) {
+            // ignorelist
+            if (off == 0xE0010000 || off == 0xE0010008 || off == 0xE001000C || off == 0xE0010010) // readAs
+                continue;
+            if (off == 0xE0020048) // readAs
+                continue;
+            if (off == 0xE005003C || off == 0xE00500BC) // rng32
+                continue;
+
+            printx(off);
+
+            buf = vp off;
+
+            vp(off) = -1;
+
+            vp off;
+
+            if (vp(off) != buf) {
+                printf("%X : %X => %X\n", off, buf, vp(off));
+                diff_e00(false, off);
+            } else
+                diff_e00(false, 0);
+        }
+    }
+
+    if (testno < test_count)
+        goto do_tests;
+
+    print("[RPCP] bye\n\n");
+    return ret;
+}
+
+
+----------------------------
+
+storages test
+
+{
+        int (*brom_init_storages)(int id, int someflag) = (void*)0x5cf58;
+        int (*brom_init_mmc)(int id, void* ctx_out) = (void*)0x5dcbe;
+        int (*brom_read_sector_mmc)(uint32_t ctx, uint32_t sector, void* dst, uint32_t count) = (void*)0x5dbce;
+        uint32_t ctx[2];
+        memset32(0x4b000, 0, 0x200);
+        ret = brom_init_storages(0, (((vp 0xE0064060) >> 0x10) & 1) == 0);
+        printf("[RPCP] brom_init_storages %X\n", ret);
+        if (ret >= 0) {
+            ret = brom_init_mmc(0, ctx);
+            printf("[RPCP] brom_init_mmc %X | ctx: %X\n", ret, ctx[0]);
+            if (ret >= 0) {
+                ret = brom_read_sector_mmc(ctx[0], 0, 0x4b000, 1);
+                printf("[RPCP] brom_read_sector_mmc %X\n", ret);
+                if (ret >= 0) {
+                    printf("[RPCP] default:\n");
+                    memset32(0x4b000, 0, 0x200);
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    if (ret < 0)
+                        printf("read failed %X\n", ret);
+                    else
+                        hexdump(0x4b000, 0x10, false);
+
+                    {
+                        printf("[RPCP] disable encryption\n");
+                        vp 0xE0070008 = 0x08000800;
+                        printp(0xE0070004);
+                        printf("[RPCP] read sector 0x2000\n");
+                        memset32(0x4b000, 0, 0x200);
+                        ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                        if (ret < 0)
+                            printf("read failed %X\n", ret);
+                        else
+                            hexdump(0x4b000, 0x10, false);
+
+                        printf("[RPCP] set keyslot 0x30\n");
+                        memset32(0x4b000, 0, 0x20);
+                        crypto_bigmacDefaultCmd(false, 0x4b000, 0x30, 0x20, 0x10000000 | CRYPTO_DMAC4_FUNC_MEMCPY, 0, 0, 0);
+                        printf("[RPCP] set keyslot 0x31\n");
+                        memset32(0x4b000, 0xFFFFFFFF, 0x20);
+                        crypto_bigmacDefaultCmd(false, 0x4b000, 0x31, 0x20, 0x10000000 | CRYPTO_DMAC4_FUNC_MEMCPY, 0, 0, 0);
+                        printf("[RPCP] set emmc keypair to 0x00300031\n");
+                        vp 0xE0070008 = 0x00300031;
+                        printp(0xE0070004);
+                        printf("[RPCP] read sector 0x2000\n");
+                        memset32(0x4b000, 0, 0x200);
+                        ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                        if (ret < 0)
+                            printf("read failed %X\n", ret);
+                        else
+                            hexdump(0x4b000, 0x10, false);
+
+                        printf("[RPCP] set emmc keypair to 0x00000031\n");
+                        vp 0xE0070008 = 0x00000031;
+                        printp(0xE0070004);
+                        printf("[RPCP] read sector 0x2000\n");
+                        memset32(0x4b000, 0, 0x200);
+                        ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                        if (ret < 0)
+                            printf("read failed %X\n", ret);
+                        else
+                            hexdump(0x4b000, 0x10, false);
+
+                        printf("[RPCP] set emmc keypair to 0x00300000\n");
+                        vp 0xE0070008 = 0x00300000;
+                        printp(0xE0070004);
+                        printf("[RPCP] read sector 0x2000\n");
+                        memset32(0x4b000, 0, 0x200);
+                        ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                        if (ret < 0)
+                            printf("read failed %X\n", ret);
+                        else
+                            hexdump(0x4b000, 0x10, false);
+                    }
+
+
+                    printf("[RPCP] restore 0x020E020F:\n");
+                    vp 0xE0070008 = 0x020E020F;
+                    printp(0xE0070004);
+                    printf("[RPCP] read sector 0x2000\n");
+                    ret = brom_read_sector_mmc(ctx[0], 0x2000, 0x4b000, 1);
+                    if (ret < 0)
+                        printf("read failed %X\n", ret);
+                    else
+                        hexdump(0x4b000, 0x10, false);
+                }
+            }
+        }
+    }
+
+----------------------------
+i2cc bf
+
+printf("[RPCP] test\n");
+        uint8_t* write_buffer = 0x4b000;
+        uint8_t* read_buffer = 0x4b040;
+        memset32(write_buffer, 0, 0x40);
+        memset32(read_buffer, -1, 0x40);
+        write_buffer[1] = 4;
+        int bus = 0, found0 = 0, found1 = 0;
+        for (int i = 2; i < 0x100; i-=-2) {
+            found0 = 0;
+            found1 = 0;
+            for (int x = 1; x < 0x40; x++) {
+                if (!found0) {
+                    bus = 0;
+                    memset32(read_buffer, -1, 0x40);
+                    i2c_transfer_write_read(0, i, write_buffer, x, i, read_buffer, 4);
+                    if (vp read_buffer) {
+                        printf("%X : %X : %X : %X\n", bus, i, x, vp read_buffer);
+                        found0 = 1;
+                    }
+                }
+
+                if (!found1) {
+                    bus = 1;
+                    memset32(read_buffer, -1, 0x40);
+                    i2c_transfer_write_read(1, i, write_buffer, x, i, read_buffer, 4);
+                    if (vp read_buffer) {
+                        printf("%X : %X : %X : %X\n", bus, i, x, vp read_buffer);
+                        found1 = 1;
+                    }
+                }
+            }
+        }
+
+
+----------------
+overlord waitloop
+{
+        print("[RPCP] disco1\n");
+        print("[RPCP] disco2\n");
+        print("[RPCP] disco3\n");
+        delay(0x20000);
+        print("[RPCP] prepping\n");
+        maika_s* maika = (maika_s*)MAIKA_OFFSET;
+        maika->reset_ctrl.other_reset = 0;
+        maika->aio.control_0 = -1;
+        maika->aio.control_4 = -1;
+        maika->aio.control_8 = -1;
+        print("[RPCP] loop!\n");
+        print("[RPCP] loo2!\n");
+        print("[RPCP] loo3!\n");
+        while (1) {
+            for (uint32_t off = 0xE0000000; off < 0xE0100000; off -= -4) {
+                if (off == 0xE0040000)
+                    off = 0xE0050000;
+                else if (off == 0xE0060000)
+                    off = 0xE0068000;
+                else if (off == 0xE00C0000)
+                    off = 0xE00D0000;
+                if (off == 0xE0010004 || off == 0xE0020000 || off == 0xE0020008 || off == 0xE003002C
+                    || off == 0xE005003C || off == 0xE00500BC || off == 0xE00500CC || off == 0xE0050118
+                    || off == 0xE005011C || off == 0xE0070000 || off == 0xE007000C)
+                    continue;
+                if (vp off)
+                    printp(off);
+            }
+            delay(0x4000);
+            if (gpio_port_read(0, 4))
+                break;
+        }
+    }
+
+
+-------------
+vid
+{
+        hexdump(PERV_GET_CTRL(PERV_CTRL_VID), 0x100, true);
+        uint8_t cmd_args[2] = { 0x01, 0xFF };
+        for (uint8_t i = 0; i < 0x20; i++) {
+            cmd_args[0] = i;
+            printx(ernie_exec_cmd(0x88e, &cmd_args, 2));
+        }
+        hexdump(PERV_GET_CTRL(PERV_CTRL_VID), 0x100, true);
+    }
+
+
+    -----
+
+
+    // 8-206 | 9-207
+#define XBR_CMD 0x10000301
+void xbr(void* addr, uint32_t TGTSLOT, uint32_t ENCSLOT) {
+
+    int zeros = addr - 0x20;
+    volatile unsigned int* CRYPT_SRC = (unsigned int*)0xE0050000;
+    volatile unsigned int* CRYPT_DST = (unsigned int*)0xE0050004;
+    volatile unsigned int* CRYPT_SIZE = (unsigned int*)0xE0050008;
+    volatile unsigned int* CRYPT_CMD = (unsigned int*)0xE005000C;
+    volatile unsigned int* CRYPT_SLOT = (unsigned int*)0xE0050010;
+    volatile unsigned int* CRYPT_IV = (unsigned int*)0xE0050014;
+    volatile unsigned int* CRYPT_TRIGGER = (unsigned int*)0xE005001C;
+    volatile unsigned int* CRYPT_STATUS = (unsigned int*)0xE0050024;
+    volatile unsigned int* CRYPT_MEMSET = (unsigned int*)0xE0050104;
+    volatile unsigned int* CRYPT_KEY = (unsigned int*)0xE0050200;
+
+    *CRYPT_SRC = (int)addr;
+    *CRYPT_DST = TGTSLOT;
+    *CRYPT_SIZE = 0x10;
+    *CRYPT_CMD = XBR_CMD;
+
+    *CRYPT_SLOT = ENCSLOT;
+
+    *CRYPT_TRIGGER = 1;
+    while ((*CRYPT_STATUS) & 1) {};
+
+    CRYPT_KEY[0] = 0;CRYPT_KEY[1] = 0;CRYPT_KEY[2] = 0;CRYPT_KEY[3] = 0;
+    *CRYPT_SRC = (int)zeros;
+    *CRYPT_DST = addr + 0x20;
+    *CRYPT_SIZE = 0xC;
+    *CRYPT_CMD = 0x182;
+
+    *CRYPT_TRIGGER = 1;
+
+    while ((*CRYPT_STATUS) & 1) {};
+
+    *CRYPT_SRC = (int)addr;
+    *CRYPT_DST = TGTSLOT;
+    *CRYPT_SIZE = 0x10;
+    *CRYPT_CMD = XBR_CMD;
+
+    *CRYPT_SLOT = ENCSLOT;
+
+    *CRYPT_TRIGGER = 1;
+    while ((*CRYPT_STATUS) & 1) {};
+
+    CRYPT_KEY[0] = 0;CRYPT_KEY[1] = 0;CRYPT_KEY[2] = 0;CRYPT_KEY[3] = 0;
+    *CRYPT_SRC = (int)zeros;
+    *CRYPT_DST = addr + 0x30;
+    *CRYPT_SIZE = 0x8;
+    *CRYPT_CMD = 0x182;
+
+    *CRYPT_TRIGGER = 1;
+
+    while ((*CRYPT_STATUS) & 1) {};
+
+    *CRYPT_SRC = (int)addr;
+    *CRYPT_DST = TGTSLOT;
+    *CRYPT_SIZE = 0x10;
+    *CRYPT_CMD = XBR_CMD;
+
+    *CRYPT_SLOT = ENCSLOT;
+    *CRYPT_TRIGGER = 1;
+    while ((*CRYPT_STATUS) & 1) {};
+
+    CRYPT_KEY[0] = 0;CRYPT_KEY[1] = 0;CRYPT_KEY[2] = 0;CRYPT_KEY[3] = 0;
+    *CRYPT_SRC = (int)zeros;
+    *CRYPT_DST = addr + 0x40;
+    *CRYPT_SIZE = 0x4;
+    *CRYPT_CMD = 0x182;
+
+    *CRYPT_TRIGGER = 1;
+
+    while ((*CRYPT_STATUS) & 1) {};
+
+    *CRYPT_SRC = (int)addr;
+    *CRYPT_DST = TGTSLOT;
+    *CRYPT_SIZE = 0x10;
+    *CRYPT_CMD = XBR_CMD;
+
+    *CRYPT_SLOT = ENCSLOT;
+    *CRYPT_TRIGGER = 1;
+    while ((*CRYPT_STATUS) & 1) {};
+
+    *CRYPT_SRC = (int)zeros;
+    *CRYPT_DST = addr + 0x50;
+    *CRYPT_SIZE = 0x10;
+    *CRYPT_CMD = 0x102;
+    *CRYPT_SLOT = TGTSLOT;
+    *CRYPT_TRIGGER = 1;
+    while ((*CRYPT_STATUS) & 1) {};
+}
+
+static const unsigned char xbr_k8_bin[] = {
+  0x1e, 0xb2, 0x56, 0x43, 0x23, 0x4e, 0xf6, 0xef, 0x38, 0x0f, 0x9e, 0x57,
+  0xa2, 0x16, 0xfa, 0x22, 0xd8, 0x35, 0xff, 0x05, 0x08, 0xbe, 0xbb, 0xe9,
+  0x76, 0x76, 0xfa, 0x47, 0x8c, 0x29, 0xc2, 0x1d
+};
+
+static const unsigned char xbr_k9_bin[] = {
+    0x50, 0x97, 0x62, 0x38, 0xEE, 0xD2, 0x32, 0x34, 0xF9, 0xC7, 0x46, 0xCC, 0xB0, 0x7D, 0x6D, 0x71,
+    0x3F, 0x5B, 0xA6, 0x7B, 0xC8, 0xC0, 0x97, 0xDA, 0xE5, 0x2D, 0x85, 0x12, 0x08, 0x46, 0x83, 0xE7,
+};
+
+
+-=-----------
+
+#include "../../source/include/types.h"
+
+#include "../../source/include/defs.h"
+#include "../../source/include/uart.h"
+#include "../../source/include/debug.h"
+#include "../../source/include/utils.h"
+#include "../../source/include/clib.h"
+#include "../../source/include/maika.h"
+#include "../../source/include/crypto.h"
+#include "../../source/include/spi.h"
+#include "../../source/include/perv.h"
+#include "../../source/include/gpio.h"
+#include "../../source/include/i2c.h"
+#include "../../source/include/paddr.h"
+#include "../../source/include/ernie.h"
+
+#include "include/brom1k.h"
+
+#define TEST_COUNT 1
+
+#define COPY_BUFFER_ADDR MAIN_DRAM_OFFSET
+#define COPY_BUFFER_BLKSIZE 0x8000
+#define TARGET_OFFSET_BLOCK 0x100
+
+void prepare_emmc_regs(void) {
+    vp 0xe3100124 |= 1;
+    vp 0xe3101190 = 1;
+    vp 0xe31020a0 = 1;
+    while (!(vp 0xe31020a0)) {};
+    vp 0xe31010a0 = 0;
+    while ((vp 0xe31010a0)) {};
+    vp 0xe3101190 = 0;
+    while ((vp 0xe3101190)) {};
+    vp 0xE0030024 = 0x1c0f020f;
+    vp 0xe0070008 = 0x020e020f;
+    vp 0xe0070000 = 1;
+}
+
+void prepare_sd_regs(void) {
+    vp 0xe31020a4 = 1;
+    while (!(vp 0xe31020a4)) {};
+    vp 0xe31010a4 = 0;
+    while ((vp 0xe31010a4)) {};
+}
+
+int prepare_emmc(uint32_t* ctx) {
+    memset(0x0005eaa8, 0, 0x1548);
+    ctx[0] = 0;
+    ctx[1] = 0;
+    int ret = brom_init_storages(0, (((vp 0xE0064060) >> 0x10) & 1) == 0);
+    if (ret >= 0)
+        ret = brom_init_mmc(0, ctx);
+    return ret;
+}
+
+int prepare_sd(uint32_t* ctx) {
+    memset(0x0005eaa8, 0, 0x1548);
+    ctx[0] = 0;
+    ctx[1] = 0;
+    int ret = brom_init_storages(1, (((vp 0xE0064060) >> 0x11) & 1) == 0);
+    if (ret >= 0)
+        ret = brom_init_sd(1, ctx);
+    return ret;
+}
+
+void set_sd_op_mode(bool write, bool notif) {
+    if (notif)
+        printf("[RPCP] set sd op mode: %s\n", write ? "WRITE" : "READ");
+    if (write) {
+        vp BROM_SDREAD_S_ARG0 = BROM_SDREAD_S_ARG0_WP; // single read arg0 0x11 -> 0x18
+        vp BROM_SDREAD_S_ARG3 = BROM_SDREAD_S_ARG3_WP; // single read arg3 &0x100 -> &0x200
+        vp BROM_SDREAD_M_ARG3 = BROM_SDREAD_M_ARG3_WP; // multi read arg3 &0x100 -> &0x200
+        vp BROM_SDREAD_M_ARG0 = BROM_SDREAD_M_ARG0_WP; // multi read arg0 0x12 -> 0x19
+        vp BROM_SDREAD_M_CHK1 = BROM_SDREAD_M_CHK1_WP; // check mulit read (0x12) -> check multi write (0x19)
+    } else {
+        vp BROM_SDREAD_S_ARG0 = BROM_SDREAD_S_ARG0_RP;
+        vp BROM_SDREAD_S_ARG3 = BROM_SDREAD_S_ARG3_RP;
+        vp BROM_SDREAD_M_ARG3 = BROM_SDREAD_M_ARG3_RP;
+        vp BROM_SDREAD_M_ARG0 = BROM_SDREAD_M_ARG0_RP;
+        vp BROM_SDREAD_M_CHK1 = BROM_SDREAD_M_CHK1_RP;
+    }
+}
+
+void set_mmc_op_mode(bool write, bool notif) {
+    if (notif)
+        printf("[RPCP] set emmc op mode: %s\n", write ? "WRITE" : "READ");
+    if (write) {
+        vp BROM_MMCREAD_S_ARG3 = BROM_MMCREAD_S_ARG3_WP; // read arg3 &0x100 -> &0x200
+        vp BROM_MMCREAD_CALC_ARG0 = BROM_MMCREAD_CALC_ARG0_WP; // read arg0 math 0x11 -> 0x18
+        vp BROM_MMCREAD_M_CHK1 = BROM_MMCREAD_M_CHK1_WP; // check multi read (0x12) -> check multi write (0x19)
+        vp BROM_MMCREAD_M_CHK2 = BROM_MMCREAD_M_CHK2_WP; // check2 multi read (0x12) -> check2 multi write (0x19)
+    } else {
+        vp BROM_MMCREAD_S_ARG3 = BROM_MMCREAD_S_ARG3_RP;
+        vp BROM_MMCREAD_CALC_ARG0 = BROM_MMCREAD_CALC_ARG0_RP;
+        vp BROM_MMCREAD_M_CHK1 = BROM_MMCREAD_M_CHK1_RP;
+        vp BROM_MMCREAD_M_CHK2 = BROM_MMCREAD_M_CHK2_RP;
+    }
+}
+
+int read_sd(uint32_t sector_off, void* dst, uint32_t sector_count) {
+    uint32_t ctx[2];
+    int ret = 0;
+    printf("[RPCP] read_sd(%X, %X, %X)\n", sector_off, (uint32_t)dst, sector_count);
+    ret = prepare_sd(ctx);
+    if (ret < 0) {
+        printf("[RPCP] read_sd: prepare sd failed: %X\n", ret);
+        return ret;
+    }
+    set_sd_op_mode(false, false);
+    ret = brom_read_sector_sd(ctx[0], sector_off, dst, sector_count);
+    if (ret < 0)
+        printf("[RPCP] read_sd: read failed: %X\n", ret);
+    return ret;
+}
+
+int write_sd(uint32_t sector_off, void* dst, uint32_t sector_count) {
+    uint32_t ctx[2];
+    int ret = 0;
+    printf("[RPCP] write_sd(%X, %X, %X)\n", sector_off, (uint32_t)dst, sector_count);
+    ret = prepare_sd(ctx);
+    if (ret < 0) {
+        printf("[RPCP] write_sd: prepare sd failed: %X\n", ret);
+        return ret;
+    }
+    set_sd_op_mode(true, false);
+    ret = brom_read_sector_sd(ctx[0], sector_off, dst, sector_count);
+    if (ret < 0)
+        printf("[RPCP] write_sd: write failed: %X\n", ret);
+    set_sd_op_mode(false, false);
+    return ret;
+}
+
+int read_emmc(uint32_t sector_off, void* dst, uint32_t sector_count) {
+    uint32_t ctx[2];
+    int ret = 0;
+    printf("[RPCP] read_emmc(%X, %X, %X)\n", sector_off, (uint32_t)dst, sector_count);
+    ret = prepare_emmc(ctx);
+    if (ret < 0) {
+        printf("[RPCP] read_emmc: prepare emmc failed: %X\n", ret);
+        return ret;
+    }
+    set_mmc_op_mode(false, false);
+    ret = brom_read_sector_mmc(ctx[0], sector_off, dst, sector_count);
+    if (ret < 0)
+        printf("[RPCP] read_emmc: read failed: %X\n", ret);
+    return ret;
+}
+
+int write_emmc(uint32_t sector_off, void* dst, uint32_t sector_count) {
+    uint32_t ctx[2];
+    int ret = 0;
+    printf("[RPCP] write_emmc(%X, %X, %X)\n", sector_off, (uint32_t)dst, sector_count);
+    ret = prepare_emmc(ctx);
+    if (ret < 0) {
+        printf("[RPCP] write_emmc: prepare emmc failed: %X\n", ret);
+        return ret;
+    }
+    set_mmc_op_mode(true, false);
+    ret = brom_read_sector_mmc(ctx[0], sector_off, dst, sector_count);
+    if (ret < 0)
+        printf("[RPCP] write_emmc: write failed: %X\n", ret);
+    set_mmc_op_mode(false, false);
+    return ret;
+}
+
+__attribute__((section(".text.rpcp")))
+int rpcp(uint32_t arg0, uint32_t arg1, void* extra_data) {
+    printf("\n[RPCP] hello world (%X, %X, %X)\n", arg0, arg1, (uint32_t)extra_data);
+
+    int ret = 0;
+    int testno = 0;
+    int test_count = TEST_COUNT;
+    //if (arg1)
+        //test_count = arg1;
+do_tests:
+    testno++;
+    printf("[RPCP] test number %X\n", testno);
+
+    {
+        uint32_t ctx[2];
+        int ret = 0;
+
+        memset(0x0005eaa8, 0, 0x1548);
+
+        printf("[RPCP] prep emmc regs\n");
+        prepare_emmc_regs();
+
+        printf("[RPCP] set storage modes to read\n");
+        set_mmc_op_mode(false, true);
+        set_sd_op_mode(false, true);
+
+        printf("[RPCP] start dump\n");
+        uint32_t blksize = arg1;
+        if (!blksize)
+            blksize = COPY_BUFFER_BLKSIZE;
+        uint32_t copied = arg0;
+        while ((copied + COPY_BUFFER_BLKSIZE) <= (arg0 + blksize)) { // first copy with full buffer
+            printf("[RPCP] memset %X %X\n", COPY_BUFFER_ADDR, COPY_BUFFER_BLKSIZE * 0x200);
+            memset(COPY_BUFFER_ADDR, 0, COPY_BUFFER_BLKSIZE * 0x200);
+
+            ret = read_emmc(copied, COPY_BUFFER_ADDR, COPY_BUFFER_BLKSIZE);
+            if (ret < 0)
+                return -1;
+
+            if (copied == 0 && !arg1) {
+                blksize = vp(COPY_BUFFER_ADDR + 0x24);
+                printf("EMMC size detected: %X\n", blksize);
+            }
+
+            ret = write_sd(TARGET_OFFSET_BLOCK + copied, COPY_BUFFER_ADDR, COPY_BUFFER_BLKSIZE);
+            if (ret < 0)
+                return -2;
+
+            copied = copied + COPY_BUFFER_BLKSIZE;
+        }
+
+        if (copied < (arg0 + blksize) && ((arg0 + blksize) - copied) <= COPY_BUFFER_BLKSIZE) {
+            printf("[RPCP] memset %X %X\n", COPY_BUFFER_ADDR, COPY_BUFFER_BLKSIZE * 0x200);
+            memset(COPY_BUFFER_ADDR, 0, COPY_BUFFER_BLKSIZE * 0x200);
+
+            printf("[RPCP] read farts: %X[%X]\n", copied, ((arg0 + blksize) - copied));
+
+            ret = read_emmc(copied, COPY_BUFFER_ADDR, ((arg0 + blksize) - copied));
+            if (ret < 0)
+                return -3;
+
+            ret = write_sd(TARGET_OFFSET_BLOCK + copied, COPY_BUFFER_ADDR, ((arg0 + blksize) - copied));
+            if (ret < 0)
+                return -4;
+
+            copied = (arg0 + blksize);
+        }
+
+        printf("[RPCP] dump done\n");
+
+        printf("[RPCP] set storage modes to read\n");
+        set_mmc_op_mode(false, true);
+        set_sd_op_mode(false, true);
+
+        ret = 0;
+    }
+    
+    if (testno < test_count)
+        goto do_tests;
+
+    print("[RPCP] bye\n\n");
+    return ret;
+}
+
+
+-----------------------
+swap os0 & slb2
+
+#include "../../source/include/types.h"
+
+#include "../../source/include/defs.h"
+#include "../../source/include/uart.h"
+#include "../../source/include/debug.h"
+#include "../../source/include/utils.h"
+#include "../../source/include/clib.h"
+#include "../../source/include/maika.h"
+#include "../../source/include/crypto.h"
+#include "../../source/include/spi.h"
+#include "../../source/include/perv.h"
+#include "../../source/include/gpio.h"
+#include "../../source/include/i2c.h"
+#include "../../source/include/paddr.h"
+#include "../../source/include/ernie.h"
+
+#include "include/brom1k.h"
+
+#define TEST_COUNT 1
+
+#define COPY_BUFFER_ADDR MAIN_DRAM_OFFSET
+#define COPY_BUFFER_BLKSIZE 0x8000
+#define TARGET_OFFSET_BLOCK 0x100
+
+void prepare_emmc_regs(void) {
+    vp 0xe3100124 |= 1;
+    vp 0xe3101190 = 1;
+    vp 0xe31020a0 = 1;
+    while (!(vp 0xe31020a0)) {};
+    vp 0xe31010a0 = 0;
+    while ((vp 0xe31010a0)) {};
+    vp 0xe3101190 = 0;
+    while ((vp 0xe3101190)) {};
+    vp 0xE0030024 = 0x1c0f020f;
+    vp 0xe0070008 = 0x020e020f;
+    vp 0xe0070000 = 1;
+}
+
+void prepare_sd_regs(void) {
+    vp 0xe31020a4 = 1;
+    while (!(vp 0xe31020a4)) {};
+    vp 0xe31010a4 = 0;
+    while ((vp 0xe31010a4)) {};
+}
+
+int prepare_emmc(uint32_t* ctx) {
+    memset(0x0005eaa8, 0, 0x1548);
+    ctx[0] = 0;
+    ctx[1] = 0;
+    int ret = brom_init_storages(0, (((vp 0xE0064060) >> 0x10) & 1) == 0);
+    if (ret >= 0)
+        ret = brom_init_mmc(0, ctx);
+    return ret;
+}
+
+int prepare_sd(uint32_t* ctx) {
+    memset(0x0005eaa8, 0, 0x1548);
+    ctx[0] = 0;
+    ctx[1] = 0;
+    int ret = brom_init_storages(1, (((vp 0xE0064060) >> 0x11) & 1) == 0);
+    if (ret >= 0)
+        ret = brom_init_sd(1, ctx);
+    return ret;
+}
+
+void set_sd_op_mode(bool write, bool notif) {
+    if (notif)
+        printf("[RPCP] set sd op mode: %s\n", write ? "WRITE" : "READ");
+    if (write) {
+        vp BROM_SDREAD_S_ARG0 = BROM_SDREAD_S_ARG0_WP; // single read arg0 0x11 -> 0x18
+        vp BROM_SDREAD_S_ARG3 = BROM_SDREAD_S_ARG3_WP; // single read arg3 &0x100 -> &0x200
+        vp BROM_SDREAD_M_ARG3 = BROM_SDREAD_M_ARG3_WP; // multi read arg3 &0x100 -> &0x200
+        vp BROM_SDREAD_M_ARG0 = BROM_SDREAD_M_ARG0_WP; // multi read arg0 0x12 -> 0x19
+        vp BROM_SDREAD_M_CHK1 = BROM_SDREAD_M_CHK1_WP; // check mulit read (0x12) -> check multi write (0x19)
+    } else {
+        vp BROM_SDREAD_S_ARG0 = BROM_SDREAD_S_ARG0_RP;
+        vp BROM_SDREAD_S_ARG3 = BROM_SDREAD_S_ARG3_RP;
+        vp BROM_SDREAD_M_ARG3 = BROM_SDREAD_M_ARG3_RP;
+        vp BROM_SDREAD_M_ARG0 = BROM_SDREAD_M_ARG0_RP;
+        vp BROM_SDREAD_M_CHK1 = BROM_SDREAD_M_CHK1_RP;
+    }
+}
+
+void set_mmc_op_mode(bool write, bool notif) {
+    if (notif)
+        printf("[RPCP] set emmc op mode: %s\n", write ? "WRITE" : "READ");
+    if (write) {
+        vp BROM_MMCREAD_S_ARG3 = BROM_MMCREAD_S_ARG3_WP; // read arg3 &0x100 -> &0x200
+        vp BROM_MMCREAD_CALC_ARG0 = BROM_MMCREAD_CALC_ARG0_WP; // read arg0 math 0x11 -> 0x18
+        vp BROM_MMCREAD_M_CHK1 = BROM_MMCREAD_M_CHK1_WP; // check multi read (0x12) -> check multi write (0x19)
+        vp BROM_MMCREAD_M_CHK2 = BROM_MMCREAD_M_CHK2_WP; // check2 multi read (0x12) -> check2 multi write (0x19)
+    } else {
+        vp BROM_MMCREAD_S_ARG3 = BROM_MMCREAD_S_ARG3_RP;
+        vp BROM_MMCREAD_CALC_ARG0 = BROM_MMCREAD_CALC_ARG0_RP;
+        vp BROM_MMCREAD_M_CHK1 = BROM_MMCREAD_M_CHK1_RP;
+        vp BROM_MMCREAD_M_CHK2 = BROM_MMCREAD_M_CHK2_RP;
+    }
+}
+
+int read_sd(uint32_t sector_off, void* dst, uint32_t sector_count) {
+    uint32_t ctx[2];
+    int ret = 0;
+    printf("[RPCP] read_sd(%X, %X, %X)\n", sector_off, (uint32_t)dst, sector_count);
+    ret = prepare_sd(ctx);
+    if (ret < 0) {
+        printf("[RPCP] read_sd: prepare sd failed: %X\n", ret);
+        return ret;
+    }
+    set_sd_op_mode(false, false);
+    ret = brom_read_sector_sd(ctx[0], sector_off, dst, sector_count);
+    if (ret < 0)
+        printf("[RPCP] read_sd: read failed: %X\n", ret);
+    return ret;
+}
+
+int write_sd(uint32_t sector_off, void* dst, uint32_t sector_count) {
+    uint32_t ctx[2];
+    int ret = 0;
+    printf("[RPCP] write_sd(%X, %X, %X)\n", sector_off, (uint32_t)dst, sector_count);
+    ret = prepare_sd(ctx);
+    if (ret < 0) {
+        printf("[RPCP] write_sd: prepare sd failed: %X\n", ret);
+        return ret;
+    }
+    set_sd_op_mode(true, false);
+    ret = brom_read_sector_sd(ctx[0], sector_off, dst, sector_count);
+    if (ret < 0)
+        printf("[RPCP] write_sd: write failed: %X\n", ret);
+    set_sd_op_mode(false, false);
+    return ret;
+}
+
+int read_emmc(uint32_t sector_off, void* dst, uint32_t sector_count) {
+    uint32_t ctx[2];
+    int ret = 0;
+    printf("[RPCP] read_emmc(%X, %X, %X)\n", sector_off, (uint32_t)dst, sector_count);
+    ret = prepare_emmc(ctx);
+    if (ret < 0) {
+        printf("[RPCP] read_emmc: prepare emmc failed: %X\n", ret);
+        return ret;
+    }
+    set_mmc_op_mode(false, false);
+    ret = brom_read_sector_mmc(ctx[0], sector_off, dst, sector_count);
+    if (ret < 0)
+        printf("[RPCP] read_emmc: read failed: %X\n", ret);
+    return ret;
+}
+
+int write_emmc(uint32_t sector_off, void* dst, uint32_t sector_count) {
+    uint32_t ctx[2];
+    int ret = 0;
+    printf("[RPCP] write_emmc(%X, %X, %X)\n", sector_off, (uint32_t)dst, sector_count);
+    ret = prepare_emmc(ctx);
+    if (ret < 0) {
+        printf("[RPCP] write_emmc: prepare emmc failed: %X\n", ret);
+        return ret;
+    }
+    set_mmc_op_mode(true, false);
+    ret = brom_read_sector_mmc(ctx[0], sector_off, dst, sector_count);
+    if (ret < 0)
+        printf("[RPCP] write_emmc: write failed: %X\n", ret);
+    set_mmc_op_mode(false, false);
+    return ret;
+}
+
+__attribute__((section(".text.rpcp")))
+int rpcp(uint32_t arg0, uint32_t arg1, void* extra_data) {
+    printf("\n[RPCP] hello world (%X, %X, %X)\n", arg0, arg1, (uint32_t)extra_data);
+
+    int ret = 0;
+    int testno = 0;
+    int test_count = TEST_COUNT;
+    //if (arg1)
+        //test_count = arg1;
+do_tests:
+    testno++;
+    printf("[RPCP] test number %X\n", testno);
+
+    {
+        uint32_t ctx[2];
+        int ret = 0;
+
+        printf("[RPCP] prep emmc regs\n");
+        prepare_emmc_regs();
+
+        printf("[RPCP] memset %X %X\n", COPY_BUFFER_ADDR, (6 * COPY_BUFFER_BLKSIZE) * 0x200);
+        memset(COPY_BUFFER_ADDR, 0, (6 * COPY_BUFFER_BLKSIZE) * 0x200);
+
+        printf("[RPCP] set storage modes to read\n");
+        set_mmc_op_mode(false, true);
+        set_sd_op_mode(false, true);
+
+        printf("[RPCP] read SBLS partitions to RW0:0&1\n");
+        ret = read_emmc(0x4000, COPY_BUFFER_ADDR, 0x4000);
+        if (ret < 0)
+            return -1;
+        
+        printf("[RPCP] read OS partition0 to RO1\n");
+        ret = read_emmc(0x8000, COPY_BUFFER_ADDR + (COPY_BUFFER_BLKSIZE * 0x200), COPY_BUFFER_BLKSIZE);
+        if (ret < 0)
+            return -2;
+
+        printf("[RPCP] read OS partition1 to RO2\n");
+        ret = read_emmc(0x10000, COPY_BUFFER_ADDR + ((2 * COPY_BUFFER_BLKSIZE) * 0x200), COPY_BUFFER_BLKSIZE);
+        if (ret < 0)
+            return -3;
+
+        printf("[RPCP] copy RW0:0 to RW0:3\n");
+        memcpy(COPY_BUFFER_ADDR + ((3 * 0x2000) * 0x200), COPY_BUFFER_ADDR, 0x2000 * 0x200);
+        printf("[RPCP] copy RW0:1 to RW0:2\n");
+        memcpy(COPY_BUFFER_ADDR + ((2 * 0x2000) * 0x200), COPY_BUFFER_ADDR + (0x2000 * 0x200), 0x2000 * 0x200);
+        printf("[RPCP] copy RO1 to RW4\n");
+        memcpy(COPY_BUFFER_ADDR + ((4 * COPY_BUFFER_BLKSIZE) * 0x200), COPY_BUFFER_ADDR + (COPY_BUFFER_BLKSIZE * 0x200), COPY_BUFFER_BLKSIZE * 0x200);
+        printf("[RPCP] copy RO2 to RW3\n");
+        memcpy(COPY_BUFFER_ADDR + ((3 * COPY_BUFFER_BLKSIZE) * 0x200), COPY_BUFFER_ADDR + ((2 * COPY_BUFFER_BLKSIZE) * 0x200), COPY_BUFFER_BLKSIZE * 0x200);
+
+        printf("[RPCP] write SBLS partitions from RW0:2&3\n");
+        ret = write_emmc(0x4000, COPY_BUFFER_ADDR + ((2 * 0x2000) * 0x200), 0x4000);
+        if (ret < 0)
+            return -4;
+
+        printf("[RPCP] write OS partition0 from RW3\n");
+        ret = write_emmc(0x8000, COPY_BUFFER_ADDR + ((3 * COPY_BUFFER_BLKSIZE) * 0x200), COPY_BUFFER_BLKSIZE);
+        if (ret < 0)
+            return -5;
+
+        printf("[RPCP] write OS partition1 from RW4\n");
+        ret = write_emmc(0x10000, COPY_BUFFER_ADDR + ((4 * COPY_BUFFER_BLKSIZE) * 0x200), COPY_BUFFER_BLKSIZE);
+        if (ret < 0)
+            return -6;
+
+        printf("[RPCP] dump done\n");
+
+        printf("[RPCP] set storage modes to read\n");
+        set_mmc_op_mode(false, true);
+        set_sd_op_mode(false, true);
+
+        ret = 0;
+    }
+    
+    if (testno < test_count)
+        goto do_tests;
+
+    print("[RPCP] byee\n\n");
+    return ret;
+}
