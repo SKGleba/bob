@@ -1,4 +1,5 @@
 #include "include/types.h"
+#include "include/clib.h"
 #include "include/compile_time.h"
 #include "include/utils.h"
 
@@ -11,9 +12,19 @@ void delay(int n) {
 
 __attribute__((noinline, optimize("O0")))
 int cbus_read(uint16_t cb_line) {
-    *(uint16_t*)(cbus_read + 0x12) = cb_line;
     asm(
+        "movu $3, cbr+2\n"
+        "sh %[cb_line], ($3)\n"
+        ".word 0x0\n"
+        ".word 0x0\n"
+        ".word 0x0\n"
+        ".word 0x0\n"
+        ".global cbr\n"
+        "cbr:\n"
         ".word 0xf014\n"
+        :
+        : [cb_line] "r" (cb_line)
+        : "$3", "$0"
     );
     register uint32_t ret asm("$0");
     return ret;
@@ -21,9 +32,21 @@ int cbus_read(uint16_t cb_line) {
 
 __attribute__((noinline, optimize("O0")))
 void cbus_write(uint16_t cb_line, uint32_t data) {
-    *(uint16_t*)(cbus_write + 0x14) = cb_line;
     asm(
+        "movu $3, cbw+2\n"
+        "sh %[cb_line], ($3)\n"
+        "mov %[data], $2\n"
+        ".word 0x0\n"
+        ".word 0x0\n"
+        ".word 0x0\n"
+        ".word 0x0\n"
+        ".global cbw\n"
+        "cbw:\n"
         ".word 0xf204\n"
+        :
+        : [data] "r" (data),
+        [cb_line] "r" (cb_line)
+        : "$2", "$3"
     );
 }
 

@@ -17,6 +17,6 @@
 
 #define RPC_READ_DELAY 10000 // delay between RPC checks
 #define RPC_WRITE_DELAY 512 // delay before replying to a RPC
-#define RPC_BLOCKED_DELAY 256 // delay between g_status check for unblock
+#define RPC_BLOCKED_DELAY 10000 // delay between g_status check for unblock
 
 #endif

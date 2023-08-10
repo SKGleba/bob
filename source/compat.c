@@ -10,17 +10,12 @@
 #include "include/paddr.h"
 #include "include/perv.h"
 #include "include/compat.h"
+#include "include/alice.h"
 
 // bring your own keys
 static const uint8_t skso_iv[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
-static uint16_t compat_state[2];
-
-int compat_f00dState(uint32_t state, bool set) {
-    if (set)
-        p compat_state = state;
-    return p compat_state;
-}
+static int compat_state = 0;
 
 uint32_t compat_Cry2Arm0(uint32_t msg) {
     maika_s* maika = (maika_s*)MAIKA_OFFSET;
@@ -85,7 +80,7 @@ static void compat_IRQ7_genSKSO(void) {
 
 __attribute__((noreturn))
 static void compat_IRQ7_armPanic(void) {
-    compat_f00dState(9, true);
+    compat_state = 9;
     cbus_write(0, 0xF);
     asm("mov $0, $0\n");
     _MEP_SYNC_BUS_
@@ -104,7 +99,7 @@ static void compat_IRQ7_forceExitSm(void) {
     maika->mailbox.cry2arm_inv[1] = -1;
     maika->mailbox.cry2arm_inv[2] = -1;
     maika->mailbox.cry2arm_inv[3] = -1;
-    compat_f00dState(7, true);
+    compat_state = 7;
     compat_Cry2Arm0(0x104);
     register volatile uint32_t psw asm("psw");
     psw = psw & -3;
@@ -113,6 +108,11 @@ static void compat_IRQ7_forceExitSm(void) {
 }
 
 void compat_IRQ7_handleCmd(void) {
+    if (compat_state < 0) {
+        compat_state = alice_handleCmd();
+        return;
+    }
+    
     statusled(STATUS_COMPAT_HANDLE);
     bool shortcmd = true;
     maika_s* maika = (maika_s*)MAIKA_OFFSET;
@@ -122,6 +122,14 @@ void compat_IRQ7_handleCmd(void) {
     printf("[BOB] got ARM cmd 0x%X\n", cmd);
 
     switch (cmd) {
+    case ALICE_ACQUIRE_CMD:
+        if (maika->mailbox.arm2cry[3] == cmd)
+            compat_state = -1;
+        printf("[BOB] compat service terminated\n");
+        maika->mailbox.arm2cry[3] = -1;
+        maika->mailbox.arm2cry[2] = -1;
+        maika->mailbox.arm2cry[1] = -1;
+        break;
     case 0xC01:
     case 0xD01:
         if (!(maika->keyring[0x10C][0] & 4))

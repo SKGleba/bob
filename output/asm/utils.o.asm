@@ -39,12 +39,18 @@ cbus_read:
 	# frame: 8   4 locals
 	add	$sp, -8
 	sh	$1, 6($sp)
-	movu	$3, cbus_read+18
 	lh	$2, 6($sp)
-	sh	$2, ($3)
 #APP
 ;# 15 "source/utils.c" 1
-	.word 0xf014
+	movu $3, cbr+2
+sh $2, ($3)
+.word 0x0
+.word 0x0
+.word 0x0
+.word 0x0
+.global cbr
+cbr:
+.word 0xf014
 
 ;# 0 "" 2
 #NO_APP
@@ -59,12 +65,20 @@ cbus_write:
 	add	$sp, -8
 	sh	$1, 6($sp)
 	sw	$2, ($sp)
-	movu	$3, cbus_write+20
-	lh	$2, 6($sp)
-	sh	$2, ($3)
+	lw	$1, ($sp)
+	lh	$0, 6($sp)
 #APP
-;# 25 "source/utils.c" 1
-	.word 0xf204
+;# 35 "source/utils.c" 1
+	movu $3, cbw+2
+sh $0, ($3)
+mov $1, $2
+.word 0x0
+.word 0x0
+.word 0x0
+.word 0x0
+.global cbw
+cbw:
+.word 0xf204
 
 ;# 0 "" 2
 #NO_APP
@@ -82,7 +96,7 @@ set_dbg_mode:
 	lw	$3, 4($sp)
 	bnez	$3, .L10
 #APP
-;# 33 "source/utils.c" 1
+;# 56 "source/utils.c" 1
 	ldc $0, $lp
 stc $0, $depc
 mov $0, $0
@@ -93,7 +107,7 @@ dret
 	bra	.L12
 .L10:
 #APP
-;# 40 "source/utils.c" 1
+;# 63 "source/utils.c" 1
 	dbreak
 
 ;# 0 "" 2
@@ -107,8 +121,8 @@ dret
 	.globl get_build_timestamp
 	.type	get_build_timestamp, @function
 get_build_timestamp:
-	movh	$0, 0x64cc
-	or3	$0, $0, 0x5129
+	movh	$0, 0x64d1
+	or3	$0, $0, 0x86dc
 	ret
 	.size	get_build_timestamp, .-get_build_timestamp
 	.p2align 1

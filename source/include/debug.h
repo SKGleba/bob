@@ -51,7 +51,9 @@ enum STATUSLED_CODES { // inits, exceptions, command handlers
     STATUS_RPC_READ,
     STATUS_RPC_EXECUTE,
     STATUS_RPC_WRITE,
-    STATUS_RPC_EXIT
+    STATUS_RPC_EXIT,
+    STATUS_RPC_BLOCKED,
+    STATUS_RPC_BLOCKED2
 };
 
 #ifdef SILENT

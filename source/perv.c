@@ -27,7 +27,7 @@ uint32_t pervasive_control_reset(int device, unsigned int mask, bool reset, bool
 
     if (wait) {
         if (reset) {
-            while (vp(addr) != mask)
+            while ((vp(addr) & mask) != mask)
                 ;
         } else {
             while (vp(addr) & mask)
@@ -52,7 +52,7 @@ uint32_t pervasive_control_gate(int device, unsigned int mask, bool open, bool w
 
     if (wait) {
         if (open) {
-            while (vp(addr) != mask)
+            while ((vp(addr) & mask) != mask)
                 ;
         } else {
             while (vp(addr) & mask)

@@ -407,4 +407,48 @@ c_DBG:
 	add	$sp, 24
 	jmp	$11
 	.size	c_DBG, .-c_DBG
+	.p2align 1
+	.globl set_exception_table
+	.type	set_exception_table, @function
+set_exception_table:
+	# frame: 16   16 regs
+	movh	$3, %hi(vectors_exceptions)
+	add	$sp, -16
+	ldc	$11, $lp
+	sw	$5, 4($sp)
+	sw	$11, ($sp)
+	lw	$5, %lo(vectors_exceptions)($3)
+	beqz	$1, .L16
+	movh	$3, %hi(jmp_s_glitch_xc)
+	mov	$1, $5
+	lw	$3, %lo(jmp_s_glitch_xc)($3)
+	lw	$2, ($3)
+	mov	$3, 52
+	bsr	memset32
+.L15:
+	lw	$5, 4($sp)
+	lw	$11, ($sp)
+	add	$sp, 16
+	jmp	$11
+.L16:
+	movh	$3, %hi(jmp_c_other_xc)
+	mov	$1, $5
+	lw	$3, %lo(jmp_c_other_xc)($3)
+	lw	$2, ($3)
+	mov	$3, 52
+	bsr	memset32
+	movh	$3, %hi(jmp_s_reset_xc)
+	lw	$3, %lo(jmp_s_reset_xc)($3)
+	lw	$3, ($3)
+	sw	$3, ($5)
+	movh	$3, %hi(jmp_s_swi_xc)
+	lw	$3, %lo(jmp_s_swi_xc)($3)
+	lw	$3, ($3)
+	sw	$3, 20($5)
+	movh	$3, %hi(jmp_s_dbg_xc)
+	lw	$3, %lo(jmp_s_dbg_xc)($3)
+	lw	$3, ($3)
+	sw	$3, 24($5)
+	bra	.L15
+	.size	set_exception_table, .-set_exception_table
 	.ident	"GCC: (WTF TEAM MOLECULE IS AT IT AGAIN?!) 6.3.0"

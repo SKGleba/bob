@@ -6,6 +6,7 @@
 #include "include/glitch.h"
 #include "include/paddr.h"
 #include "include/maika.h"
+#include "include/clib.h"
 #include "include/ex.h"
 
 __attribute__((optimize("O0"), noreturn))
@@ -132,4 +133,16 @@ void c_DBG(void) {
     statusled(STATUS_DBG_HIT);
     print("[BOB] GOT DBG INTERRUPT\n");
     statusled(STATUS_DBG_QUIT);
+}
+
+void set_exception_table(bool glitch) {
+    uint32_t* table = vectors_exceptions;
+    if (glitch) {
+        memset32(table, vp jmp_s_glitch_xc, 0x34);
+        return;
+    } else
+        memset32(table, vp jmp_c_other_xc, 0x34);
+    table[0] = vp jmp_s_reset_xc;
+    table[5] = vp jmp_s_swi_xc;
+    table[6] = vp jmp_s_dbg_xc;
 }

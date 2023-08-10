@@ -19,9 +19,9 @@ pervasive_control_reset:
 	beqz	$4, .L4
 	beqz	$3, .L5
 	erepeat	.L15
-	nop
-.L15:
 	lw	$3, ($1)
+.L15:
+	and	$3, $2
 	beq	$2, $3, .L16
 	# erepeat end
 .L16:
@@ -63,9 +63,9 @@ pervasive_control_gate:
 	beqz	$4, .L22
 	beqz	$3, .L23
 	erepeat	.L33
-	nop
-.L33:
 	lw	$3, ($1)
+.L33:
+	and	$3, $2
 	beq	$2, $3, .L34
 	# erepeat end
 .L34:

@@ -3,9 +3,11 @@
 #include "include/utils.h"
 #include "include/debug.h"
 #include "include/jig.h"
+#include "include/ex.h"
+#include "include/alice.h"
 #include "include/rpc.h"
 
-int g_rpc_status = 0;
+volatile int g_rpc_status = 0;
 
 void rpc_loop(void) {
     uint8_t xsize = 0; // rpc cmd extra return sz
@@ -28,9 +30,15 @@ void rpc_loop(void) {
 
         if (g_rpc_status & RPC_STATUS_REQUEST_BLOCK) {
             g_rpc_status |= RPC_STATUS_BLOCKED;
-            while (g_rpc_status & RPC_STATUS_REQUEST_BLOCK) {
+            statusled(STATUS_RPC_BLOCKED);
+            printf("[BOB] RPC blocked\n");
+            do {
+                statusled(STATUS_RPC_BLOCKED);
                 delay(RPC_BLOCKED_DELAY);
-            }
+                statusled(STATUS_RPC_BLOCKED2);
+                delay(RPC_BLOCKED_DELAY);
+            } while (g_rpc_status & RPC_STATUS_REQUEST_BLOCK);
+            printf("[BOB] RPC unblocked\n");
             g_rpc_status &= ~RPC_STATUS_BLOCKED;
         }
 
@@ -94,7 +102,24 @@ void rpc_loop(void) {
         case RPC_CMD_MEMSET32:
             cret = (uint32_t)memset32((void*)rpc_buf.cmd.args[0], rpc_buf.cmd.args[1], rpc_buf.cmd.args[2]);
             break;
-            
+        case RPC_CMD_ARM_RESET:
+            cret = 0;
+            alice_armReBoot((int)rpc_buf.cmd.args[0], (bool)rpc_buf.cmd.args[1], (bool)rpc_buf.cmd.args[2]);
+            break;
+        case RPC_CMD_SET_XCTABLE:
+            cret = 0;
+            set_exception_table((bool)rpc_buf.cmd.args[0]);
+            break;
+        case RPC_CMD_SET_INTS:
+            cret = 0;
+            if ((bool)rpc_buf.cmd.args[0]) {
+                if ((bool)rpc_buf.cmd.args[1])
+                    alice_setupInts();
+                _MEP_INTR_ENABLE_
+            } else
+                _MEP_INTR_DISABLE_
+            break;
+
         case RPC_CMD_COPYTO:
             cret = (uint32_t)memcpy((void*)rpc_buf.cmd.args[0], rpc_buf.extra_data, rpc_buf.cmd.args[1]);
             break;
@@ -138,7 +163,7 @@ void rpc_loop(void) {
             jig_update_shared_buffer((uint8_t*)&rpc_buf.cmd, 0, 3, false);
         }
 
-        if (rpc_buf.cmd.cmd_id == (RPC_CMD_STOP_RPC & ~RPC_FLAG_REPLY))
+        if (rpc_buf.cmd.cmd_id == (RPC_CMD_STOP_RPC | RPC_FLAG_REPLY))
             break;
 
         if (g_rpc_status & RPC_STATUS_REQUEST_STOP)

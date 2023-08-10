@@ -17,6 +17,9 @@ RPC_COMMANDS = {
     "push" : 0x7, # dont use this
     "hexdump" : 0x8,
     "memset32" : 0x9,
+    "arm_reset" : 0xa,
+    "set_xctable" : 0xb,
+    "set_ints" : 0xc,
     "copyto" : 0x40,
     "copyfrom" : 0x41,
     "exec" : 0x42, # exec arg0(arg1, arg2, &extra) | ret to arg0
@@ -69,11 +72,15 @@ def exec_cmd(cmd_base):
 
 def handle_cmd(user_cmd, argv):
     match user_cmd:
-        case "file_send": # arg0 = dst, arg1 = src
+        case "file_send": # arg0 = dst, arg1 = src, arg2 = skip_to (opt)
             prev_delay = "0x" + swapstr32(str(handle_cmd("delay", ["0x{:08X}".format(RPC_FAST_DELAY), "0x{:08X}".format(RPC_WRITE_DELAY)]))[8:16])
             offset = int(argv[0][2:], 16)
-            copied = 0
+            copied = 0 
+            if len(argv) > 2:
+                copied = int(argv[2][2:], 16)
             with open(argv[1], 'rb') as fp:
+                if copied > 0:
+                    fp.seek(copied)
                 while True:
                     xdata = fp.read(RPC_EXTRA_DATA_SIZE)
                     if xdata == b'':

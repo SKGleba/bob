@@ -65,3 +65,23 @@ jmp get_build_timestamp
 .global s_printFormat
 s_printFormat:
 jmp debug_printFormat
+
+.global jmp_s_reset_xc
+jmp_s_reset_xc:
+jmp s_RESET
+
+.global jmp_s_swi_xc
+jmp_s_swi_xc:
+jmp s_SWI
+
+.global jmp_s_dbg_xc
+jmp_s_dbg_xc:
+jmp s_DBG
+
+.global jmp_s_glitch_xc
+jmp_s_glitch_xc:
+jmp s_GLITCH
+
+.global jmp_c_other_xc
+jmp_c_other_xc:
+jmp c_OTHER_EXC

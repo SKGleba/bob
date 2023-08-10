@@ -101,11 +101,11 @@ void init(bob_config* arg_config) {
 void test(void) {
     printf("[BOB] test test test\n");
 
-    set_dbg_mode(true);
+    //set_dbg_mode(true);
 
     _MEP_SYNC_BUS_;
 
-    printf("[BOB] killing arm from %X...\n");
+    printf("[BOB] killing arm...\n");
     vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_LPDDR0, XBAR_ACCESS_CONTROL_WHITELIST) &= ~0b11;
     delay(0x800); // increase delay if it hangs here
     pervasive_control_reset(PERV_CTRL_RESET_DEV_ARM, 0x1000f, true, true);

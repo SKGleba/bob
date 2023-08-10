@@ -174,7 +174,7 @@ init:
 	.string	"[BOB] test test test\n"
 	.p2align 2
 .LC2:
-	.string	"[BOB] killing arm from %X...\n"
+	.string	"[BOB] killing arm...\n"
 	.p2align 2
 .LC3:
 	.string	"[BOB] arm is dead, disable the OLED screen...\n"
@@ -194,11 +194,9 @@ test:
 	add	$sp, -16
 	ldc	$11, $lp
 	movu	$1, .LC1
-	sw	$11, ($sp)
 	sw	$5, 4($sp)
+	sw	$11, ($sp)
 	bsr	debug_printFormat
-	mov	$1, 1
-	bsr	set_dbg_mode
 	syncm
 	movh	$5, 0xec06
 	or3	$5, $5, 0x448
