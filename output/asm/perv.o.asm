@@ -89,4 +89,49 @@ pervasive_control_gate:
 .L36:
 	bra	.L22
 	.size	pervasive_control_gate, .-pervasive_control_gate
+	.p2align 1
+	.globl pervasive_control_clock
+	.type	pervasive_control_clock, @function
+pervasive_control_clock:
+	movh	$0, 0x38c4
+	or3	$0, $0, 0xc00
+	add3	$1, $1, $0
+	sll	$1, 2
+	sw	$2, ($1)
+	syncm
+	lw	$0, ($1)
+	beqz	$3, .L38
+	erepeat	.L45
+	nop
+.L45:
+	lw	$3, ($1)
+	beq	$2, $3, .L46
+	# erepeat end
+.L46:
+.L38:
+	lw	$0, ($1)
+	ret
+	.size	pervasive_control_clock, .-pervasive_control_clock
+	.p2align 1
+	.globl pervasive_control_misc
+	.type	pervasive_control_misc, @function
+pervasive_control_misc:
+	movh	$0, 0x38c4
+	add3	$1, $1, $0
+	sll	$1, 2
+	sw	$2, ($1)
+	syncm
+	lw	$0, ($1)
+	beqz	$3, .L48
+	erepeat	.L55
+	nop
+.L55:
+	lw	$3, ($1)
+	beq	$2, $3, .L56
+	# erepeat end
+.L56:
+.L48:
+	lw	$0, ($1)
+	ret
+	.size	pervasive_control_misc, .-pervasive_control_misc
 	.ident	"GCC: (WTF TEAM MOLECULE IS AT IT AGAIN?!) 6.3.0"

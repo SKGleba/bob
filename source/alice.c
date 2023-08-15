@@ -11,72 +11,57 @@
 #include "include/alice.h"
 
 void alice_armReBoot(int armClk, bool hasCS, bool hasUnk) {
-    vp PERV_GET_REG(PERV_CTRL_GATE, PERV_CTRL_GATE_DEV_ARM) = 0;
-    while (vp PERV_GET_REG(PERV_CTRL_GATE, PERV_CTRL_GATE_DEV_ARM))
-        ;
-    if (hasCS) {
-        vp PERV_GET_REG(PERV_CTRL_GATE, PERV_CTRL_GATE_DEV_ARM_CS) = 0;
-        while (vp PERV_GET_REG(PERV_CTRL_GATE, PERV_CTRL_GATE_DEV_ARM_CS))
-            ;
-    }
-    vp PERV_GET_REG(PERV_CTRL_RESET, PERV_CTRL_RESET_DEV_ARM) = 0x1000f;
-    while (vp PERV_GET_REG(PERV_CTRL_RESET, PERV_CTRL_RESET_DEV_ARM) != 0x1000f)
-        ;
-    if (hasCS) {
-        vp PERV_GET_REG(PERV_CTRL_RESET, PERV_CTRL_RESET_DEV_ARM_CS) = 1;
-        while (vp PERV_GET_REG(PERV_CTRL_RESET, PERV_CTRL_RESET_DEV_ARM_CS) != 1)
-            ;
-    }
+    // put ARM & CS in reset
+    pervasive_control_reset(PERV_CTRL_RESET_DEV_ARM, 0x1000f, true, true);
+    if (hasCS)
+        pervasive_control_reset(PERV_CTRL_RESET_DEV_ARM_CS, 1, true, true);
+
+    // disable ARM & CS clocks
+    pervasive_control_gate(PERV_CTRL_GATE_DEV_ARM, 0xFFFFFFFF, false, true);
+    if (hasCS)
+        pervasive_control_gate(PERV_CTRL_GATE_DEV_ARM_CS, 0xFFFFFFFF, false, true);
+
+    // WTF1
     uint32_t dev_96_clk = vp PERV_GET_REG(PERV_CTRL_GATE, 96);
-    vp PERV_GET_REG(PERV_CTRL_GATE, 96) = (dev_96_clk & 0xffffff7f);
-    while (vp PERV_GET_REG(PERV_CTRL_GATE, 96) != (dev_96_clk & 0xffffff7f))
-        ;
-    vp PERV_GET_REG(PERV_CTRL_RESET, 97) = 0;
-    while (vp PERV_GET_REG(PERV_CTRL_RESET, 97))
-        ;
-    vp PERV_GET_REG(PERV_CTRL_GATE, 96) = (dev_96_clk | 0x80);
-    while (vp PERV_GET_REG(PERV_CTRL_GATE, 96) != (dev_96_clk | 0x80))
-        ;
-    vp PERV_GET_REG(PERV_CTRL_BASECLK, 0) = 1;
-    while (vp PERV_GET_REG(PERV_CTRL_BASECLK, 0) != 1)
-        ;
-    vp PERV_GET_REG(PERV_CTRL_MISC, 0xC) = 0;
-    while (vp PERV_GET_REG(PERV_CTRL_MISC, 0xC))
-        ;
-    vp PERV_GET_REG(PERV_CTRL_MISC, 0x14) = 1;
-    while (vp PERV_GET_REG(PERV_CTRL_MISC, 0x14) != 1)
-        ;
-    while (vp PERV_GET_REG(PERV_CTRL_MISC, 0x30) != 1)
-        ;
+    pervasive_control_gate(96, dev_96_clk & 0xffffff7f, true, true);
+    pervasive_control_reset(97, 0xFFFFFFFF, false, true);
+    pervasive_control_gate(96, dev_96_clk | 0x80, true, true);
+
+    // set arm to 42mhz
+    pervasive_control_clock(0, 1, true);
+
+    // ??
+    pervasive_control_misc(0xC, 0, true);
+    pervasive_control_misc(0x14, 1, true);
+
+    // WTF2
+    while (vp PERV_GET_REG(PERV_CTRL_MISC, 0x30) != 1) {};
     vp PERV_GET_REG(PERV_CTRL_MISC, 0x30) = 1;
-    while (vp PERV_GET_REG(PERV_CTRL_MISC, 0x30) == 1)
-        ;
-    vp PERV_GET_REG(PERV_CTRL_GATE, PERV_CTRL_GATE_DEV_ARM) = 0xc00000;
-    while (vp PERV_GET_REG(PERV_CTRL_GATE, PERV_CTRL_GATE_DEV_ARM) != 0xc00000)
-        ;
-    vp PERV_GET_REG(PERV_CTRL_GATE, PERV_CTRL_GATE_DEV_ARM) = 0;
-    while (vp PERV_GET_REG(PERV_CTRL_GATE, PERV_CTRL_GATE_DEV_ARM))
-        ;
-    vp PERV_GET_REG(PERV_CTRL_BASECLK, 0) = armClk & 0xf;
-    while (vp PERV_GET_REG(PERV_CTRL_BASECLK, 0) != (armClk & 0xf))
-        ;
+    while (vp PERV_GET_REG(PERV_CTRL_MISC, 0x30) == 1) {};
+
+    // open & close ARM debug mode gate for some reason
+    pervasive_control_gate(PERV_CTRL_GATE_DEV_ARM, 0xc00000, true, true);
+    pervasive_control_gate(PERV_CTRL_GATE_DEV_ARM, 0xFFFFFFFF, false, true);
+
+    // set arm to caller-defined freq (default 7 : 333mhz)
+    pervasive_control_clock(0, armClk & 0xf, true);
+
+    // WTF3, remaps arm 0x0 to 0x40000000
     vp 0xe3110c00 = hasUnk & 1;
     while (vp 0xe3110c00 != (hasUnk & 1))
         ;
-    vp PERV_GET_REG(PERV_CTRL_GATE, PERV_CTRL_GATE_DEV_ARM) = hasCS ? 0xc10000 : 0x10000;
-    while (!(vp PERV_GET_REG(PERV_CTRL_GATE, PERV_CTRL_GATE_DEV_ARM)))
-        ;
+
+    // open arm (&opt) gate
+    pervasive_control_gate(PERV_CTRL_GATE_DEV_ARM, hasCS ? 0xc10000 : 0x10000, true, true);
+
+    // spin up CS
     if (hasCS) {
-        vp PERV_GET_REG(PERV_CTRL_GATE, PERV_CTRL_GATE_DEV_ARM_CS) = 1;
-        while (vp PERV_GET_REG(PERV_CTRL_GATE, PERV_CTRL_GATE_DEV_ARM_CS) != 1)
-            ;
-        vp PERV_GET_REG(PERV_CTRL_RESET, PERV_CTRL_RESET_DEV_ARM_CS) = 0;
-        while (vp PERV_GET_REG(PERV_CTRL_RESET, PERV_CTRL_RESET_DEV_ARM_CS))
-            ;
+        pervasive_control_gate(PERV_CTRL_GATE_DEV_ARM_CS, 1, true, true);
+        pervasive_control_reset(PERV_CTRL_RESET_DEV_ARM_CS, 0xFFFFFFFF, false, true);
     }
-    vp PERV_GET_REG(PERV_CTRL_RESET, PERV_CTRL_RESET_DEV_ARM) = 0;
-    while (vp PERV_GET_REG(PERV_CTRL_RESET, PERV_CTRL_RESET_DEV_ARM))
-        ;
+
+    // put arm out of reset
+    pervasive_control_reset(PERV_CTRL_RESET_DEV_ARM, 0xFFFFFFFF, false, true);
 }
 
 void alice_setupInts(void) {

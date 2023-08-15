@@ -33,7 +33,7 @@ void glitch_test(void) {
 }
 
 void glitch_init(void) {
-    vp 0xe3103040 = 0x10007; // set max clock
+    vp 0xe3103040 = 0x10002; // set min clock to lower glitch success rate
     
     _MEP_INTR_DISABLE_ // disable interrupts
 
@@ -48,10 +48,12 @@ void glitch_init(void) {
 #ifndef SILENT
     statusled(STATUS_GLINIT_UART);
     uart_init(UART_BUS, UART_RATE);
-    printf("[BOB] glitch_init bob [%X], me @ %X\n", get_build_timestamp(), glitch_init);
     for (int i = 0; i < 0x100; i++)
-        printf("ping pong ding dong "); // spam uart for the glitcher watchdog
+        print("ping pong ding dong "); // spam uart for the glitcher watchdog
+    printf("[BOB] glitch_init bob [%X], me @ %X\n", get_build_timestamp(), glitch_init);
 #endif
+
+    vp 0xe3103040 = 0x10007; // back up
 
     statusled(STATUS_GLINIT_ERNIE);
     printf("[BOB] ernie init\n");
@@ -69,7 +71,8 @@ void glitch_init(void) {
 
     // start the rpc server
     statusled(STATUS_GLINIT_RPC);
-    printf("[BOB] move stack & exit to rpc\n");
+    printf("[BOB] cleanup, move stack & exit to rpc\n");
+    memset32((void*)0x5a000, 0x0, 0x2000);
     asm(
         "movu $1, 0x5b800\n"
         "mov $gp, $1\n"

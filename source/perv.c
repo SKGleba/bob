@@ -62,3 +62,35 @@ uint32_t pervasive_control_gate(int device, unsigned int mask, bool open, bool w
 
     return vp addr;
 }
+
+uint32_t pervasive_control_clock(int device, unsigned int clock, bool wait) {
+    uint32_t addr = PERV_GET_REG(PERV_CTRL_BASECLK, device);
+    vp addr = clock;
+    
+    _MEP_SYNC_BUS_
+
+    vp addr;
+
+    if (wait) {
+        while (vp(addr) != clock)
+            ;
+    }
+
+    return vp addr;
+}
+
+uint32_t pervasive_control_misc(int reg_id, unsigned int value, bool wait) {
+    uint32_t addr = PERV_GET_REG(PERV_CTRL_MISC, reg_id);
+    vp addr = value;
+
+    _MEP_SYNC_BUS_
+
+    vp addr;
+
+    if (wait) {
+        while (vp(addr) != value)
+            ;
+    }
+
+    return vp addr;
+}
