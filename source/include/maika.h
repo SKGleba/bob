@@ -30,9 +30,9 @@ typedef struct _maika_mailbox maika_mailbox;
 
 // maika::reset_ctrl
 struct _maika_reset_ctrl {
-    reg f00d_reset_0;
+    reg f00d_reset; // f00d reset
     reg crySboot;
-    reg f00d_reset_8; // faster than 1
+    reg f00d_cycle_reset; // useful for self reset
     reg math_reset; // bigmac & bignum reset
     reg other_reset; // other subsystems reset
 };
@@ -201,18 +201,6 @@ uint32_t readAs(uint32_t addr, uint32_t mode);
 
 // write [data] to [addr] with/as [mode]
 void writeAs(uint32_t addr, uint32_t data, uint32_t mode);
-
-typedef struct keyring_ctrl_t {
-    uint32_t data[8]; // data to write to the keyslot
-    uint32_t keyslot; // keyslot to write the data to
-    union {
-        uint16_t set_prot_prot;
-        uint16_t set_prot_keyslot;
-        uint32_t set_prot; // ((prot << 16) | keyslot)
-    };
-    uint32_t get_prot; // write keyslot to get prot in next
-    uint32_t resp;
-} keyring_ctrl_t;
 
 uint32_t keyring_slot_data(bool set, void* data, int datasize, uint32_t keyslot);
 uint32_t keyring_slot_prot(bool set, uint32_t prot, uint32_t keyslot);

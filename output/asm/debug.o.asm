@@ -196,9 +196,127 @@ debug_printFormat:
 	.text
 	.core
 	.p2align 1
-	.globl debug_printRange
-	.type	debug_printRange, @function
-debug_printRange:
+	.type	printRange32, @function
+printRange32:
+	# frame: 64   32 regs   28 locals
+	add3	$sp, $sp, -64 # 0xffc0
+	ldc	$11, $lp
+	sw	$7, 44($sp)
+	sw	$8, 40($sp)
+	sw	$5, 52($sp)
+	sw	$6, 48($sp)
+	sw	$11, 36($sp)
+	mov	$8, $1
+	mov	$7, $2
+	sw	$3, 8($sp)
+	beqz	$2, .L25
+	beqz	$3, .L27
+	mov	$2, $1
+	movu	$1, .LC0
+	bsr	debug_printFormat
+.L27:
+	mov	$3, 0
+	mov	$10, 0
+	movh	$6, %hi(g_uart_bus)
+	sb	$3, 31($sp)
+.L28:
+	sltu3	$0, $10, $7
+	bnez	$0, .L32
+	lw	$1, %lo(g_uart_bus)($6)
+	movu	$2, .LC1
+	bsr	uart_print
+.L25:
+	lw	$8, 40($sp)
+	lw	$7, 44($sp)
+	lw	$6, 48($sp)
+	lw	$5, 52($sp)
+	lw	$11, 36($sp)
+	add3	$sp, $sp, 64
+	jmp	$11
+.L32:
+	mov	$5, -4 # 0xfffc
+	and	$5, $10
+	add3	$3, $8, $5
+	mov	$9, 32
+	lw	$2, ($3)
+	movh	$3, %hi(debug_hexbase)
+	add3	$3, $3, %lo(debug_hexbase)
+	mov	$1, $2
+	srl	$1, 4
+	and3	$1, $1, 0xf
+	add3	$1, $3, $1
+	sw	$10, 4($sp)
+	lb	$1, ($1)
+	sb	$9, 21($sp)
+	sb	$9, 24($sp)
+	sb	$1, 19($sp)
+	and3	$1, $2, 0xf
+	add3	$1, $3, $1
+	sb	$9, 27($sp)
+	lb	$1, ($1)
+	sb	$9, 30($sp)
+	sb	$1, 20($sp)
+	mov	$1, $2
+	srl	$1, 12
+	and3	$1, $1, 0xf
+	add3	$1, $3, $1
+	lb	$1, ($1)
+	sb	$1, 22($sp)
+	mov	$1, $2
+	srl	$1, 8
+	and3	$1, $1, 0xf
+	add3	$1, $3, $1
+	lb	$1, ($1)
+	sb	$1, 23($sp)
+	mov	$1, $2
+	srl	$1, 20
+	and3	$1, $1, 0xf
+	add3	$1, $3, $1
+	lb	$1, ($1)
+	sb	$1, 25($sp)
+	mov	$1, $2
+	srl	$1, 16
+	and3	$1, $1, 0xf
+	add3	$1, $3, $1
+	lb	$1, ($1)
+	sb	$1, 26($sp)
+	mov	$1, $2
+	srl	$2, 24
+	srl	$1, 28
+	add3	$1, $3, $1
+	and3	$2, $2, 0xf
+	lb	$1, ($1)
+	add3	$3, $3, $2
+	add3	$2, $sp, 19
+	lb	$3, ($3)
+	sb	$1, 28($sp)
+	lw	$1, %lo(g_uart_bus)($6)
+	sb	$3, 29($sp)
+	bsr	uart_print
+	lw	$10, 4($sp)
+	and3	$3, $10, 0xc
+	add	$10, 4
+	sw	$10, 12($sp)
+	bnei	$3, 12, .L30
+	lw	$1, %lo(g_uart_bus)($6)
+	movu	$2, .LC1
+	bsr	uart_print
+	lw	$0, 8($sp)
+	beqz	$0, .L30
+	lw	$3, 12($sp)
+	sltu3	$0, $3, $7
+	beqz	$0, .L30
+	add3	$2, $5, 4
+	add3	$2, $8, $2
+	movu	$1, .LC0
+	bsr	debug_printFormat
+.L30:
+	lw	$10, 12($sp)
+	bra	.L28
+	.size	printRange32, .-printRange32
+	.p2align 1
+	.type	printRange8, @function
+printRange8:
 	# frame: 48   32 regs   12 locals
 	add3	$sp, $sp, -48 # 0xffd0
 	ldc	$11, $lp
@@ -210,17 +328,17 @@ debug_printRange:
 	mov	$5, $1
 	mov	$6, $2
 	mov	$7, $3
-	beqz	$2, .L25
-	beqz	$3, .L27
+	beqz	$2, .L43
+	beqz	$3, .L45
 	mov	$2, $1
 	movu	$1, .LC0
 	bsr	debug_printFormat
-.L27:
+.L45:
 	mov	$3, 0
 	add	$5, 1
 	mov	$8, 0
 	sb	$3, 15($sp)
-.L31:
+.L49:
 	lb	$1, -1($5)
 	movh	$3, %hi(debug_hexbase)
 	add3	$3, $3, %lo(debug_hexbase)
@@ -245,24 +363,24 @@ debug_printRange:
 	and3	$2, $8, 0xf
 	lw	$3, 4($sp)
 	add	$8, 1
-	bnei	$2, 15, .L29
+	bnei	$2, 15, .L47
 	lw	$1, ($3)
 	movu	$2, .LC1
 	bsr	uart_print
-	beqz	$7, .L29
+	beqz	$7, .L47
 	sltu3	$0, $8, $6
-	beqz	$0, .L29
+	beqz	$0, .L47
 	mov	$2, $5
 	movu	$1, .LC0
 	bsr	debug_printFormat
-.L29:
+.L47:
 	add	$5, 1
-	bne	$6, $8, .L31
+	bne	$6, $8, .L49
 	movh	$3, %hi(g_uart_bus)
 	movu	$2, .LC1
 	lw	$1, %lo(g_uart_bus)($3)
 	bsr	uart_print
-.L25:
+.L43:
 	lw	$8, 24($sp)
 	lw	$7, 28($sp)
 	lw	$6, 32($sp)
@@ -270,6 +388,28 @@ debug_printRange:
 	lw	$11, 20($sp)
 	add3	$sp, $sp, 48
 	jmp	$11
+	.size	printRange8, .-printRange8
+	.p2align 1
+	.globl debug_printRange
+	.type	debug_printRange, @function
+debug_printRange:
+	# frame: 16   16 regs
+	add	$sp, -16
+	ldc	$11, $lp
+	sw	$11, 4($sp)
+	mov	$0, $2
+	beqz	$2, .L61
+	or	$0, $1
+	and3	$0, $0, 0x3
+	beqz	$0, .L63
+	bsr	printRange8
+.L61:
+	lw	$11, 4($sp)
+	add	$sp, 16
+	jmp	$11
+.L63:
+	bsr	printRange32
+	bra	.L61
 	.size	debug_printRange, .-debug_printRange
 	.p2align 1
 	.globl debug_setGpoCode
@@ -521,7 +661,7 @@ debug_c_regdump:
 	bsr	uart_print
 	movh	$7, %hi(g_uart_bus)
 	mov	$8, $6
-.L45:
+.L69:
 	mov	$3, $8
 	sub	$3, $6
 	add3	$3, $3, $gp
@@ -531,7 +671,7 @@ debug_c_regdump:
 	add	$5, 1
 	bsr	debug_printFormat
 	mov	$3, 48
-	bne	$5, $3, .L47
+	bne	$5, $3, .L71
 	lw	$8, 8($sp)
 	lw	$7, 12($sp)
 	lw	$6, 16($sp)
@@ -539,14 +679,14 @@ debug_c_regdump:
 	lw	$11, 4($sp)
 	add3	$sp, $sp, 32
 	jmp	$11
-.L47:
+.L71:
 	mov	$3, 16
-	bne	$5, $3, .L46
+	bne	$5, $3, .L70
 	lw	$1, %lo(g_uart_bus)($7)
 	movu	$2, .LC51
 	bsr	uart_print
-.L46:
+.L70:
 	add	$8, 4
-	bra	.L45
+	bra	.L69
 	.size	debug_c_regdump, .-debug_c_regdump
 	.ident	"GCC: (WTF TEAM MOLECULE IS AT IT AGAIN?!) 6.3.0"

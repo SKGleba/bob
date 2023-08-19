@@ -65,9 +65,11 @@ void glitch_init(void) {
     jig_update_shared_buffer((uint8_t*)&msg, 0, 0x10, true);
 
     // test test stuff
+#ifndef GLITCH_SKIP_TEST
     statusled(STATUS_GLINIT_TEST);
     printf("[BOB] test test test\n");
     glitch_test();
+#endif
 
     // start the rpc server
     statusled(STATUS_GLINIT_RPC);

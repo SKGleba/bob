@@ -65,20 +65,22 @@ rpc_loop:
 	add3	$sp, $sp, 112
 	jmp	$11
 .L2:
-	mov	$2, 10000 # 0x2710
+	mov	$2, 4096 # 0x1000
 	movu	$1, .LC1
 	bsr	debug_printFormat
 	lw	$3, ($6)
-	mov	$0, 512 # 0x200
-	mov	$1, 10000 # 0x2710
+	mov	$0, 128
+	mov	$1, 4096 # 0x1000
 	or3	$3, $3, 0x1
 	sw	$3, ($6)
-	mov	$2, 1
+	mov	$2, 0
 	add3	$6, $sp, 40
 	sw	$0, 36($sp)
 	sw	$1, 32($sp)
 	sw	$2, 28($sp)
 .L4:
+	mov	$1, 34
+	bsr	debug_setGpoCode
 	lw	$1, 32($sp)
 	bsr	delay
 	lw	$3, %lo(g_rpc_status)($5)
@@ -86,14 +88,20 @@ rpc_loop:
 	and	$3, $0
 	beqz	$3, .L5
 	lw	$3, %lo(g_rpc_status)($5)
-	movu	$1, .LC2
-	mov	$7, 10000 # 0x2710
+	mov	$1, 40
+	mov	$7, 10240 # 0x2800
 	or3	$3, $3, 0x2
 	sw	$3, %lo(g_rpc_status)($5)
+	bsr	debug_setGpoCode
+	movu	$1, .LC2
 	bsr	debug_printFormat
 .L6:
+	mov	$1, 40
+	bsr	debug_setGpoCode
 	mov	$1, $7
 	bsr	delay
+	mov	$1, 41
+	bsr	debug_setGpoCode
 	mov	$1, $7
 	bsr	delay
 	lw	$3, %lo(g_rpc_status)($5)
@@ -109,6 +117,8 @@ rpc_loop:
 	and	$3, $2
 	sw	$3, ($8)
 .L5:
+	mov	$1, 36
+	bsr	debug_setGpoCode
 	mov	$3, 40
 	mov	$2, 0
 	mov	$1, $6
@@ -117,29 +127,32 @@ rpc_loop:
 	mov	$2, 0
 	mov	$1, $6
 	bsr	jig_read_shared_buffer
+	mov	$1, 35
+	bsr	debug_setGpoCode
 	lhu	$2, 40($sp)
 	movu	$3, 0xeb0b
 	bne	$2, $3, .L4
-	lbu	$1, 43($sp)
-	mov	$3, $1
-	extb	$3
+	lb	$3, 43($sp)
 	blti	$3, 0, .L4
 	mov	$8, $6
 	mov	$7, $6
 	mov	$3, 0
 	mov	$2, 12
-	repeat	$2,.L57
+	repeat	$2,.L59
 .L8:
-	lb	$0, 3($7)
+	lb	$1, 3($7)
 	add	$7, 1
-.L57:
-	add3	$3, $3, $0
+.L59:
+	add3	$3, $3, $1
 	extub	$3
 	# repeat end
 	lbu	$2, 42($sp)
 	bne	$2, $3, .L4
-	and3	$1, $1, 0x40
-	beqz	$1, .L9
+	mov	$1, 36
+	bsr	debug_setGpoCode
+	lb	$3, 43($sp)
+	and3	$3, $3, 0x40
+	beqz	$3, .L9
 	mov	$3, 24
 	mov	$2, 16
 	add3	$1, $sp, 56
@@ -148,6 +161,8 @@ rpc_loop:
 	lbu	$2, 43($sp)
 	movu	$1, .LC4
 	bsr	debug_printFormat
+	mov	$1, 37
+	bsr	debug_setGpoCode
 	lw	$3, %lo(g_rpc_status)($5)
 	lbu	$2, 43($sp)
 	or3	$3, $3, 0x4
@@ -163,11 +178,16 @@ rpc_loop:
 	beqi	$2, 1, .L15
 	mov	$3, 1
 	sltu3	$0, $3, $2
-	beqz	$0, .L54
+	beqz	$0, .L56
+	lw	$3, 52($sp)
+	lw	$1, 44($sp)
 	lw	$2, 48($sp)
-	lw	$3, 44($sp)
-	sw	$2, ($3)
-.L56:
+	bgei	$3, 0, .L33
+	movh	$0, 0x7fff
+	or3	$0, $0, 0xffff
+	and	$3, $0
+	bsr	writeAs
+.L58:
 	mov	$0, 0
 	mov	$3, 0
 	bra	.L10
@@ -175,9 +195,9 @@ rpc_loop:
 	beqi	$2, 5, .L18
 	sltu3	$3, $2, 5
 	bnez	$3, .L19
-	beqi	$2, 6, .L56
+	beqi	$2, 6, .L58
 	beqi	$2, 7, .L21
-.L38:
+.L40:
 	mov	$0, -1 # 0xffff
 	mov	$3, 0
 	bra	.L10
@@ -190,7 +210,7 @@ rpc_loop:
 	beqi	$2, 10, .L24
 	mov	$3, 10
 	sltu3	$0, $3, $2
-	beqz	$0, .L55
+	beqz	$0, .L57
 	bsr	set_exception_table
 	mov	$0, 0
 	mov	$3, 0
@@ -201,7 +221,7 @@ rpc_loop:
 	sltu3	$0, $3, $2
 	bnez	$0, .L28
 	mov	$3, 64
-	bne	$2, $3, .L38
+	bne	$2, $3, .L40
 	lw	$3, 48($sp)
 	lw	$1, 44($sp)
 	add3	$2, $sp, 56
@@ -212,7 +232,7 @@ rpc_loop:
 	mov	$3, 66
 	beq	$2, $3, .L30
 	mov	$3, 67
-	bne	$2, $3, .L38
+	bne	$2, $3, .L40
 	lw	$0, 44($sp)
 	movu	$1, .LC6
 	mov	$2, $0
@@ -234,22 +254,26 @@ rpc_loop:
 	jsr	$0
 	mov	$3, 0
 	bra	.L10
-.L54:
+.L56:
 	bsr	get_build_timestamp
 	mov	$3, 0
 .L10:
 	lw	$2, %lo(g_rpc_status)($5)
 	mov	$1, -5 # 0xfffb
-	sw	$0, 20($sp)
-	and	$2, $1
-	lw	$1, 36($sp)
-	sw	$2, %lo(g_rpc_status)($5)
 	sw	$3, 24($sp)
+	and	$2, $1
+	mov	$1, 34
+	sw	$2, %lo(g_rpc_status)($5)
+	sw	$0, 20($sp)
+	bsr	debug_setGpoCode
+	lw	$1, 36($sp)
 	bsr	delay
 	lw	$0, 20($sp)
 	movu	$1, .LC7
 	mov	$2, $0
 	bsr	debug_printFormat
+	mov	$1, 38
+	bsr	debug_setGpoCode
 	lw	$0, 20($sp)
 	lb	$2, 43($sp)
 	sw	$0, 44($sp)
@@ -263,32 +287,32 @@ rpc_loop:
 	add3	$7, $2, $7
 	add	$7, 1
 	lw	$3, 24($sp)
-	erepeat	.L58
+	erepeat	.L60
 	lb	$1, 3($8)
 	lb	$2, 42($sp)
 	add	$8, 1
 	add3	$2, $2, $1
 	sb	$2, 42($sp)
-.L58:
+.L60:
 	add	$7, -1
-	beqz	$7, .L59
+	beqz	$7, .L61
 	# erepeat end
-.L59:
+.L61:
 	lw	$1, 28($sp)
-	add	$3, 16
-	beqz	$1, .L35
+	beqz	$1, .L37
 	mov	$4, 1
+	add	$3, 16
 	mov	$2, 0
 	mov	$1, $6
 	bsr	jig_update_shared_buffer
-.L36:
+.L38:
 	lbu	$2, 43($sp)
 	mov	$3, 134
-	beq	$2, $3, .L37
+	beq	$2, $3, .L39
 	lw	$3, %lo(g_rpc_status)($5)
 	and3	$3, $3, 0x8000
 	beqz	$3, .L4
-.L37:
+.L39:
 	add3	$5, $5, %lo(g_rpc_status)
 	mov	$2, -256 # 0xff00
 	lw	$3, ($5)
@@ -296,10 +320,26 @@ rpc_loop:
 	and	$3, $2
 	sw	$3, ($5)
 	bsr	debug_printFormat
+	mov	$1, 39
+	bsr	debug_setGpoCode
 	bra	.L1
 .L15:
-	lw	$3, 44($sp)
-	lw	$0, ($3)
+	lw	$2, 52($sp)
+	lw	$1, 44($sp)
+	bgei	$2, 0, .L32
+	movh	$3, 0x7fff
+	or3	$3, $3, 0xffff
+	and	$2, $3
+	bsr	readAs
+	mov	$3, 0
+	bra	.L10
+.L32:
+	lw	$0, ($1)
+	mov	$3, 0
+	bra	.L10
+.L33:
+	sw	$2, ($1)
+	mov	$0, 0
 	mov	$3, 0
 	bra	.L10
 .L13:
@@ -338,7 +378,7 @@ rpc_loop:
 	mov	$0, 0
 	mov	$3, 0
 	bra	.L10
-.L55:
+.L57:
 	lw	$3, 52($sp)
 	lw	$2, 48($sp)
 	bsr	memset32
@@ -347,22 +387,22 @@ rpc_loop:
 .L24:
 	lw	$3, 52($sp)
 	lw	$2, 48($sp)
-	bsr	alice_armReBoot
+	bsr	compat_armReBoot
 	mov	$0, 0
 	mov	$3, 0
 	bra	.L10
 .L22:
 	lw	$0, 44($sp)
-	beqz	$0, .L32
+	beqz	$0, .L34
 	lw	$3, 48($sp)
-	beqz	$3, .L33
-	bsr	alice_setupInts
-.L33:
+	beqz	$3, .L35
+	bsr	setup_ints
+.L35:
 	ei
 	mov	$0, 0
 	mov	$3, 0
 	bra	.L10
-.L32:
+.L34:
 	di
 	mov	$3, 0
 	bra	.L10
@@ -386,16 +426,17 @@ rpc_loop:
 	jsr	$0
 	mov	$3, 24
 	bra	.L10
-.L35:
-	add3	$1, $sp, 43
+.L37:
+	add3	$1, $sp, 44
 	mov	$4, 0
-	mov	$2, 0
+	add	$3, 12
+	mov	$2, 4
 	bsr	jig_update_shared_buffer
 	mov	$4, 0
-	mov	$3, 3
+	mov	$3, 4
 	mov	$2, 0
 	mov	$1, $6
 	bsr	jig_update_shared_buffer
-	bra	.L36
+	bra	.L38
 	.size	rpc_loop, .-rpc_loop
 	.ident	"GCC: (WTF TEAM MOLECULE IS AT IT AGAIN?!) 6.3.0"

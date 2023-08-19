@@ -1,195 +1,4 @@
 	.file	"alice.c"
-	.text
-	.core
-	.p2align 1
-	.globl alice_armReBoot
-	.type	alice_armReBoot, @function
-alice_armReBoot:
-	# frame: 32   32 regs
-	add	$sp, -32
-	sw	$5, 20($sp)
-	sw	$6, 16($sp)
-	sw	$7, 12($sp)
-	mov	$5, $2
-	ldc	$11, $lp
-	mov	$7, $1
-	mov	$6, $3
-	mov	$4, 1
-	mov	$3, 1
-	movu	$2, 65551
-	mov	$1, 0
-	sw	$8, 8($sp)
-	sw	$11, 4($sp)
-	bsr	pervasive_control_reset
-	beqz	$5, .L2
-	mov	$4, 1
-	mov	$3, 1
-	mov	$2, 1
-	mov	$1, 1
-	bsr	pervasive_control_reset
-.L2:
-	mov	$4, 1
-	mov	$3, 0
-	mov	$2, -1 # 0xffff
-	mov	$1, 0
-	bsr	pervasive_control_gate
-	beqz	$5, .L3
-	mov	$4, 1
-	mov	$3, 0
-	mov	$2, -1 # 0xffff
-	mov	$1, 1
-	bsr	pervasive_control_gate
-.L3:
-	movh	$3, 0xe310
-	or3	$3, $3, 0x2180
-	mov	$2, -129 # 0xff7f
-	lw	$8, ($3)
-	mov	$4, 1
-	mov	$3, 1
-	and	$2, $8
-	mov	$1, 96
-	bsr	pervasive_control_gate
-	mov	$4, 1
-	mov	$3, 0
-	mov	$2, -1 # 0xffff
-	mov	$1, 97
-	bsr	pervasive_control_reset
-	mov	$4, 1
-	mov	$3, 1
-	or3	$2, $8, 0x80
-	mov	$1, 96
-	bsr	pervasive_control_gate
-	mov	$3, 1
-	mov	$2, 1
-	mov	$1, 0
-	bsr	pervasive_control_clock
-	mov	$3, 1
-	mov	$2, 0
-	mov	$1, 12
-	bsr	pervasive_control_misc
-	mov	$3, 1
-	mov	$2, 1
-	mov	$1, 20
-	bsr	pervasive_control_misc
-	movh	$3, 0xe310
-	or3	$3, $3, 0xc0
-	erepeat	.L23
-	nop
-.L23:
-	lw	$2, ($3)
-	beqi	$2, 1, .L24
-	# erepeat end
-.L24:
-	sw	$2, ($3)
-	movh	$3, 0xe310
-	or3	$3, $3, 0xc0
-	erepeat	.L25
-	nop
-.L25:
-	lw	$2, ($3)
-	bnei	$2, 1, .L26
-	# erepeat end
-.L26:
-	mov	$4, 1
-	mov	$3, 1
-	movh	$2, 0xc0
-	mov	$1, 0
-	bsr	pervasive_control_gate
-	mov	$4, 1
-	mov	$3, 0
-	mov	$2, -1 # 0xffff
-	mov	$1, 0
-	bsr	pervasive_control_gate
-	mov	$3, 1
-	and3	$2, $7, 0xf
-	mov	$1, 0
-	bsr	pervasive_control_clock
-	movh	$3, 0xe311
-	and3	$6, $6, 0x1
-	or3	$3, $3, 0xc00
-	sw	$6, ($3)
-	erepeat	.L27
-	nop
-.L27:
-	lw	$2, ($3)
-	beq	$6, $2, .L28
-	# erepeat end
-.L28:
-	movh	$2, 0xc1
-	bnez	$5, .L7
-	movh	$2, 0x1
-.L7:
-	mov	$4, 1
-	mov	$3, 1
-	mov	$1, 0
-	bsr	pervasive_control_gate
-	beqz	$5, .L8
-	mov	$4, 1
-	mov	$3, 1
-	mov	$2, 1
-	mov	$1, 1
-	bsr	pervasive_control_gate
-	mov	$4, 1
-	mov	$3, 0
-	mov	$2, -1 # 0xffff
-	mov	$1, 1
-	bsr	pervasive_control_reset
-.L8:
-	mov	$4, 1
-	mov	$3, 0
-	mov	$2, -1 # 0xffff
-	mov	$1, 0
-	bsr	pervasive_control_reset
-	lw	$8, 8($sp)
-	lw	$7, 12($sp)
-	lw	$6, 16($sp)
-	lw	$5, 20($sp)
-	lw	$11, 4($sp)
-	add3	$sp, $sp, 32
-	jmp	$11
-	.size	alice_armReBoot, .-alice_armReBoot
-	.p2align 1
-	.globl alice_setupInts
-	.type	alice_setupInts, @function
-alice_setupInts:
-	# frame: 16   16 regs
-	add	$sp, -16
-	ldc	$11, $lp
-	mov	$2, 0
-	mov	$1, 3
-	sw	$11, 4($sp)
-	bsr	cbus_write
-	movh	$2, 0x777
-	or3	$2, $2, 0x7777
-	mov	$1, 4
-	bsr	cbus_write
-	mov	$2, 30591 # 0x777f
-	mov	$1, 5
-	bsr	cbus_write
-	mov	$2, 0
-	mov	$1, 6
-	bsr	cbus_write
-	mov	$2, 0
-	mov	$1, 7
-	bsr	cbus_write
-	mov	$2, 1536 # 0x600
-	mov	$1, 0
-	bsr	cbus_write
-	mov	$2, 256 # 0x100
-	mov	$1, 2
-	bsr	cbus_write
-#APP
-;# 75 "source/alice.c" 1
-	ldc $0, $psw
-or3 $0, $0, 0x110
-stc $0, $psw
-
-;# 0 "" 2
-#NO_APP
-	lw	$11, 4($sp)
-	add	$sp, 16
-	jmp	$11
-	.size	alice_setupInts, .-alice_setupInts
 	.section	.rodata
 	.p2align 2
 .LC0:
@@ -197,165 +6,193 @@ stc $0, $psw
 	.p2align 2
 .LC1:
 	.string	"[BOB] alice service terminated\n"
+	.p2align 2
+.LC2:
+	.string	"[BOB] invalid arg for compat acquire\n"
 	.text
 	.core
 	.p2align 1
 	.globl alice_handleCmd
 	.type	alice_handleCmd, @function
 alice_handleCmd:
-	# frame: 32   24 regs   4 args
-	add	$sp, -32
-	sw	$5, 20($sp)
+	# frame: 40   32 regs   4 args
+	add3	$sp, $sp, -40 # 0xffd8
+	sw	$5, 28($sp)
+	sw	$6, 24($sp)
+	sw	$7, 20($sp)
+	sw	$8, 16($sp)
+	mov	$6, $1
 	ldc	$11, $lp
-	movh	$5, 0xe000
-	sw	$6, 16($sp)
-	sw	$11, 12($sp)
-	lw	$6, 16($5)
-	lw	$3, 20($5)
-	lw	$4, 24($5)
-	lw	$2, 28($5)
+	mov	$5, $2
+	mov	$8, $3
+	mov	$7, $4
+	sw	$4, ($sp)
+	mov	$4, $3
+	mov	$3, $2
+	mov	$2, $1
 	movu	$1, .LC0
-	sw	$2, ($sp)
-	mov	$2, $6
+	sw	$11, 12($sp)
 	bsr	debug_printFormat
-	bgei	$6, 0, .L31
+	bgei	$6, 0, .L2
 	movh	$3, 0xa21c
 	or3	$3, $3, 0xeded
-	beq	$6, $3, .L32
+	beq	$6, $3, .L3
 	and3	$3, $6, 0x1
-	beqz	$3, .L33
+	beqz	$3, .L4
 	mov	$3, -2 # 0xfffe
 	and	$6, $3
-.L34:
-	movh	$5, 0xe000
-	lw	$1, 20($5)
-	lw	$2, 24($5)
-	lw	$3, 28($5)
+.L5:
+	mov	$3, $7
+	mov	$2, $8
+	mov	$1, $5
 	jsr	$6
-	sw	$0, 4($5)
-	mov	$3, -1 # 0xffff
+	movh	$3, 0xe000
+	sw	$0, 4($3)
+	mov	$2, -1 # 0xffff
 	mov	$0, -1 # 0xffff
-	sw	$3, 16($5)
-.L30:
-	lw	$6, 16($sp)
-	lw	$5, 20($sp)
+	sw	$2, 16($3)
+.L1:
+	lw	$8, 16($sp)
+	lw	$7, 20($sp)
+	lw	$6, 24($sp)
+	lw	$5, 28($sp)
 	lw	$11, 12($sp)
-	add3	$sp, $sp, 32
+	add3	$sp, $sp, 40
 	jmp	$11
-.L33:
+.L4:
 	movh	$3, 0x7fff
 	or3	$3, $3, 0xfffe
 	and	$6, $3
-	bra	.L34
-.L31:
+	bra	.L5
+.L2:
 	add3	$6, $6, -2592 # 0xf5e0
 	mov	$0, 8
 	sltu3	$0, $0, $6
-	bnez	$0, .L36
+	bnez	$0, .L7
+	movu	$3, .L9
 	sll	$6, 2
-	movu	$3, .L38
 	add3	$6, $3, $6
+	movh	$3, 0xe000
 	lw	$2, ($6)
 	jmp	$2
 	.p2align 2
 	.p2align 2
-.L38:
-	.word .L37
-	.word .L39
-	.word .L40
-	.word .L41
-	.word .L42
-	.word .L43
-	.word .L44
-	.word .L45
-	.word .L46
-.L32:
+.L9:
+	.word .L8
+	.word .L10
+	.word .L11
+	.word .L12
+	.word .L13
+	.word .L14
+	.word .L15
+	.word .L16
+	.word .L17
+.L3:
+	bne	$7, $6, .L18
 	movu	$1, .LC1
 	bsr	debug_printFormat
-	mov	$3, -1 # 0xffff
-	sw	$3, 16($5)
-	mov	$0, 0
-	bra	.L30
-.L37:
-	movh	$3, %hi(g_rpc_status)
-	add3	$3, $3, %lo(g_rpc_status)
-	lw	$2, ($3)
 	movh	$3, 0xe000
-	sw	$2, 4($3)
-.L36:
+	mov	$2, -1 # 0xffff
+	sw	$2, 28($3)
+	mov	$0, 0
+	sw	$2, 24($3)
+	sw	$2, 20($3)
+	bra	.L1
+.L18:
+	movu	$1, .LC2
+	bsr	debug_printFormat
+.L7:
 	movh	$3, 0xe000
 	mov	$2, -1 # 0xffff
 	sw	$2, 28($3)
 	mov	$0, -1 # 0xffff
 	sw	$2, 24($3)
 	sw	$2, 20($3)
-	sw	$2, 16($3)
-	bra	.L30
-.L39:
-	lw	$2, 20($5)
+	bra	.L1
+.L8:
 	movh	$3, %hi(g_rpc_status)
 	add3	$3, $3, %lo(g_rpc_status)
-	sw	$2, ($3)
-	bra	.L36
-.L40:
-	lw	$1, 24($5)
-	movh	$2, %hi(g_rpc_status)
-	beqz	$1, .L47
-	mov	$1, $2
-	add3	$1, $1, %lo(g_rpc_status)
-	lw	$0, 20($5)
-	lw	$3, ($1)
-	or	$3, $0
-	sw	$3, ($1)
-.L48:
-	add3	$2, $2, %lo(g_rpc_status)
+	lw	$2, ($3)
 	movh	$3, 0xe000
-	lw	$2, ($2)
 	sw	$2, 4($3)
-	bra	.L36
-.L47:
-	mov	$1, $2
+	bra	.L7
+.L10:
+	movh	$3, %hi(g_rpc_status)
+	add3	$3, $3, %lo(g_rpc_status)
+	sw	$5, ($3)
+	bra	.L7
+.L11:
+	lw	$2, 24($3)
+	movh	$3, %hi(g_rpc_status)
+	beqz	$2, .L19
+	mov	$1, $3
 	add3	$1, $1, %lo(g_rpc_status)
-	lw	$3, 20($5)
-	lw	$0, ($1)
-	nor	$3, $3
-	and	$3, $0
-	sw	$3, ($1)
-	bra	.L48
-.L41:
-	lw	$1, 20($5)
-	lw	$2, 24($5)
-	lw	$3, 28($5)
-	bsr	alice_armReBoot
-	bra	.L36
-.L42:
-	lw	$1, 20($5)
-	lw	$2, 24($5)
-	lw	$3, 28($5)
+	lw	$2, ($1)
+	or	$5, $2
+	sw	$5, ($1)
+.L20:
+	add3	$3, $3, %lo(g_rpc_status)
+	lw	$2, ($3)
+	movh	$3, 0xe000
+	sw	$2, 4($3)
+	bra	.L7
+.L19:
+	mov	$2, $3
+	add3	$2, $2, %lo(g_rpc_status)
+	nor	$5, $5
+	lw	$1, ($2)
+	and	$5, $1
+	sw	$5, ($2)
+	bra	.L20
+.L12:
+	mov	$3, $7
+	mov	$2, $8
+	mov	$1, $5
+	bsr	compat_armReBoot
+	bra	.L7
+.L13:
+	mov	$3, $7
+	mov	$2, $8
+	mov	$1, $5
 	bsr	memcpy
-	bra	.L36
-.L43:
-	lw	$1, 20($5)
-	lw	$2, 24($5)
-	lw	$3, 28($5)
+	bra	.L7
+.L14:
+	mov	$3, $7
+	mov	$2, $8
+	mov	$1, $5
 	bsr	memset
-	bra	.L36
-.L44:
-	lw	$1, 20($5)
-	lw	$2, 24($5)
-	lw	$3, 28($5)
+	bra	.L7
+.L15:
+	mov	$3, $7
+	mov	$2, $8
+	mov	$1, $5
 	bsr	memset32
-	bra	.L36
-.L45:
-	lw	$2, 20($5)
-	lw	$2, ($2)
-	sw	$2, 4($5)
-	bra	.L36
-.L46:
-	lw	$2, 20($5)
-	lw	$3, 24($5)
-	lw	$3, ($3)
-	sw	$3, ($2)
-	bra	.L36
+	bra	.L7
+.L16:
+	bgei	$7, 0, .L21
+	movh	$2, 0x7fff
+	or3	$2, $2, 0xffff
+	and	$2, $7
+	mov	$1, $5
+	bsr	readAs
+	movh	$3, 0xe000
+	sw	$0, 4($3)
+	bra	.L7
+.L21:
+	lw	$2, ($5)
+	sw	$2, 4($3)
+	bra	.L7
+.L17:
+	bgei	$7, 0, .L22
+	movh	$3, 0x7fff
+	or3	$3, $3, 0xffff
+	and	$3, $7
+	mov	$2, $8
+	mov	$1, $5
+	bsr	writeAs
+	bra	.L7
+.L22:
+	sw	$8, ($5)
+	bra	.L7
 	.size	alice_handleCmd, .-alice_handleCmd
 	.ident	"GCC: (WTF TEAM MOLECULE IS AT IT AGAIN?!) 6.3.0"

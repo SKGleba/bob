@@ -1,11 +1,12 @@
 import sys
+import time
 import bert
 
 RPC_MAGIC = 0xEB0B
 RPC_FLAG_REPLY = 0b10000000 # data is bob reply
 RPC_FLAG_EXTRA = 0b01000000 # use extra_data
-RPC_READ_DELAY = 10000
-RPC_WRITE_DELAY = 512
+RPC_READ_DELAY = 0x1000
+RPC_WRITE_DELAY = 0x80
 RPC_COMMANDS = {
     "ping" : 0x0,
     "read32" : 0x1,
@@ -27,22 +28,30 @@ RPC_COMMANDS = {
 }
 
 
-RPC_FAST_DELAY = 512
+RPC_FAST_DELAY = 0x80
 RPC_CMD_SIZE = 0x10
 RPC_EXTRA_DATA_SIZE = 0x18
 RPC_BUF_SIZE = RPC_CMD_SIZE + RPC_EXTRA_DATA_SIZE
 RPC_HASHED_DATA_SIZE = RPC_CMD_SIZE - 3
 
+RPC_REPLY_FETCH_DELAY = 64 / 1000 # TODO: should we?
+
 silent_mode = 1
+wait4push = 0
 
 def swapstr32(si):
     return si[6:8] + si[4:6] + si[2:4] + si[0:2]
 
 def print_cmd(pinfo, cmd):
     cmd_arr = [cmd[i:i+8] for i in range(0, len(cmd), 8)]
-    print(pinfo + " 0x" + swapstr32(cmd_arr[1]) + " 0x" + swapstr32(cmd_arr[2]) + " 0x" + swapstr32(cmd_arr[3]) + " [ " + cmd[32:] + " ] <0x" + cmd_arr[0][6:8] + ">")
+    xdata = ""
+    if int(cmd_arr[0][6:8], 16) & RPC_FLAG_EXTRA:
+        xdata = cmd[32:]
+    print(pinfo + " 0x" + swapstr32(cmd_arr[1]) + " 0x" + swapstr32(cmd_arr[2]) + " 0x" + swapstr32(cmd_arr[3]) + " [ " + xdata + " ] <0x" + cmd_arr[0][6:8] + ">")
 
 def exec_cmd(cmd_base):
+    global wait4push
+
     base_arr = bytearray.fromhex(cmd_base)
     if len(base_arr) > RPC_HASHED_DATA_SIZE + RPC_EXTRA_DATA_SIZE:
         print("CMD is too long : " + cmd_base)
@@ -60,7 +69,16 @@ def exec_cmd(cmd_base):
     bert.handle_cmd("shbuf-write", ["", "", request])
     bert.handle_cmd("unlock-1", ["","",0])
 
-    line = bert.client.get_resp()
+    if wait4push:
+        line = bert.client.get_resp()
+    else:
+        while True:
+            time.sleep(RPC_REPLY_FETCH_DELAY)
+            bert.client.send_cmd(bytearray.fromhex("0103000000"), 0)
+            line = bert.client.get_resp()
+            if line[8] & RPC_FLAG_REPLY:
+                break
+
     if bert.silent_mode != 2:
         bert.print_packet("RESP", line.hex().upper(), False)
     if silent_mode == 0:
@@ -70,7 +88,9 @@ def exec_cmd(cmd_base):
 
     return line.hex()[10:-4].upper()
 
+
 def handle_cmd(user_cmd, argv):
+    global wait4push
     match user_cmd:
         case "file_send": # arg0 = dst, arg1 = src, arg2 = skip_to (opt)
             prev_delay = "0x" + swapstr32(str(handle_cmd("delay", ["0x{:08X}".format(RPC_FAST_DELAY), "0x{:08X}".format(RPC_WRITE_DELAY)]))[8:16])
@@ -103,6 +123,9 @@ def handle_cmd(user_cmd, argv):
             fp = open(argv[0], 'wb')
             fp.close
             handle_cmd("file_append", argv)
+        case "push_reply":
+            wait4push = int(argv[0][2:], 16)
+            handle_cmd("push", argv)
         case _:
             if user_cmd in RPC_COMMANDS:
                 cv_argv = ["0x0", "0x0", "0x0", ""]

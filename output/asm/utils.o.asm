@@ -121,8 +121,8 @@ dret
 	.globl get_build_timestamp
 	.type	get_build_timestamp, @function
 get_build_timestamp:
-	movh	$0, 0x64da
-	or3	$0, $0, 0xcaa5
+	movh	$0, 0x64e0
+	or3	$0, $0, 0xaa9
 	ret
 	.size	get_build_timestamp, .-get_build_timestamp
 	.p2align 1
@@ -154,4 +154,46 @@ enable_icache:
 	add	$sp, 8
 	ret
 	.size	enable_icache, .-enable_icache
+	.p2align 1
+	.globl setup_ints
+	.type	setup_ints, @function
+setup_ints:
+	# frame: 16   16 regs
+	add	$sp, -16
+	ldc	$11, $lp
+	mov	$2, 0
+	mov	$1, 3
+	sw	$11, 4($sp)
+	bsr	cbus_write
+	movh	$2, 0x777
+	or3	$2, $2, 0x7777
+	mov	$1, 4
+	bsr	cbus_write
+	mov	$2, 30591 # 0x777f
+	mov	$1, 5
+	bsr	cbus_write
+	mov	$2, 0
+	mov	$1, 6
+	bsr	cbus_write
+	mov	$2, 0
+	mov	$1, 7
+	bsr	cbus_write
+	mov	$2, 1536 # 0x600
+	mov	$1, 0
+	bsr	cbus_write
+	mov	$2, 256 # 0x100
+	mov	$1, 2
+	bsr	cbus_write
+#APP
+;# 92 "source/utils.c" 1
+	ldc $0, $psw
+or3 $0, $0, 0x110
+stc $0, $psw
+
+;# 0 "" 2
+#NO_APP
+	lw	$11, 4($sp)
+	add	$sp, 16
+	jmp	$11
+	.size	setup_ints, .-setup_ints
 	.ident	"GCC: (WTF TEAM MOLECULE IS AT IT AGAIN?!) 6.3.0"

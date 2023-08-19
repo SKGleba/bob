@@ -107,29 +107,29 @@ static void compat_IRQ7_forceExitSm(void) {
     PANIC("NOEXIT", 0);
 }
 
-void compat_IRQ7_handleCmd(void) {
+void compat_IRQ7_handleCmd(uint32_t cmd, uint32_t arg1, uint32_t arg2, uint32_t arg3) {
     if (compat_state < 0) {
-        compat_state = alice_handleCmd();
+        compat_state = alice_handleCmd(cmd, arg1, arg2, arg3);
         return;
     }
     
     statusled(STATUS_COMPAT_HANDLE);
     bool shortcmd = true;
     maika_s* maika = (maika_s*)MAIKA_OFFSET;
-    
-    uint32_t cmd = maika->mailbox.arm2cry[0];
 
-    printf("[BOB] got ARM cmd 0x%X\n", cmd);
+    printf("[BOB] got ARM cmd %X\n", cmd);
 
     switch (cmd) {
     case ALICE_ACQUIRE_CMD:
-        if (maika->mailbox.arm2cry[3] == cmd)
+        if (arg3 == cmd) {
             compat_state = -1;
-        printf("[BOB] compat service terminated\n");
-        maika->mailbox.arm2cry[3] = -1;
-        maika->mailbox.arm2cry[2] = -1;
-        maika->mailbox.arm2cry[1] = -1;
-        break;
+            printf("[BOB] compat service terminated\n");
+            maika->mailbox.arm2cry[3] = -1;
+            maika->mailbox.arm2cry[2] = -1;
+            maika->mailbox.arm2cry[1] = -1;
+        } else
+            printf("[BOB] invalid arg for alice acquire\n");
+            break;
     case 0xC01:
     case 0xD01:
         if (!(maika->keyring[0x10C][0] & 4))
@@ -155,10 +155,10 @@ void compat_IRQ7_handleCmd(void) {
         break;
     }
 
-    maika->mailbox.arm2cry[0] = -1;
-
     if (shortcmd)
         return;
+
+    maika->mailbox.arm2cry[0] = -1;
 
     uint32_t ret = 0x802d;
     if (!compat_Cry2Arm0(false)) {
@@ -190,4 +190,58 @@ void compat_pListCopy(void* io, compat_paddr_list* paddr_list, uint32_t list_ent
         paddr_list++;
         list_entries_count--;
     }
+}
+
+void compat_armReBoot(int armClk, bool hasCS, bool remap_00) {
+    // put ARM & CS in reset
+    pervasive_control_reset(PERV_CTRL_RESET_DEV_ARM, 0x1000f, true, true);
+    if (hasCS)
+        pervasive_control_reset(PERV_CTRL_RESET_DEV_ARM_CS, 1, true, true);
+
+    // disable ARM & CS clocks
+    pervasive_control_gate(PERV_CTRL_GATE_DEV_ARM, 0xFFFFFFFF, false, true);
+    if (hasCS)
+        pervasive_control_gate(PERV_CTRL_GATE_DEV_ARM_CS, 0xFFFFFFFF, false, true);
+
+    // WTF1
+    uint32_t dev_96_clk = vp PERV_GET_REG(PERV_CTRL_GATE, 96);
+    pervasive_control_gate(96, dev_96_clk & 0xffffff7f, true, true);
+    pervasive_control_reset(97, 0xFFFFFFFF, false, true);
+    pervasive_control_gate(96, dev_96_clk | 0x80, true, true);
+
+    // set arm to 42mhz
+    pervasive_control_clock(0, 1, true);
+
+    // ??
+    pervasive_control_misc(0xC, 0, true);
+    pervasive_control_misc(0x14, 1, true);
+
+    // WTF2
+    while (vp PERV_GET_REG(PERV_CTRL_MISC, 0x30) != 1) {};
+    vp PERV_GET_REG(PERV_CTRL_MISC, 0x30) = 1;
+    while (vp PERV_GET_REG(PERV_CTRL_MISC, 0x30) == 1) {};
+
+    // open & close ARM debug mode gate for some reason
+    pervasive_control_gate(PERV_CTRL_GATE_DEV_ARM, 0xc00000, true, true);
+    pervasive_control_gate(PERV_CTRL_GATE_DEV_ARM, 0xFFFFFFFF, false, true);
+
+    // set arm to caller-defined freq (default 7 : 333mhz)
+    pervasive_control_clock(0, armClk & 0xf, true);
+
+    // remap arm 0x0 to 0x40000000
+    vp 0xe3110c00 = remap_00 & 1;
+    while (vp 0xe3110c00 != (remap_00 & 1))
+        ;
+
+    // open arm (&opt) gate
+    pervasive_control_gate(PERV_CTRL_GATE_DEV_ARM, hasCS ? 0xc10000 : 0x10000, true, true);
+
+    // spin up CS
+    if (hasCS) {
+        pervasive_control_gate(PERV_CTRL_GATE_DEV_ARM_CS, 1, true, true);
+        pervasive_control_reset(PERV_CTRL_RESET_DEV_ARM_CS, 0xFFFFFFFF, false, true);
+    }
+
+    // put arm out of reset
+    pervasive_control_reset(PERV_CTRL_RESET_DEV_ARM, 0xFFFFFFFF, false, true);
 }

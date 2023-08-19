@@ -31,7 +31,6 @@ void c_RESET(void) {
     };
 }
 
-__attribute__((optimize("O0")))
 void c_SWI(int a0, int a1, int a2, int a3) {
     statusled(STATUS_SWI_HIT);
     printf("[BOB] entering SWI %X %X %X %X\n", a0, a1, a2, a3);
@@ -44,7 +43,6 @@ void c_SWI(int a0, int a1, int a2, int a3) {
     statusled(STATUS_SWI_QUIT);
 }
 
-__attribute__((optimize("O0")))
 void c_IRQ(void) {
     statusled(STATUS_IRQ_HIT);
     print("[BOB] entering IRQ\n");
@@ -57,17 +55,19 @@ void c_IRQ(void) {
     statusled(STATUS_IRQ_QUIT);
 }
 
-__attribute__((optimize("O0")))
 void c_ARM_REQ(void) {
     statusled(STATUS_ARM_HIT);
-    print("[BOB] entering ARM req\n");
+    maika_s* maika = (maika_s*)MAIKA_OFFSET;
+    uint32_t arm_req = maika->mailbox.arm2cry[0];
+    printf("[BOB] entering ARM req %X\n", arm_req);
 
-    if (ce_framework(false))
-        ((maika_s*)(MAIKA_OFFSET))->mailbox.arm2cry[0] = -1;
-    else
-        compat_IRQ7_handleCmd();
+    if (!ce_framework(false))
+        compat_IRQ7_handleCmd(arm_req, maika->mailbox.arm2cry[1], maika->mailbox.arm2cry[2], maika->mailbox.arm2cry[3]);
 
-    print("[BOB] exiting ARM req\n");
+    printf("[BOB] exiting ARM req %X\n", arm_req);
+
+    ((maika_s*)(MAIKA_OFFSET))->mailbox.arm2cry[0] = -1; // full clear
+
     statusled(STATUS_ARM_QUIT);
 }
 

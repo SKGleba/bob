@@ -5,6 +5,9 @@
 #include "include/jig.h"
 #include "include/ex.h"
 #include "include/alice.h"
+#include "include/maika.h"
+#include "include/compat.h"
+
 #include "include/rpc.h"
 
 volatile int g_rpc_status = 0;
@@ -14,7 +17,7 @@ void rpc_loop(void) {
     uint8_t chash = 0; // calculated cmd checksum
     uint32_t cret = 0; // rpc cmd exit return val
     rpc_buf_s rpc_buf; // full rpc cmd & data buf
-    bool push_reply = true; // push msg to server
+    bool push_reply = false; // push reply to jig
     uint32_t delay_cval = RPC_READ_DELAY; // recv
     uint32_t delay_rval = RPC_WRITE_DELAY; //send
     uint32_t(*ccode)() = NULL;
@@ -71,10 +74,16 @@ void rpc_loop(void) {
             cret = get_build_timestamp();
             break;
         case RPC_CMD_READ32:
-            cret = vp rpc_buf.cmd.args[0];
+            if ((int)rpc_buf.cmd.args[2] < 0)
+                cret = readAs(rpc_buf.cmd.args[0], rpc_buf.cmd.args[2] & 0x7fffffff);
+            else
+                cret = vp rpc_buf.cmd.args[0];
             break;
         case RPC_CMD_WRITE32:
-            vp(rpc_buf.cmd.args[0]) = rpc_buf.cmd.args[1];
+            if ((int)rpc_buf.cmd.args[2] < 0)
+                writeAs(rpc_buf.cmd.args[0], rpc_buf.cmd.args[1], rpc_buf.cmd.args[2] & 0x7fffffff);
+            else
+                vp(rpc_buf.cmd.args[0]) = rpc_buf.cmd.args[1];
             cret = 0;
             break;
         case RPC_CMD_MEMSET:
@@ -104,7 +113,7 @@ void rpc_loop(void) {
             break;
         case RPC_CMD_ARM_RESET:
             cret = 0;
-            alice_armReBoot((int)rpc_buf.cmd.args[0], (bool)rpc_buf.cmd.args[1], (bool)rpc_buf.cmd.args[2]);
+            compat_armReBoot((int)rpc_buf.cmd.args[0], (bool)rpc_buf.cmd.args[1], (bool)rpc_buf.cmd.args[2]);
             break;
         case RPC_CMD_SET_XCTABLE:
             cret = 0;
@@ -114,7 +123,7 @@ void rpc_loop(void) {
             cret = 0;
             if ((bool)rpc_buf.cmd.args[0]) {
                 if ((bool)rpc_buf.cmd.args[1])
-                    alice_setupInts();
+                    setup_ints();
                 _MEP_INTR_ENABLE_
             } else
                 _MEP_INTR_DISABLE_
@@ -159,8 +168,8 @@ void rpc_loop(void) {
         if (push_reply)
             jig_update_shared_buffer((uint8_t*)&rpc_buf, 0, sizeof(rpc_cmd_s) + xsize, true);
         else {
-            jig_update_shared_buffer((uint8_t*)&rpc_buf + 3, 0, sizeof(rpc_cmd_s) + xsize, false);
-            jig_update_shared_buffer((uint8_t*)&rpc_buf.cmd, 0, 3, false);
+            jig_update_shared_buffer((uint8_t*)&rpc_buf + 4, 4, sizeof(rpc_cmd_s) + xsize - 4, false);
+            jig_update_shared_buffer((uint8_t*)&rpc_buf, 0, 4, false);
         }
 
         if (rpc_buf.cmd.cmd_id == (RPC_CMD_STOP_RPC | RPC_FLAG_REPLY))

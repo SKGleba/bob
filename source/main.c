@@ -115,6 +115,9 @@ void test(void) {
     printf("[BOB] arm is dead, disable the OLED screen...\n");
     gpio_port_clear(0, GPIO_PORT_OLED);
 
+    printf("[BOB] set max clock\n");
+    vp 0xe3103040 = 0x10007;
+
     printf("[BOB] test test stuff\n");
 
     rpc_loop();

@@ -38,4 +38,7 @@ __attribute__((noinline)) uint32_t get_build_timestamp(void);
 // enable/disable icache
 __attribute__((noinline, optimize("O0"))) bool enable_icache(bool cache);
 
+// enable default interrupts
+void setup_ints(void);
+
 #endif

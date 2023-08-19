@@ -22,6 +22,10 @@ c_RESET:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_s_regdump
+	mov	$1, 16
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	mov	$3, 0
 	stc	$3, $exc
 	mov	$3, 0
@@ -34,6 +38,10 @@ c_RESET:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	uart_print
+	mov	$1, 15
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	ei
 .L2:
 	mov	$1, 1
@@ -69,6 +77,10 @@ c_SWI:
 	sw	$2, 16($sp)
 	sw	$3, 12($sp)
 	sw	$4, 8($sp)
+	mov	$1, 17
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	lw	$3, 8($sp)
 	sw	$3, ($sp)
 	lw	$4, 12($sp)
@@ -90,6 +102,10 @@ c_SWI:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	uart_print
+	mov	$1, 18
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	nop
 	lw	$gp, 40($sp)
 	lw	$tp, 44($sp)
@@ -122,6 +138,10 @@ c_IRQ:
 	sw	$11, 4($sp)
 	mov	$5, $tp
 	mov	$6, $gp
+	mov	$1, 19
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	movh	$3, %hi(g_uart_bus)
 	add3	$3, $3, %lo(g_uart_bus)
 	lw	$3, ($3)
@@ -142,6 +162,10 @@ c_IRQ:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	uart_print
+	mov	$1, 20
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	nop
 	lw	$gp, 16($sp)
 	lw	$tp, 20($sp)
@@ -154,64 +178,78 @@ c_IRQ:
 	.section	.rodata
 	.p2align 2
 .LC5:
-	.string	"[BOB] entering ARM req\n"
+	.string	"[BOB] entering ARM req %X\n"
 	.p2align 2
 .LC6:
-	.string	"[BOB] exiting ARM req\n"
+	.string	"[BOB] exiting ARM req %X\n"
 	.text
 	.core
 	.p2align 1
 	.globl c_ARM_REQ
 	.type	c_ARM_REQ, @function
 c_ARM_REQ:
-	# frame: 24   24 regs
-	add	$sp, -24
-	sw	$5, 12($sp)
-	sw	$6, 8($sp)
-	sw	$tp, 20($sp)
-	sw	$gp, 16($sp)
+	# frame: 32   24 regs   8 locals
+	add	$sp, -32
+	sw	$5, 20($sp)
+	sw	$6, 16($sp)
+	sw	$tp, 28($sp)
+	sw	$gp, 24($sp)
 	ldc	$11, $lp
-	sw	$11, 4($sp)
+	sw	$11, 12($sp)
 	mov	$5, $tp
 	mov	$6, $gp
-	movh	$3, %hi(g_uart_bus)
-	add3	$3, $3, %lo(g_uart_bus)
-	lw	$3, ($3)
-	movu	$2, .LC5
-	mov	$1, $3
+	mov	$1, 21
 	mov	$tp, $5
 	mov	$gp, $6
-	bsr	uart_print
+	bsr	debug_setGpoCode
+	movh	$3, 0xe000
+	sw	$3, 4($sp)
+	lw	$3, 4($sp)
+	lw	$3, 16($3)
+	sw	$3, ($sp)
+	lw	$2, ($sp)
+	movu	$1, .LC5
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_printFormat
 	mov	$1, 0
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	ce_framework
 	mov	$3, $0
-	beqz	$3, .L6
-	movh	$3, 0xe000
-	mov	$2, -1 # 0xffff
-	sw	$2, 16($3)
-	bra	.L7
-.L6:
+	bnez	$3, .L6
+	lw	$3, 4($sp)
+	lw	$2, 20($3)
+	lw	$3, 4($sp)
+	lw	$1, 24($3)
+	lw	$3, 4($sp)
+	lw	$3, 28($3)
+	mov	$4, $3
+	mov	$3, $1
+	lw	$1, ($sp)
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	compat_IRQ7_handleCmd
-.L7:
-	movh	$3, %hi(g_uart_bus)
-	add3	$3, $3, %lo(g_uart_bus)
-	lw	$3, ($3)
-	movu	$2, .LC6
-	mov	$1, $3
+.L6:
+	lw	$2, ($sp)
+	movu	$1, .LC6
 	mov	$tp, $5
 	mov	$gp, $6
-	bsr	uart_print
+	bsr	debug_printFormat
+	movh	$3, 0xe000
+	mov	$2, -1 # 0xffff
+	sw	$2, 16($3)
+	mov	$1, 22
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	nop
-	lw	$gp, 16($sp)
-	lw	$tp, 20($sp)
-	lw	$6, 8($sp)
-	lw	$5, 12($sp)
-	lw	$11, 4($sp)
-	add	$sp, 24
+	lw	$gp, 24($sp)
+	lw	$tp, 28($sp)
+	lw	$6, 16($sp)
+	lw	$5, 20($sp)
+	lw	$11, 12($sp)
+	add3	$sp, $sp, 32
 	jmp	$11
 	.size	c_ARM_REQ, .-c_ARM_REQ
 	.section	.rodata
@@ -237,6 +275,10 @@ c_OTHER_INT:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_s_regdump
+	mov	$1, 23
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	di
 	ldc	$2, $exc
 	ldc	$3, $epc
@@ -245,8 +287,8 @@ c_OTHER_INT:
 	mov	$gp, $6
 	bsr	debug_printFormat
 	halt
-.L9:
-	bra	.L9
+.L8:
+	bra	.L8
 	.size	c_OTHER_INT, .-c_OTHER_INT
 	.section	.rodata
 	.p2align 2
@@ -271,6 +313,10 @@ c_OTHER_EXC:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_s_regdump
+	mov	$1, 24
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	di
 	ldc	$2, $exc
 	ldc	$3, $epc
@@ -279,8 +325,8 @@ c_OTHER_EXC:
 	mov	$gp, $6
 	bsr	debug_printFormat
 	halt
-.L11:
-	bra	.L11
+.L10:
+	bra	.L10
 	.size	c_OTHER_EXC, .-c_OTHER_EXC
 	.section	.rodata
 	.p2align 2
@@ -307,6 +353,10 @@ PANIC:
 	mov	$tp, $5
 	mov	$gp, $6
 	bsr	debug_s_regdump
+	mov	$1, 25
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	di
 	lw	$3, ($sp)
 	lw	$2, 4($sp)
@@ -315,8 +365,8 @@ PANIC:
 	mov	$gp, $6
 	bsr	debug_printFormat
 	halt
-.L13:
-	bra	.L13
+.L12:
+	bra	.L12
 	.size	PANIC, .-PANIC
 	.section	.rodata
 	.p2align 2
@@ -328,23 +378,39 @@ PANIC:
 	.globl c_DBG
 	.type	c_DBG, @function
 c_DBG:
-	# frame: 16   16 regs
-	add	$sp, -16
-	sw	$tp, 12($sp)
-	sw	$gp, 8($sp)
+	# frame: 24   24 regs
+	add	$sp, -24
+	sw	$5, 12($sp)
+	sw	$6, 8($sp)
+	sw	$tp, 20($sp)
+	sw	$gp, 16($sp)
 	ldc	$11, $lp
 	sw	$11, 4($sp)
+	mov	$5, $tp
+	mov	$6, $gp
+	mov	$1, 26
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	movh	$3, %hi(g_uart_bus)
 	add3	$3, $3, %lo(g_uart_bus)
 	lw	$3, ($3)
 	movu	$2, .LC10
 	mov	$1, $3
+	mov	$tp, $5
+	mov	$gp, $6
 	bsr	uart_print
+	mov	$1, 27
+	mov	$tp, $5
+	mov	$gp, $6
+	bsr	debug_setGpoCode
 	nop
-	lw	$gp, 8($sp)
-	lw	$tp, 12($sp)
+	lw	$gp, 16($sp)
+	lw	$tp, 20($sp)
+	lw	$6, 8($sp)
+	lw	$5, 12($sp)
 	lw	$11, 4($sp)
-	add	$sp, 16
+	add	$sp, 24
 	jmp	$11
 	.size	c_DBG, .-c_DBG
 	.p2align 1
@@ -358,19 +424,19 @@ set_exception_table:
 	sw	$5, 4($sp)
 	sw	$11, ($sp)
 	lw	$5, %lo(vectors_exceptions)($3)
-	beqz	$1, .L16
+	beqz	$1, .L15
 	movh	$3, %hi(jmp_s_glitch_xc)
 	mov	$1, $5
 	lw	$3, %lo(jmp_s_glitch_xc)($3)
 	lw	$2, ($3)
 	mov	$3, 52
 	bsr	memset32
-.L15:
+.L14:
 	lw	$5, 4($sp)
 	lw	$11, ($sp)
 	add	$sp, 16
 	jmp	$11
-.L16:
+.L15:
 	movh	$3, %hi(jmp_c_other_xc)
 	mov	$1, $5
 	lw	$3, %lo(jmp_c_other_xc)($3)
@@ -389,6 +455,6 @@ set_exception_table:
 	lw	$3, %lo(jmp_s_dbg_xc)($3)
 	lw	$3, ($3)
 	sw	$3, 24($5)
-	bra	.L15
+	bra	.L14
 	.size	set_exception_table, .-set_exception_table
 	.ident	"GCC: (WTF TEAM MOLECULE IS AT IT AGAIN?!) 6.3.0"

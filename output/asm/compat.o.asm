@@ -313,10 +313,13 @@ compat_IRQ7_forceExitSm:
 	.section	.rodata
 	.p2align 2
 .LC2:
-	.string	"[BOB] got ARM cmd 0x%X\n"
+	.string	"[BOB] got ARM cmd %X\n"
 	.p2align 2
 .LC3:
 	.string	"[BOB] compat service terminated\n"
+	.p2align 2
+.LC4:
+	.string	"[BOB] invalid arg for alice acquire\n"
 	.text
 	.core
 	.p2align 1
@@ -329,11 +332,13 @@ compat_IRQ7_handleCmd:
 	movh	$6, %hi(compat_state)
 	add3	$6, $6, %lo(compat_state)
 	ldc	$11, $lp
-	lw	$3, ($6)
+	lw	$0, ($6)
 	sw	$5, 12($sp)
 	sw	$7, 4($sp)
 	sw	$11, ($sp)
-	bgei	$3, 0, .L22
+	mov	$5, $1
+	mov	$7, $4
+	bgei	$0, 0, .L22
 	bsr	alice_handleCmd
 	sw	$0, ($6)
 .L21:
@@ -344,89 +349,93 @@ compat_IRQ7_handleCmd:
 	add	$sp, 24
 	jmp	$11
 .L22:
-	movh	$7, 0xe000
-	movu	$1, .LC2
-	lw	$5, 16($7)
+	mov	$1, 33
+	bsr	debug_setGpoCode
 	mov	$2, $5
+	movu	$1, .LC2
 	bsr	debug_printFormat
 	mov	$0, 3073 # 0xc01
-	beq	$5, $0, .L25
+	beq	$5, $0, .L24
 	sltu3	$0, $0, $5
-	bnez	$0, .L26
+	bnez	$0, .L25
 	mov	$3, 1537 # 0x601
-	beq	$5, $3, .L37
+	beq	$5, $3, .L26
 	mov	$3, 2817 # 0xb01
-	beq	$5, $3, .L28
+	beq	$5, $3, .L27
 	mov	$3, 257 # 0x101
-	bne	$5, $3, .L39
-.L37:
-	mov	$3, 0
-	bra	.L27
+	bne	$5, $3, .L21
 .L26:
-	mov	$0, 3585 # 0xe01
-	beq	$5, $0, .L28
-	sltu3	$0, $0, $5
-	bnez	$0, .L29
-	mov	$3, 3329 # 0xd01
-	beq	$5, $3, .L25
-.L39:
-	mov	$3, 1
-	bra	.L27
-.L29:
-	mov	$3, 3841 # 0xf01
-	beq	$5, $3, .L30
-	movh	$3, 0x5e7a
-	or3	$3, $3, 0x21ce
-	bne	$5, $3, .L39
-	lw	$3, 28($7)
-	bne	$3, $5, .L32
-	mov	$3, -1 # 0xffff
-	sw	$3, ($6)
-.L32:
-	movu	$1, .LC3
-	bsr	debug_printFormat
-	movh	$3, 0xe000
 	mov	$2, -1 # 0xffff
-	sw	$2, 28($3)
-	sw	$2, 24($3)
-	sw	$2, 20($3)
-	bra	.L39
+	movh	$3, 0xe000
+	sw	$2, 16($3)
+	mov	$1, 0
+	bsr	compat_Cry2Arm0
+	beqz	$0, .L35
+	mov	$1, 29
+	bsr	debug_setGpoCode
+	movu	$1, 0x802d
+	bsr	compat_Cry2Arm0
+	bra	.L21
 .L25:
+	mov	$0, 3585 # 0xe01
+	beq	$5, $0, .L27
+	sltu3	$0, $0, $5
+	bnez	$0, .L28
+	mov	$3, 3329 # 0xd01
+	bne	$5, $3, .L21
+.L24:
 	movh	$3, 0xe006
 	or3	$3, $3, 0x2180
 	lw	$3, ($3)
 	and3	$3, $3, 0x4
-	beqz	$3, .L39
-.L28:
+	beqz	$3, .L21
+.L27:
+	mov	$1, 28
+	bsr	debug_setGpoCode
 	bsr	compat_IRQ7_resetPervDevice
 	xor3	$1, $5, 0xc01
 	sltu3	$1, $1, 1
 	xor3	$1, $1, 0x1
 	bsr	compat_IRQ7_setEmmcKeyslots
 	mov	$3, 3585 # 0xe01
-	bne	$5, $3, .L39
+	bne	$5, $3, .L21
 	bsr	compat_IRQ7_setSomeEmmcDatax14
-	mov	$3, 1
-.L27:
-	mov	$1, -1 # 0xffff
-	movh	$2, 0xe000
-	sw	$1, 16($2)
-	bnez	$3, .L21
-	mov	$1, 0
-	bsr	compat_Cry2Arm0
-	bnez	$0, .L34
-	mov	$3, 1537 # 0x601
-	beq	$5, $3, .L36
-	bsr	compat_IRQ7_armPanic
-.L30:
-	bsr	compat_IRQ7_genSKSO
-	bra	.L39
-.L36:
-	bsr	compat_IRQ7_forceExitSm
-.L34:
-	movu	$1, 0x802d
-	bsr	compat_Cry2Arm0
 	bra	.L21
+.L28:
+	mov	$3, 3841 # 0xf01
+	beq	$5, $3, .L29
+	movh	$3, 0x5e7a
+	or3	$3, $3, 0x21ce
+	bne	$5, $3, .L21
+	bne	$7, $5, .L31
+	mov	$5, -1 # 0xffff
+	movu	$1, .LC3
+	sw	$5, ($6)
+	bsr	debug_printFormat
+	movh	$3, 0xe000
+	sw	$5, 28($3)
+	sw	$5, 24($3)
+	sw	$5, 20($3)
+	bra	.L21
+.L31:
+	movu	$1, .LC4
+	bsr	debug_printFormat
+	bra	.L21
+.L29:
+	mov	$1, 30
+	bsr	debug_setGpoCode
+	bsr	compat_IRQ7_genSKSO
+	bra	.L21
+.L35:
+	mov	$3, 1537 # 0x601
+	beq	$5, $3, .L34
+	mov	$1, 31
+	bsr	debug_setGpoCode
+	bsr	compat_IRQ7_armPanic
+.L34:
+	mov	$1, 32
+	bsr	debug_setGpoCode
+	bsr	compat_IRQ7_forceExitSm
 	.size	compat_IRQ7_handleCmd, .-compat_IRQ7_handleCmd
 	.p2align 1
 	.globl compat_pListCopy
@@ -444,8 +453,8 @@ compat_pListCopy:
 	mov	$8, $3
 	mov	$7, $4
 	sw	$11, 4($sp)
-.L41:
-	bnez	$8, .L44
+.L39:
+	bnez	$8, .L42
 	lw	$8, 8($sp)
 	lw	$7, 12($sp)
 	lw	$6, 16($sp)
@@ -453,22 +462,169 @@ compat_pListCopy:
 	lw	$11, 4($sp)
 	add3	$sp, $sp, 32
 	jmp	$11
-.L44:
+.L42:
 	lw	$3, 4($5)
-	beqz	$7, .L42
+	beqz	$7, .L40
 	lw	$1, ($5)
 	mov	$2, $6
 	bsr	memcpy
-.L43:
+.L41:
 	lw	$3, 4($5)
 	add	$8, -1
 	add	$5, 8
 	add3	$6, $6, $3
-	bra	.L41
-.L42:
+	bra	.L39
+.L40:
 	lw	$2, ($5)
 	mov	$1, $6
 	bsr	memcpy
-	bra	.L43
+	bra	.L41
 	.size	compat_pListCopy, .-compat_pListCopy
+	.p2align 1
+	.globl compat_armReBoot
+	.type	compat_armReBoot, @function
+compat_armReBoot:
+	# frame: 32   32 regs
+	add	$sp, -32
+	sw	$5, 20($sp)
+	sw	$6, 16($sp)
+	sw	$7, 12($sp)
+	mov	$5, $2
+	ldc	$11, $lp
+	mov	$7, $1
+	mov	$6, $3
+	mov	$4, 1
+	mov	$3, 1
+	movu	$2, 65551
+	mov	$1, 0
+	sw	$8, 8($sp)
+	sw	$11, 4($sp)
+	bsr	pervasive_control_reset
+	beqz	$5, .L44
+	mov	$4, 1
+	mov	$3, 1
+	mov	$2, 1
+	mov	$1, 1
+	bsr	pervasive_control_reset
+.L44:
+	mov	$4, 1
+	mov	$3, 0
+	mov	$2, -1 # 0xffff
+	mov	$1, 0
+	bsr	pervasive_control_gate
+	beqz	$5, .L45
+	mov	$4, 1
+	mov	$3, 0
+	mov	$2, -1 # 0xffff
+	mov	$1, 1
+	bsr	pervasive_control_gate
+.L45:
+	movh	$3, 0xe310
+	or3	$3, $3, 0x2180
+	mov	$2, -129 # 0xff7f
+	lw	$8, ($3)
+	mov	$4, 1
+	mov	$3, 1
+	and	$2, $8
+	mov	$1, 96
+	bsr	pervasive_control_gate
+	mov	$4, 1
+	mov	$3, 0
+	mov	$2, -1 # 0xffff
+	mov	$1, 97
+	bsr	pervasive_control_reset
+	mov	$4, 1
+	mov	$3, 1
+	or3	$2, $8, 0x80
+	mov	$1, 96
+	bsr	pervasive_control_gate
+	mov	$3, 1
+	mov	$2, 1
+	mov	$1, 0
+	bsr	pervasive_control_clock
+	mov	$3, 1
+	mov	$2, 0
+	mov	$1, 12
+	bsr	pervasive_control_misc
+	mov	$3, 1
+	mov	$2, 1
+	mov	$1, 20
+	bsr	pervasive_control_misc
+	movh	$3, 0xe310
+	or3	$3, $3, 0xc0
+	erepeat	.L65
+	nop
+.L65:
+	lw	$2, ($3)
+	beqi	$2, 1, .L66
+	# erepeat end
+.L66:
+	sw	$2, ($3)
+	movh	$3, 0xe310
+	or3	$3, $3, 0xc0
+	erepeat	.L67
+	nop
+.L67:
+	lw	$2, ($3)
+	bnei	$2, 1, .L68
+	# erepeat end
+.L68:
+	mov	$4, 1
+	mov	$3, 1
+	movh	$2, 0xc0
+	mov	$1, 0
+	bsr	pervasive_control_gate
+	mov	$4, 1
+	mov	$3, 0
+	mov	$2, -1 # 0xffff
+	mov	$1, 0
+	bsr	pervasive_control_gate
+	mov	$3, 1
+	and3	$2, $7, 0xf
+	mov	$1, 0
+	bsr	pervasive_control_clock
+	movh	$3, 0xe311
+	and3	$6, $6, 0x1
+	or3	$3, $3, 0xc00
+	sw	$6, ($3)
+	erepeat	.L69
+	nop
+.L69:
+	lw	$2, ($3)
+	beq	$6, $2, .L70
+	# erepeat end
+.L70:
+	movh	$2, 0xc1
+	bnez	$5, .L49
+	movh	$2, 0x1
+.L49:
+	mov	$4, 1
+	mov	$3, 1
+	mov	$1, 0
+	bsr	pervasive_control_gate
+	beqz	$5, .L50
+	mov	$4, 1
+	mov	$3, 1
+	mov	$2, 1
+	mov	$1, 1
+	bsr	pervasive_control_gate
+	mov	$4, 1
+	mov	$3, 0
+	mov	$2, -1 # 0xffff
+	mov	$1, 1
+	bsr	pervasive_control_reset
+.L50:
+	mov	$4, 1
+	mov	$3, 0
+	mov	$2, -1 # 0xffff
+	mov	$1, 0
+	bsr	pervasive_control_reset
+	lw	$8, 8($sp)
+	lw	$7, 12($sp)
+	lw	$6, 16($sp)
+	lw	$5, 20($sp)
+	lw	$11, 4($sp)
+	add3	$sp, $sp, 32
+	jmp	$11
+	.size	compat_armReBoot, .-compat_armReBoot
 	.ident	"GCC: (WTF TEAM MOLECULE IS AT IT AGAIN?!) 6.3.0"

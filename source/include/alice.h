@@ -20,7 +20,7 @@ enum ALICE2BOB_COMMANDS {
 #define ALICE_RELINQUISH_CMD 0xA21CEDED
 
 void alice_armReBoot(int armClk, bool hasCS, bool hasUnk);
-int alice_handleCmd(void);
+int alice_handleCmd(uint32_t cmd, uint32_t arg1, uint32_t arg2, uint32_t arg3);
 void alice_setupInts(void);
 
 #endif

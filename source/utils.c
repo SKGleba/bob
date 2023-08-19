@@ -80,3 +80,18 @@ bool enable_icache(bool cache) {
         
     return !!(cfg & 0x2);
 }
+
+void setup_ints(void) {
+    cbus_write(3, 0);
+    cbus_write(4, 0x07777777);
+    cbus_write(5, 0x777f);
+    cbus_write(6, 0);
+    cbus_write(7, 0);
+    cbus_write(0, 0x600);
+    cbus_write(2, 0x100);
+    asm(
+        "ldc $0, $psw\n"
+        "or3 $0, $0, 0x110\n"
+        "stc $0, $psw\n"
+    );
+}
