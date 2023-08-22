@@ -165,6 +165,8 @@ enum PERV_GATECTRL_DEVICES {
     PERV_CTRL_GATE_DEV_EMMC_CRYPTO = 100 // or just emmc?
 };
 
+#define PERV2_ARM_BOOT_ALIAS_DRAM 0xe3110c00
+
 uint32_t pervasive_control_reset(int device, unsigned int mask, bool reset, bool wait);
 uint32_t pervasive_control_gate(int device, unsigned int mask, bool open, bool wait);
 uint32_t pervasive_control_clock(int device, unsigned int clock, bool wait);

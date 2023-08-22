@@ -31,7 +31,7 @@ typedef struct _maika_mailbox maika_mailbox;
 // maika::reset_ctrl
 struct _maika_reset_ctrl {
     reg f00d_reset; // f00d reset
-    reg crySboot;
+    reg crySboot; // f00d POR status?
     reg f00d_cycle_reset; // useful for self reset
     reg math_reset; // bigmac & bignum reset
     reg other_reset; // other subsystems reset
@@ -41,7 +41,7 @@ typedef struct _maika_reset_ctrl maika_reset_ctrl;
 // maika::aio
 struct _maika_aio {
     reg control_0;
-    reg control_4; // status?
+    reg control_4; // writable only once
     reg control_8;
     reg unk_C[5];
     reg math_status;
@@ -182,6 +182,18 @@ typedef struct _maika_s maika_s;
 /*
     Defines
 */
+#define MAIKA_AIO_CONTROL0_ARM2CRY0 0b1
+#define MAIKA_AIO_CONTROL0_ARM2CRY1 0b10
+#define MAIKA_AIO_CONTROL0_ARM2CRY2 0b100
+#define MAIKA_AIO_CONTROL0_ARM2CRY3 0b1000
+#define MAIKA_AIO_CONTROL0_SC2CRY01 0b10000
+#define MAIKA_AIO_CONTROL0_0b100000 0b100000
+#define MAIKA_AIO_CONTROL0_EXTRST_W 0b1 << 12
+#define MAIKA_AIO_CONTROL0_EXTRST_R 0b10 << 12
+
+#define MAIKA_AIO_CONTROL0_EXTRESET_MASK(arm_read, arm_write) (arm_read * (MAIKA_AIO_CONTROL0_EXTRST_R) | arm_write * (MAIKA_AIO_CONTROL0_EXTRST_W))
+#define MAIKA_AIO_CONTROL0_ARM2CRY_MASK(arm2cry0, arm2cry1, arm2cry2, arm2cry3) (arm2cry0 * MAIKA_AIO_CONTROL0_ARM2CRY0 | arm2cry1 * MAIKA_AIO_CONTROL0_ARM2CRY1 | arm2cry2 * MAIKA_AIO_CONTROL0_ARM2CRY2 | arm2cry3 * MAIKA_AIO_CONTROL0_ARM2CRY3)
+
 #define MAIKA_RAS_DEV_S 0 // default secure
 #define MAIKA_RAS_MODE_WRITE 0b1 // write mode
 #define MAIKA_RAS_DEV_UNK 0b10 // masks DRAM and DRAM regs, from arm bus

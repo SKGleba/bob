@@ -21,8 +21,10 @@
 #include "include/glitch.h"
 
 void glitch_test(void) {
+#ifndef SILENT
     statusled(0x31);
     hexdump(0x40000, 0x20000, true);
+#endif
 
     statusled(0x32);
     for (uint32_t d_addr = 0x40000; d_addr < 0x60000; d_addr += 0x10)
@@ -53,8 +55,6 @@ void glitch_init(void) {
     printf("[BOB] glitch_init bob [%X], me @ %X\n", get_build_timestamp(), glitch_init);
 #endif
 
-    vp 0xe3103040 = 0x10007; // back up
-
     statusled(STATUS_GLINIT_ERNIE);
     printf("[BOB] ernie init\n");
     ernie_init(true, true);
@@ -63,6 +63,8 @@ void glitch_init(void) {
     printf("[BOB] jig init\n");
     uint32_t msg = 0xCAFEBABE;
     jig_update_shared_buffer((uint8_t*)&msg, 0, 0x10, true);
+
+    vp 0xe3103040 = 0x10007; // back up
 
     // test test stuff
 #ifndef GLITCH_SKIP_TEST

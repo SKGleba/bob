@@ -229,8 +229,8 @@ void compat_armReBoot(int armClk, bool hasCS, bool remap_00) {
     pervasive_control_clock(0, armClk & 0xf, true);
 
     // remap arm 0x0 to 0x40000000
-    vp 0xe3110c00 = remap_00 & 1;
-    while (vp 0xe3110c00 != (remap_00 & 1))
+    vp PERV2_ARM_BOOT_ALIAS_DRAM = remap_00 & 1;
+    while (vp PERV2_ARM_BOOT_ALIAS_DRAM != (remap_00 & 1))
         ;
 
     // open arm (&opt) gate

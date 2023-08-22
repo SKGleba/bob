@@ -21,10 +21,13 @@ RPC_COMMANDS = {
     "arm_reset" : 0xa,
     "set_xctable" : 0xb,
     "set_ints" : 0xc,
+    "alice_rpc" : 0xd,
+    "alice_task_status" : 0xe,
     "copyto" : 0x40,
     "copyfrom" : 0x41,
     "exec" : 0x42, # exec arg0(arg1, arg2, &extra) | ret to arg0
-    "execbig" : 0x43 # exec arg0(extra32[X], extra32[X+1], extra32[X+2], extra32[X+3]) | rets to argX
+    "execbig" : 0x43, # exec arg0(extra32[X], extra32[X+1], extra32[X+2], extra32[X+3]) | rets to argX
+    "alice_schedule_task" : 0x44
 }
 
 

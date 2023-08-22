@@ -17,6 +17,8 @@
 ### SoC v4.2
 - 0xE0010000 bits:
   - 0 : f00d reset
+- 0xE0010004:
+  - & 0x10: in normal reset
 - 0xE0010008 bits:
   - 0 : f00d reset2
 - 0xE001000C bits:
@@ -36,7 +38,16 @@
   - 10 : readas/some dmac reset
 ## 0xE0020000
 ### SoC v4.2
-- 0xE0020004 : write-only, TODO
+- 0xE0020000 bits:
+  - 0: enable arm2cry0
+  - 1: enable arm2cry1
+  - 2: enable arm2cry2
+  - 3: enable arm2cry3
+  - 4: enable sc2cry01
+  - 5: unk
+  - 16: enable reset registers write from arm
+  - 17: enable reset registers read from arm
+- 0xE0020004 : 
 ## 0xE0050000
 ### SoC v4.2
 - 0xE0050108 : changes by writing 0 to [channel]->status

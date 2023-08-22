@@ -127,6 +127,12 @@ void rpc_loop(void) {
                 _MEP_INTR_ENABLE_
             } else
                 _MEP_INTR_DISABLE_
+                break;
+        case RPC_CMD_START_ALICE_RPC: // (ALICE: block_bob, delegate_core, BOB: wait_task_done)
+            cret = alice_schedule_bob_task(0, ALICE_ZERO_TASKS_ENABLE_RPC, true, (bool)rpc_buf.cmd.args[2], rpc_buf.cmd.args[0], rpc_buf.cmd.args[1], 0, 0);
+            break;
+        case RPC_CMD_GET_ALICE_TASK_STATUS:
+            cret = alice_get_task_status((int)rpc_buf.cmd.args[0], (bool)rpc_buf.cmd.args[1], (bool)rpc_buf.cmd.args[2]);
             break;
 
         case RPC_CMD_COPYTO:
@@ -146,6 +152,9 @@ void rpc_loop(void) {
             ccode = (void*)rpc_buf.cmd.args[0];
             printf("[BOB] RPC EXECE %X\n", ccode);
             cret = ccode(rpc_buf.cmd.args[1], rpc_buf.cmd.args[2], *(uint32_t*)((uint32_t*)&rpc_buf.extra_data), *(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 1), *(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 2), *(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 3), *(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 4), *(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 5));
+            break;
+        case RPC_CMD_SCHEDULE_ALICE_TASK:
+            cret = alice_schedule_bob_task((int)rpc_buf.cmd.args[0], (int)rpc_buf.cmd.args[1], (bool)rpc_buf.cmd.args[2], (bool)*(uint32_t*)((uint32_t*)&rpc_buf.extra_data), (int)*(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 1), (int)*(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 2), (int)*(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 3), (int)*(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 4));
             break;
         default:
             break;
