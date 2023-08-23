@@ -27,7 +27,8 @@ RPC_COMMANDS = {
     "copyfrom" : 0x41,
     "exec" : 0x42, # exec arg0(arg1, arg2, &extra) | ret to arg0
     "execbig" : 0x43, # exec arg0(extra32[X], extra32[X+1], extra32[X+2], extra32[X+3]) | rets to argX
-    "alice_schedule_task" : 0x44
+    "alice_schedule_bob_task" : 0x44,
+    "alice_load_direct" : 0x45
 }
 
 
@@ -110,7 +111,7 @@ def handle_cmd(user_cmd, argv):
                         break
                     handle_cmd("copyto", ["0x{:08X}".format(offset + copied), "0x{:08X}".format(len(xdata)), bytearray(xdata).hex().upper()])
                     copied += len(xdata)
-            handle_cmd("delay", [prev_delay, "0x{:08X}".format(RPC_WRITE_DELAY)])
+            return handle_cmd("delay", [prev_delay, "0x{:08X}".format(RPC_WRITE_DELAY)])
         case "file_append": # arg0 = dst, arg1 = src, arg2 = size
             prev_delay = "0x" + swapstr32(str(handle_cmd("delay", ["0x{:08X}".format(RPC_FAST_DELAY), "0x{:08X}".format(RPC_WRITE_DELAY)]))[8:16])
             offset = int(argv[1][2:], 16)
@@ -121,14 +122,41 @@ def handle_cmd(user_cmd, argv):
                     if x + RPC_EXTRA_DATA_SIZE > full_size:
                         size = full_size - x
                     fp.write(bytearray.fromhex(handle_cmd("copyfrom", ["0x{:08X}".format(offset + x), "0x{:08X}".format(int(size))]))[RPC_CMD_SIZE:])
-            handle_cmd("delay", [prev_delay, "0x{:08X}".format(RPC_WRITE_DELAY)])
+            return handle_cmd("delay", [prev_delay, "0x{:08X}".format(RPC_WRITE_DELAY)])
         case "file_dump": # arg0 = dst, arg1 = src, arg2 = size
             fp = open(argv[0], 'wb')
             fp.close
-            handle_cmd("file_append", argv)
+            return handle_cmd("file_append", argv)
         case "push_reply":
             wait4push = int(argv[0][2:], 16)
-            handle_cmd("push", argv)
+            return handle_cmd("push", argv)
+        case "exece":
+            cv_argv = ["0x0", "0x0", "0x0", ""]
+            for x,arg in enumerate(argv):
+                if x < 3:
+                    cv_argv[x] = argv[x]
+                else:
+                    cv_argv[3] += swapstr32("{:08X}".format(int(argv[x][2:], 16)))
+            cv_argv[3] = cv_argv[3].ljust(48, "0")
+            return handle_cmd("execbig", cv_argv)
+        case "alice_schedule_task":
+            cv_argv = ["0x0", "0x0", "0x0", ""]
+            for x,arg in enumerate(argv):
+                if x < 3:
+                    cv_argv[x] = argv[x]
+                else:
+                    cv_argv[3] += swapstr32("{:08X}".format(int(argv[x][2:], 16)))
+            cv_argv[3] = cv_argv[3].ljust(40, "0")
+            return handle_cmd("alice_schedule_bob_task", cv_argv)
+        case "alice_load":
+            cv_argv = ["0x0", "0x0", "0x0", ""]
+            for x,arg in enumerate(argv):
+                if x < 3:
+                    cv_argv[x] = argv[x]
+                else:
+                    cv_argv[3] += swapstr32("{:08X}".format(int(argv[x][2:], 16)))
+            cv_argv[3] = cv_argv[3].ljust(32, "0")
+            return handle_cmd("alice_load_direct", cv_argv)
         case _:
             if user_cmd in RPC_COMMANDS:
                 cv_argv = ["0x0", "0x0", "0x0", ""]

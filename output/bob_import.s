@@ -1,14 +1,14 @@
 .global setup_ints
 setup_ints:
-jmp 0x0004138c
+jmp 0x000413ac
 
 .global gpio_port_read
 gpio_port_read:
-jmp 0x000413f4
+jmp 0x00041414
 
 .global ernie_3auth_single
 ernie_3auth_single:
-jmp 0x00042598
+jmp 0x000425b8
 
 .global i2c_transfer_write
 i2c_transfer_write:
@@ -20,7 +20,7 @@ jmp 0x00040ce0
 
 .global sm_loadstart
 sm_loadstart:
-jmp 0x00040ec4
+jmp 0x00040ec0
 
 .global alice_schedule_task
 alice_schedule_task:
@@ -28,7 +28,7 @@ jmp 0x0004024e
 
 .global compat_armReBoot
 compat_armReBoot:
-jmp 0x000419a2
+jmp 0x000419c2
 
 .global uart_printn
 uart_printn:
@@ -44,11 +44,11 @@ jmp 0x000400d4
 
 .global debug_setGpoCode
 debug_setGpoCode:
-jmp 0x0004202e
+jmp 0x0004204e
 
 .global spi_write_start
 spi_write_start:
-jmp 0x00042302
+jmp 0x00042322
 
 .global pervasive_control_clock
 pervasive_control_clock:
@@ -60,7 +60,7 @@ jmp 0x0004090c
 
 .global set_dbg_mode
 set_dbg_mode:
-jmp 0x00041336
+jmp 0x00041356
 
 .global memcpy
 memcpy:
@@ -68,7 +68,7 @@ jmp 0x0004054c
 
 .global jig_read_shared_buffer
 jig_read_shared_buffer:
-jmp 0x000421c2
+jmp 0x000421e2
 
 .global uart_print
 uart_print:
@@ -80,19 +80,19 @@ jmp 0x00040c2c
 
 .global ernie_exec
 ernie_exec:
-jmp 0x0004244e
+jmp 0x0004246e
 
 .global gpio_set_port_mode
 gpio_set_port_mode:
-jmp 0x000413d6
+jmp 0x000413f6
 
 .global ernie_exec_cmd
 ernie_exec_cmd:
-jmp 0x000424ea
+jmp 0x0004250a
 
 .global spi_init
 spi_init:
-jmp 0x000422a0
+jmp 0x000422c0
 
 .global PANIC
 PANIC:
@@ -104,7 +104,7 @@ jmp 0x0004085c
 
 .global readAs
 readAs:
-jmp 0x00040dd6
+jmp 0x00040dd2
 
 .global i2c_transfer_write_read
 i2c_transfer_write_read:
@@ -112,23 +112,23 @@ jmp 0x0004071e
 
 .global keyring_slot_data
 keyring_slot_data:
-jmp 0x00040e30
+jmp 0x00040e2c
 
 .global compat_IRQ7_handleCmd
 compat_IRQ7_handleCmd:
-jmp 0x00041850
+jmp 0x00041870
 
 .global debug_c_regdump
 debug_c_regdump:
-jmp 0x00042058
+jmp 0x00042078
 
 .global enable_icache
 enable_icache:
-jmp 0x0004135a
+jmp 0x0004137a
 
 .global debug_printFormat
 debug_printFormat:
-jmp 0x00041d38
+jmp 0x00041d58
 
 .global alice_loadAlice
 alice_loadAlice:
@@ -144,7 +144,7 @@ jmp 0x00040996
 
 .global debug_printU32
 debug_printU32:
-jmp 0x00041cc4
+jmp 0x00041ce4
 
 .global memset8
 memset8:
@@ -156,7 +156,7 @@ jmp 0x000407b0
 
 .global glitch_test
 glitch_test:
-jmp 0x00042750
+jmp 0x00042770
 
 .global c_OTHER_INT
 c_OTHER_INT:
@@ -168,11 +168,11 @@ jmp 0x0004087c
 
 .global ernie_read
 ernie_read:
-jmp 0x000423d4
+jmp 0x000423f4
 
 .global test
 test:
-jmp 0x00041c32
+jmp 0x00041c52
 
 .global pervasive_control_gate
 pervasive_control_gate:
@@ -184,35 +184,35 @@ jmp 0x000406b6
 
 .global gpio_enable_port
 gpio_enable_port:
-jmp 0x00041582
+jmp 0x000415a2
 
 .global gpio_port_set
 gpio_port_set:
-jmp 0x0004140a
+jmp 0x0004142a
 
 .global gpio_query_intr
 gpio_query_intr:
-jmp 0x00041492
+jmp 0x000414b2
 
 .global spi_read
 spi_read:
-jmp 0x0004235a
+jmp 0x0004237a
 
 .global ernie_exec_cmd_short
 ernie_exec_cmd_short:
-jmp 0x0004257c
+jmp 0x0004259c
 
 .global cbus_write
 cbus_write:
-jmp 0x00041306
+jmp 0x00041326
 
 .global glitch_init
 glitch_init:
-jmp 0x00042794
+jmp 0x000427b4
 
 .global spi_read_end
 spi_read_end:
-jmp 0x00042366
+jmp 0x00042386
 
 .global memcmp
 memcmp:
@@ -224,7 +224,7 @@ jmp 0x00040d6e
 
 .global init
 init:
-jmp 0x00041b72
+jmp 0x00041b92
 
 .global i2c_init_bus
 i2c_init_bus:
@@ -240,15 +240,15 @@ jmp 0x00040a5a
 
 .global compat_pListCopy
 compat_pListCopy:
-jmp 0x00041958
+jmp 0x00041978
 
 .global gpio_set_intr_mode
 gpio_set_intr_mode:
-jmp 0x0004144a
+jmp 0x0004146a
 
 .global ernie_init
 ernie_init:
-jmp 0x000426ce
+jmp 0x000426ee
 
 .global memset
 memset:
@@ -256,51 +256,51 @@ jmp 0x0004051c
 
 .global get_build_timestamp
 get_build_timestamp:
-jmp 0x00041350
+jmp 0x00041370
 
 .global gpio_acquire_intr
 gpio_acquire_intr:
-jmp 0x000414fe
+jmp 0x0004151e
 
 .global writeAs
 writeAs:
-jmp 0x00040e0c
+jmp 0x00040e08
 
 .global delay
 delay:
-jmp 0x000412b2
+jmp 0x000412d2
 
 .global rpc_loop
 rpc_loop:
-jmp 0x00040ec6
+jmp 0x00040ec2
 
 .global jig_update_shared_buffer
 jig_update_shared_buffer:
-jmp 0x000420c2
+jmp 0x000420e2
 
 .global ce_framework
 ce_framework:
-jmp 0x00041af0
+jmp 0x00041b10
 
 .global cbus_read
 cbus_read:
-jmp 0x000412de
+jmp 0x000412fe
 
 .global keyring_slot_prot
 keyring_slot_prot:
-jmp 0x00040e9e
+jmp 0x00040e9a
 
 .global spi_write_end
 spi_write_end:
-jmp 0x00042322
+jmp 0x00042342
 
 .global spi_write
 spi_write:
-jmp 0x0004233e
+jmp 0x0004235e
 
 .global ernie_write
 ernie_write:
-jmp 0x0004237c
+jmp 0x0004239c
 
 .global c_SWI
 c_SWI:
@@ -308,15 +308,15 @@ jmp 0x00040b68
 
 .global debug_printRange
 debug_printRange:
-jmp 0x00042010
+jmp 0x00042030
 
 .global spi_read_available
 spi_read_available:
-jmp 0x0004234c
+jmp 0x0004236c
 
 .global gpio_port_clear
 gpio_port_clear:
-jmp 0x0004142a
+jmp 0x0004144a
 
 .global strlen
 strlen:
@@ -328,7 +328,7 @@ jmp 0x00040d44
 
 .global gpio_init
 gpio_init:
-jmp 0x0004159e
+jmp 0x000415be
 
 .global alice_schedule_bob_task
 alice_schedule_bob_task:
@@ -344,5 +344,5 @@ jmp 0x00040b20
 
 .global compat_Cry2Arm0
 compat_Cry2Arm0:
-jmp 0x000415f0
+jmp 0x00041610
 

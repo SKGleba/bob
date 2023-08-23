@@ -151,10 +151,24 @@ void rpc_loop(void) {
         case RPC_CMD_EXEC_EXTENDED:
             ccode = (void*)rpc_buf.cmd.args[0];
             printf("[BOB] RPC EXECE %X\n", ccode);
-            cret = ccode(rpc_buf.cmd.args[1], rpc_buf.cmd.args[2], *(uint32_t*)((uint32_t*)&rpc_buf.extra_data), *(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 1), *(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 2), *(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 3), *(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 4), *(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 5));
+            cret = ccode(rpc_buf.cmd.args[1], rpc_buf.cmd.args[2], *(uint32_t*)((uint32_t*)&rpc_buf.extra_data),
+                *(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 1), *(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 2),
+                *(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 3), *(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 4),
+                *(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 5)
+            );
             break;
         case RPC_CMD_SCHEDULE_ALICE_TASK:
-            cret = alice_schedule_bob_task((int)rpc_buf.cmd.args[0], (int)rpc_buf.cmd.args[1], (bool)rpc_buf.cmd.args[2], (bool)*(uint32_t*)((uint32_t*)&rpc_buf.extra_data), (int)*(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 1), (int)*(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 2), (int)*(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 3), (int)*(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 4));
+            cret = alice_schedule_bob_task((int)rpc_buf.cmd.args[0], (int)rpc_buf.cmd.args[1], (bool)rpc_buf.cmd.args[2],
+                (bool)*(uint32_t*)((uint32_t*)&rpc_buf.extra_data), (int)*(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 1),
+                (int)*(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 2), (int)*(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 3),
+                (int)*(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 4)
+            );
+            break;
+        case RPC_CMD_LOAD_ALICE:
+            cret = alice_loadAlice((void*)rpc_buf.cmd.args[0], (bool)rpc_buf.cmd.args[1], (int)rpc_buf.cmd.args[2],
+                (bool)*(uint32_t*)((uint32_t*)&rpc_buf.extra_data), (bool)*(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 1),
+                (bool)*(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 2), (bool)*(uint32_t*)((uint32_t*)&rpc_buf.extra_data + 3)
+            );
             break;
         default:
             break;

@@ -136,13 +136,13 @@ void c_DBG(void) {
 }
 
 void set_exception_table(bool glitch) {
-    uint32_t* table = vectors_exceptions;
+    uint32_t* table = (uint32_t * )&vectors_exceptions;
     if (glitch) {
-        memset32(table, vp jmp_s_glitch_xc, 0x34);
+        memset32(table, (uint32_t)jmp_s_glitch_xc, 0x34);
         return;
     } else
-        memset32(table, vp jmp_c_other_xc, 0x34);
-    table[0] = vp jmp_s_reset_xc;
-    table[5] = vp jmp_s_swi_xc;
-    table[6] = vp jmp_s_dbg_xc;
+        memset32(table, (uint32_t)jmp_c_other_xc, 0x34);
+    table[0] = (uint32_t)jmp_s_reset_xc;
+    table[5] = (uint32_t)jmp_s_swi_xc;
+    table[6] = (uint32_t)jmp_s_dbg_xc;
 }

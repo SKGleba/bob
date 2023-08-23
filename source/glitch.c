@@ -47,6 +47,14 @@ void glitch_init(void) {
     gpio_init(false);
 #endif
 
+    ernie_init(false, false);
+    ernie_exec_cmd_short(ERNIE_CMD_CTRL_HOVD, 1, 1);
+    uart_init(UART_BUS, UART_BAUD_115200);
+    for (int i = 0; i < 0x100; i++)
+        print("ping pong ding dong ");
+    
+
+    /*
 #ifndef SILENT
     statusled(STATUS_GLINIT_UART);
     uart_init(UART_BUS, UART_RATE);
@@ -62,7 +70,7 @@ void glitch_init(void) {
     statusled(STATUS_GLINIT_JIG);
     printf("[BOB] jig init\n");
     uint32_t msg = 0xCAFEBABE;
-    jig_update_shared_buffer((uint8_t*)&msg, 0, 0x10, true);
+    jig_update_shared_buffer((uint8_t*)&msg, 0, 0x10, true);*/
 
     vp 0xe3103040 = 0x10007; // back up
 

@@ -36,7 +36,8 @@ enum RPC_COMMANDS {
     RPC_CMD_COPYFROM,
     RPC_CMD_EXEC, // exec arg0(arg1, arg2, &extra) | ret to arg0
     RPC_CMD_EXEC_EXTENDED, // exec arg0(arg1, arg2, extra32[X], extra32[X+1], extra32[X+2], extra32[X+3]) | rets to arg0
-    RPC_CMD_SCHEDULE_ALICE_TASK
+    RPC_CMD_SCHEDULE_ALICE_TASK,
+    RPC_CMD_LOAD_ALICE
 };
 
 struct _rpc_cmd_s { // size is 0x10
