@@ -47,7 +47,7 @@
   - 5: unk
   - 16: enable reset registers write from arm
   - 17: enable reset registers read from arm
-- 0xE0020004 : 
+- 0xE0020004 :
 ## 0xE0050000
 ### SoC v4.2
 - 0xE0050108 : changes by writing 0 to [channel]->status

@@ -19,6 +19,6 @@
 #define RPC_WRITE_DELAY 0x80 // delay before replying to a RPC
 #define RPC_BLOCKED_DELAY 0x2800 // delay between g_status check for unblock
 
-//#define GLITCH_SKIP_TEST // skip test() on glitch trigger
+#define GLITCH_SKIP_TEST // skip test() on glitch trigger
 
 #endif
