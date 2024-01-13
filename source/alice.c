@@ -1,15 +1,16 @@
-#include "include/types.h"
-#include "include/defs.h"
-#include "include/utils.h"
-#include "include/debug.h"
-#include "include/paddr.h"
-#include "include/maika.h"
-#include "include/perv.h"
-#include "include/rpc.h"
+#include "include/alice.h"
+
 #include "include/clib.h"
 #include "include/compat.h"
-
-#include "include/alice.h"
+#include "include/debug.h"
+#include "include/defs.h"
+#include "include/maika.h"
+#include "include/paddr.h"
+#include "include/perv.h"
+#include "include/rpc.h"
+#include "include/types.h"
+#include "include/utils.h"
+#include "include/xbar.h"
 
 volatile alice_vector_s* alice_vectors = NULL;
 volatile alice_xcfg_s* alice_xcfg = NULL;
@@ -79,6 +80,18 @@ int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool en
         compat_armReBoot(arm_clock, enable_cs, dram);
 
     return 0;
+}
+
+// TODO: flag setup ints
+int alice_stopReloadAlice(uint32_t reload_config) {
+    if (!reload_config)
+        reload_config = (((vp PERV2_ARM_BOOT_ALIAS_DRAM) ? ALICE_DRAM_ADDR : ALICE_SPAD32K_ADDR) << 1) | ((vp PERV2_ARM_BOOT_ALIAS_DRAM) ? ALICE_RELOAD_USE_DRAM : 0);
+
+    printf("[BOB] killing arm...\n");
+    compat_killArm();
+
+    return alice_loadAlice((void *)((reload_config & ALICE_RELOAD_SOURCE) >> 1), true, PERV_GET_REG(PERV_CTRL_BASECLK, 0) & 0xf, true,
+                           !!(reload_config & ALICE_RELOAD_ENABLE_CS), !!(reload_config & ALICE_RELOAD_USE_DRAM), !!(reload_config & ALICE_RELOAD_SET_UART));
 }
 
 int alice_schedule_task(int target_core, volatile alice_core_task_s* task, bool wait_core_done, bool wait_task_done) {
@@ -174,6 +187,9 @@ int alice_handleCmd(uint32_t cmd, uint32_t arg1, uint32_t arg2, uint32_t arg3) {
             writeAs(arg1, arg2, arg3 & 0x7fffffff);
         else
             vp arg1 = arg2;
+        break;
+    case ALICE_A2B_STOP_RELOAD_ALICE:
+        alice_stopReloadAlice(arg1);
         break;
     default:
         break;

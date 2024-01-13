@@ -50,11 +50,19 @@ enum ALICE2BOB_COMMANDS {
     ALICE_A2B_MEMSET32,
     ALICE_A2B_READ32,
     ALICE_A2B_WRITE32,
+    ALICE_A2B_STOP_RELOAD_ALICE,
     ALICE_A2B_EXEC = 0x80000000 // OR it with paddr for bob to exec
 };
 
 #define ALICE_ACQUIRE_CMD 0x5E7A21CE
 #define ALICE_RELINQUISH_CMD 0xA21CEDED
+
+enum ALICE_RELOAD_CONFIG_FLAGS {
+    ALICE_RELOAD_ENABLE_CS = 0b1,
+    ALICE_RELOAD_USE_DRAM = 0b10,
+    ALICE_RELOAD_SET_UART = 0b100,
+    ALICE_RELOAD_SOURCE = ~0b111  // source << 1, align to 4
+};
 
 #define ALICE_DRAM_ADDR 0x40000000
 #define ALICE_DRAM_SIZE 0x00040000
@@ -90,10 +98,9 @@ enum ALICE_THREE_TASKS {
 #define ALICE_CORE_STATUS_WAITING 0b10 // core is waiting
 #define ALICE_CORE_STATUS_TASKING 0b100 // core is running a task (chain)
 
-void alice_armReBoot(int armClk, bool hasCS, bool hasUnk);
 int alice_handleCmd(uint32_t cmd, uint32_t arg1, uint32_t arg2, uint32_t arg3);
-void alice_setupInts(void);
 int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool enable_cs, bool dram, bool set_uart);
+int alice_stopReloadAlice(uint32_t reload_config);
 
 int alice_schedule_task(int target_core, volatile alice_core_task_s* task, bool wait_core_done, bool wait_task_done);
 int alice_get_task_status(int core, bool ret, bool actual_core_task);

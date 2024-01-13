@@ -53,12 +53,13 @@ struct _maika_aio {
     } readAs;
     reg unk_4C[0xB4 / 4];
     union {
-        reg unk_100[16]; // x602, x601
+        reg kirk_config[16]; // x602, x601
         struct {
-            reg unk_id_input[4]; // [0] = ??, [1] & [2] = serial64, [3] = config32?
-            reg unk_10[4]; // IV?
-            reg unk_20[8]; // key?
-        } config_keys;
+            reg mesh1[4];
+            reg mesh0[4];
+            reg fuseid[4];
+            reg mesh2[4];
+        } kirk_config_s;
     };
 };
 typedef struct _maika_aio maika_aio;

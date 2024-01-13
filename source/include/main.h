@@ -15,7 +15,8 @@ typedef struct fm_nfo {
 typedef struct bob_config {
     fm_nfo* ce_framework_parms[2];
     uint32_t uart_params; // (bus << 0x18) | clk
-    bool run_tests;
+    uint32_t run_tests; // 0: nothing, 1: test(), > 1: paddr to run
+    int test_arg; // arg passed to test() or custom test
 } bob_config;
 
 // initialize bob, call that AFTER bob is copied to f00d mem

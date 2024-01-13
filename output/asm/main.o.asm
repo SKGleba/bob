@@ -2,9 +2,9 @@
 	.section .farbss,"aw"
 	.p2align 2
 	.type	options,@object
-	.size	options,16
+	.size	options,20
 options:
-	.zero	16
+	.zero	20
 	.text
 	.core
 	.p2align 1
@@ -130,6 +130,9 @@ init:
 	lw	$3, 12($6)
 	sw	$3, 12($5)
 	beqz	$3, .L11
+	lw	$1, 16($6)
+	sw	$1, 16($5)
+	bnei	$3, 1, .L12
 	bsr	test
 .L11:
 	mov	$1, 1
@@ -139,7 +142,7 @@ init:
 	movh	$1, 0x30
 	bsr	memset
 #APP
-;# 98 "source/main.c" 1
+;# 105 "source/main.c" 1
 	jmp vectors_exceptions
 
 ;# 0 "" 2
@@ -149,6 +152,9 @@ init:
 	lw	$11, 4($sp)
 	add	$sp, 24
 	jmp	$11
+.L12:
+	jsr	$3
+	bra	.L11
 	.size	init, .-init
 	.section	.rodata
 	.p2align 2
@@ -179,33 +185,15 @@ test:
 	add	$sp, -16
 	ldc	$11, $lp
 	movu	$1, .LC1
-	sw	$11, ($sp)
-	sw	$5, 4($sp)
+	sw	$11, 4($sp)
 	bsr	debug_printFormat
 	mov	$1, 1
 	bsr	set_dbg_mode
 	syncm
-	movh	$5, 0xec06
-	or3	$5, $5, 0x448
 	movu	$1, .LC2
 	bsr	debug_printFormat
-	lw	$3, ($5)
-	mov	$2, -4 # 0xfffc
-	mov	$1, 2048 # 0x800
-	and	$3, $2
-	sw	$3, ($5)
-	bsr	delay
-	mov	$4, 1
-	movu	$2, 65551
-	mov	$3, 1
-	mov	$1, 0
-	bsr	pervasive_control_reset
-	mov	$1, 2048 # 0x800
-	bsr	delay
-	lw	$3, ($5)
+	bsr	compat_killArm
 	movu	$1, .LC3
-	or3	$3, $3, 0x3
-	sw	$3, ($5)
 	bsr	debug_printFormat
 	mov	$2, 0
 	mov	$1, 0
@@ -221,8 +209,7 @@ test:
 	bsr	rpc_loop
 	movu	$1, .LC6
 	bsr	debug_printFormat
-	lw	$5, 4($sp)
-	lw	$11, ($sp)
+	lw	$11, 4($sp)
 	add	$sp, 16
 	jmp	$11
 	.size	test, .-test

@@ -11,6 +11,7 @@
 #include "include/perv.h"
 #include "include/compat.h"
 #include "include/alice.h"
+#include "include/xbar.h"
 
 // bring your own keys
 static const uint8_t skso_iv[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
@@ -128,7 +129,7 @@ void compat_IRQ7_handleCmd(uint32_t cmd, uint32_t arg1, uint32_t arg2, uint32_t 
             maika->mailbox.arm2cry[2] = -1;
             maika->mailbox.arm2cry[1] = -1;
         } else
-            printf("[BOB] invalid arg for alice acquire\n");
+            printf("[BOB] invalid arg for alice acquire: %X %X %X\n", arg1, arg2, arg3);
             break;
     case 0xC01:
     case 0xD01:
@@ -244,4 +245,26 @@ void compat_armReBoot(int armClk, bool hasCS, bool remap_00) {
 
     // put arm out of reset
     pervasive_control_reset(PERV_CTRL_RESET_DEV_ARM, 0xFFFFFFFF, false, true);
+}
+
+void compat_killArm(void) {
+    // make ARM hang on bus transfers
+    vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_SPAD32K, XBAR_ACCESS_CONTROL_WHITELIST) &= ~0b11;
+    vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_LPDDR0, XBAR_ACCESS_CONTROL_WHITELIST) &= ~0b11;
+
+    delay(0x800);  // increase delay if it hangs here
+
+    // stop ARM & CS
+    pervasive_control_reset(PERV_CTRL_RESET_DEV_ARM, 0x1000f, true, true);
+    pervasive_control_reset(PERV_CTRL_RESET_DEV_ARM_CS, 1, true, true);
+    pervasive_control_gate(PERV_CTRL_GATE_DEV_ARM, 0xFFFFFFFF, false, true);
+    pervasive_control_gate(PERV_CTRL_GATE_DEV_ARM_CS, 0xFFFFFFFF, false, true);
+
+    delay(0x800);
+
+    // restore ARM access
+    vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_LPDDR0, XBAR_ACCESS_CONTROL_WHITELIST) |= 0b11;
+    vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_SPAD32K, XBAR_ACCESS_CONTROL_WHITELIST) |= 0b11;
+
+    // TODO: fix storm?
 }

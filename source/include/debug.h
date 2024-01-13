@@ -76,6 +76,17 @@ enum STATUSLED_CODES { // inits, exceptions, command handlers
 
 #endif
 
+// get a "\r\n" terminated string from debug uart
+#define scans(string_buf, max_len) uart_scanns(g_uart_bus, (char *)string_buf, max_len, 0)
+#define scans_timeout(string_buf, max_len, timeout) uart_scanns(g_uart_bus, (char *)string_buf, max_len, timeout)
+
+// get [count] bytes from debug uart
+#define scanb(bytes_buf, count) uart_scann(g_uart_bus, (uint8_t *)bytes_buf, count, 0)
+#define scanb_timeout(bytes_buf, count, timeout) uart_scann(g_uart_bus, (uint8_t *)bytes_buf, count, timeout)
+
+#define rxflush() uart_rxfifo_flush(g_uart_bus)
+
+
 void debug_printU32(uint32_t value, int add_nl);
 void debug_printFormat(char* base, ...);
 void debug_printRange(uint32_t addr, uint32_t size, int show_addr);

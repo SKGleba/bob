@@ -15,12 +15,13 @@
 #include "include/perv.h"
 #include "include/rpc.h"
 #include "include/paddr.h"
+#include "include/compat.h"
 
 #include "include/main.h"
 
 static bob_config options;
 
-void test(void);
+void test(int arg);
 
 bool ce_framework(bool bg) {
     if (options.ce_framework_parms[bg]) {
@@ -82,8 +83,14 @@ void init(bob_config* arg_config) {
     // test test stuff
     options.run_tests = arg_config->run_tests;
     if (options.run_tests) {
+        options.test_arg = arg_config->test_arg;
         statusled(STATUS_INIT_TEST);
-        test();
+        if (options.run_tests == 1)
+            test(options.test_arg);
+        else {
+            void(*test_func)(int arg) = (void*)(options.run_tests);
+            test_func(options.test_arg);
+        }
     }
 
     statusled(STATUS_INIT_ICACHE);
@@ -98,7 +105,7 @@ void init(bob_config* arg_config) {
     asm("jmp vectors_exceptions\n");
 }
 
-void test(void) {
+void test(int arg) {
     printf("[BOB] test test test\n");
 
     set_dbg_mode(true);
@@ -106,11 +113,7 @@ void test(void) {
     _MEP_SYNC_BUS_;
 
     printf("[BOB] killing arm...\n");
-    vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_LPDDR0, XBAR_ACCESS_CONTROL_WHITELIST) &= ~0b11;
-    delay(0x800); // increase delay if it hangs here
-    pervasive_control_reset(PERV_CTRL_RESET_DEV_ARM, 0x1000f, true, true);
-    delay(0x800);
-    vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_LPDDR0, XBAR_ACCESS_CONTROL_WHITELIST) |= 0b11;
+    compat_killArm();
 
     printf("[BOB] arm is dead, disable the OLED screen...\n");
     gpio_port_clear(0, GPIO_PORT_OLED);
@@ -119,7 +122,6 @@ void test(void) {
     vp 0xe3103040 = 0x10007;
 
     printf("[BOB] test test stuff\n");
-
     rpc_loop();
 
     printf("[BOB] all tests done\n");

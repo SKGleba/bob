@@ -26,5 +26,8 @@ void uart_init(int bus, unsigned int clk);
 void uart_write(int bus, unsigned int data);
 void uart_print(int bus, char* str);
 void uart_printn(int bus, char* str, int n);
+int uart_scann(int bus, uint8_t* out, int outsize, unsigned int timeout);
+int uart_scanns(int bus, char* out, int outsize, unsigned int timeout);
+int uart_rxfifo_flush(int bus);
 
 #endif

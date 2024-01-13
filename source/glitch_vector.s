@@ -66,6 +66,10 @@ jmp get_build_timestamp
 s_printFormat:
 jmp debug_printFormat
 
+.global s_alice_stopReloadAlice
+s_alice_stopReloadAlice:
+jmp alice_stopReloadAlice
+
 .global jmp_s_reset_xc
 jmp_s_reset_xc:
 jmp s_RESET

@@ -251,14 +251,14 @@ compat_IRQ7_armPanic:
 	sw	$11, 4($sp)
 	bsr	cbus_write
 #APP
-;# 91 "source/compat.c" 1
+;# 92 "source/compat.c" 1
 	mov $0, $0
 
 ;# 0 "" 2
 #NO_APP
 	syncm
 #APP
-;# 93 "source/compat.c" 1
+;# 94 "source/compat.c" 1
 	mov $0, $0
 
 ;# 0 "" 2
@@ -301,7 +301,7 @@ compat_IRQ7_forceExitSm:
 	sw	$2, %lo(compat_state)($3)
 	bsr	compat_Cry2Arm0
 #APP
-;# 112 "source/compat.c" 1
+;# 113 "source/compat.c" 1
 	jmp vectors_exceptions
 
 ;# 0 "" 2
@@ -319,40 +319,45 @@ compat_IRQ7_forceExitSm:
 	.string	"[BOB] compat service terminated\n"
 	.p2align 2
 .LC4:
-	.string	"[BOB] invalid arg for alice acquire\n"
+	.string	"[BOB] invalid arg for alice acquire: %X %X %X\n"
 	.text
 	.core
 	.p2align 1
 	.globl compat_IRQ7_handleCmd
 	.type	compat_IRQ7_handleCmd, @function
 compat_IRQ7_handleCmd:
-	# frame: 24   24 regs
-	add	$sp, -24
-	sw	$6, 8($sp)
+	# frame: 40   32 regs   4 locals
+	add3	$sp, $sp, -40 # 0xffd8
+	sw	$6, 24($sp)
 	movh	$6, %hi(compat_state)
 	add3	$6, $6, %lo(compat_state)
 	ldc	$11, $lp
 	lw	$0, ($6)
-	sw	$5, 12($sp)
-	sw	$7, 4($sp)
-	sw	$11, ($sp)
+	sw	$5, 28($sp)
+	sw	$7, 20($sp)
+	sw	$8, 16($sp)
+	sw	$11, 12($sp)
 	mov	$5, $1
+	mov	$8, $2
 	mov	$7, $4
 	bgei	$0, 0, .L22
 	bsr	alice_handleCmd
 	sw	$0, ($6)
 .L21:
-	lw	$7, 4($sp)
-	lw	$6, 8($sp)
-	lw	$5, 12($sp)
-	lw	$11, ($sp)
-	add	$sp, 24
+	lw	$8, 16($sp)
+	lw	$7, 20($sp)
+	lw	$6, 24($sp)
+	lw	$5, 28($sp)
+	lw	$11, 12($sp)
+	add3	$sp, $sp, 40
 	jmp	$11
 .L22:
 	mov	$2, $1
 	movu	$1, .LC2
+	sw	$3, 4($sp)
 	bsr	debug_printFormat
 	mov	$0, 3073 # 0xc01
+	lw	$9, 4($sp)
 	beq	$5, $0, .L24
 	sltu3	$0, $0, $5
 	bnez	$0, .L25
@@ -412,6 +417,9 @@ compat_IRQ7_handleCmd:
 	sw	$5, 20($3)
 	bra	.L21
 .L31:
+	mov	$4, $7
+	mov	$3, $9
+	mov	$2, $8
 	movu	$1, .LC4
 	bsr	debug_printFormat
 	bra	.L21
@@ -615,4 +623,61 @@ compat_armReBoot:
 	add3	$sp, $sp, 32
 	jmp	$11
 	.size	compat_armReBoot, .-compat_armReBoot
+	.p2align 1
+	.globl compat_killArm
+	.type	compat_killArm, @function
+compat_killArm:
+	# frame: 24   24 regs
+	add	$sp, -24
+	sw	$5, 12($sp)
+	movh	$5, 0xec06
+	ldc	$11, $lp
+	or3	$5, $5, 0x48
+	sw	$11, 4($sp)
+	sw	$6, 8($sp)
+	lw	$3, ($5)
+	mov	$2, -4 # 0xfffc
+	movh	$6, 0xec06
+	or3	$6, $6, 0x448
+	and	$3, $2
+	sw	$3, ($5)
+	lw	$3, ($6)
+	mov	$1, 2048 # 0x800
+	and	$3, $2
+	sw	$3, ($6)
+	bsr	delay
+	mov	$4, 1
+	mov	$3, 1
+	movu	$2, 65551
+	mov	$1, 0
+	bsr	pervasive_control_reset
+	mov	$4, 1
+	mov	$3, 1
+	mov	$2, 1
+	mov	$1, 1
+	bsr	pervasive_control_reset
+	mov	$4, 1
+	mov	$3, 0
+	mov	$2, -1 # 0xffff
+	mov	$1, 0
+	bsr	pervasive_control_gate
+	mov	$3, 0
+	mov	$4, 1
+	mov	$2, -1 # 0xffff
+	mov	$1, 1
+	bsr	pervasive_control_gate
+	mov	$1, 2048 # 0x800
+	bsr	delay
+	lw	$3, ($6)
+	or3	$3, $3, 0x3
+	sw	$3, ($6)
+	lw	$3, ($5)
+	or3	$3, $3, 0x3
+	sw	$3, ($5)
+	lw	$6, 8($sp)
+	lw	$5, 12($sp)
+	lw	$11, 4($sp)
+	add	$sp, 24
+	jmp	$11
+	.size	compat_killArm, .-compat_killArm
 	.ident	"GCC: (WTF TEAM MOLECULE IS AT IT AGAIN?!) 6.3.0"
