@@ -90,7 +90,7 @@ int alice_stopReloadAlice(uint32_t reload_config) {
     printf("[BOB] killing arm...\n");
     compat_killArm();
 
-    return alice_loadAlice((void *)((reload_config & ALICE_RELOAD_SOURCE) >> 1), true, PERV_GET_REG(PERV_CTRL_BASECLK, 0) & 0xf, true,
+    return alice_loadAlice((void *)((reload_config & ALICE_RELOAD_SOURCE) >> 1), true, vp(PERV_GET_REG(PERV_CTRL_BASECLK, 0)) & 0xf, true,
                            !!(reload_config & ALICE_RELOAD_ENABLE_CS), !!(reload_config & ALICE_RELOAD_USE_DRAM), !!(reload_config & ALICE_RELOAD_SET_UART));
 }
 

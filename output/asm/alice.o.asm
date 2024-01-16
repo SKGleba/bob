@@ -244,22 +244,25 @@ alice_stopReloadAlice:
 	movu	$1, .LC3
 	bsr	debug_printFormat
 	bsr	compat_killArm
-	mov	$3, $5
-	sra	$3, 2
-	and3	$3, $3, 0x1
-	sw	$3, 8($sp)
-	mov	$3, $5
+	mov	$2, $5
+	movh	$3, 0xe310
+	or3	$3, $3, 0x3000
+	sra	$2, 2
+	and3	$2, $2, 0x1
+	lw	$3, ($3)
+	sw	$2, 8($sp)
+	mov	$2, $5
 	mov	$1, $5
-	sra	$3, 1
+	sra	$2, 1
 	movh	$0, 0x7fff
-	and3	$3, $3, 0x1
+	and3	$2, $2, 0x1
 	and3	$5, $5, 0x1
 	or3	$0, $0, 0xfffc
 	srl	$1, 1
-	sw	$3, 4($sp)
+	sw	$2, 4($sp)
 	sw	$5, ($sp)
 	mov	$4, 1
-	mov	$3, 0
+	and3	$3, $3, 0xf
 	mov	$2, 1
 	and	$1, $0
 	bsr	alice_loadAlice

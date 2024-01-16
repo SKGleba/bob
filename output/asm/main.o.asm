@@ -183,12 +183,17 @@ init:
 test:
 	# frame: 16   16 regs
 	add	$sp, -16
+	sw	$5, 4($sp)
+	mov	$5, $1
 	ldc	$11, $lp
 	movu	$1, .LC1
-	sw	$11, 4($sp)
+	and3	$5, $5, 0x1
+	sw	$11, ($sp)
 	bsr	debug_printFormat
+	beqz	$5, .L26
 	mov	$1, 1
 	bsr	set_dbg_mode
+.L26:
 	syncm
 	movu	$1, .LC2
 	bsr	debug_printFormat
@@ -209,7 +214,8 @@ test:
 	bsr	rpc_loop
 	movu	$1, .LC6
 	bsr	debug_printFormat
-	lw	$11, 4($sp)
+	lw	$5, 4($sp)
+	lw	$11, ($sp)
 	add	$sp, 16
 	jmp	$11
 	.size	test, .-test

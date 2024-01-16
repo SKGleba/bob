@@ -108,7 +108,8 @@ void init(bob_config* arg_config) {
 void test(int arg) {
     printf("[BOB] test test test\n");
 
-    set_dbg_mode(true);
+    if (arg & 1)
+        set_dbg_mode(true);
 
     _MEP_SYNC_BUS_;
 
