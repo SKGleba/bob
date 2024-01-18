@@ -1,7 +1,9 @@
+PSP2REF_DIR=psp2ref
+
 PREFIX=mep-elf-
 CC=$(PREFIX)gcc
 ADDEFS=
-CFLAGS=-fno-delete-null-pointer-checks -nostdlib -fno-optimize-sibling-calls -Os -std=gnu99 -fno-inline -fstrict-volatile-bitfields -fno-builtin -ml
+CFLAGS=-fno-delete-null-pointer-checks -nostdlib -fno-optimize-sibling-calls -Os -std=gnu99 -fno-inline -fstrict-volatile-bitfields -fno-builtin -ml -I$(PSP2REF_DIR)
 LD=$(PREFIX)gcc
 LDFLAGS=-Wl,-T linker.x -nodefaultlibs -nostdlib -nostartfiles
 OBJCOPY=$(PREFIX)objcopy

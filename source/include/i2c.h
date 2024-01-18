@@ -1,11 +1,10 @@
 #ifndef __I2C_H__
 #define __I2C_H__
 
+#include <hardware/i2c.h>
+
 #include "types.h"
 #include "defs.h"
-#include "paddr.h"
-
-#define I2C_REGS(i)     ((void *)((i) ? I2C1_OFFSET : I2C0_OFFSET))
 
 void i2c_init_bus(int bus);
 void i2c_transfer_write(int bus, unsigned char addr, const unsigned char* buffer, int size);

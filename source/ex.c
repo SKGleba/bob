@@ -1,13 +1,15 @@
-#include "include/types.h"
-#include "include/debug.h"
-#include "include/compat.h"
-#include "include/utils.h"
-#include "include/main.h"
-#include "include/glitch.h"
-#include "include/paddr.h"
-#include "include/maika.h"
-#include "include/clib.h"
 #include "include/ex.h"
+
+#include <hardware/paddr.h>
+
+#include "include/clib.h"
+#include "include/compat.h"
+#include "include/debug.h"
+#include "include/glitch.h"
+#include "include/maika.h"
+#include "include/main.h"
+#include "include/types.h"
+#include "include/utils.h"
 
 __attribute__((optimize("O0"), noreturn))
 void c_RESET(void) {

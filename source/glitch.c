@@ -1,24 +1,24 @@
-#include "include/types.h"
-
-#include "include/defs.h"
-#include "include/uart.h"
-#include "include/maika.h"
-#include "include/debug.h"
-#include "include/ex.h"
-#include "include/crypto.h"
-#include "include/ernie.h"
-#include "include/xbar.h"
-#include "include/utils.h"
-#include "include/clib.h"
-#include "include/jig.h"
-#include "include/gpio.h"
-#include "include/perv.h"
-#include "include/spi.h"
-#include "include/rpc.h"
-#include "include/paddr.h"
-#include "include/compat.h"
-
 #include "include/glitch.h"
+
+#include <hardware/paddr.h>
+#include <hardware/xbar.h>
+
+#include "include/clib.h"
+#include "include/compat.h"
+#include "include/crypto.h"
+#include "include/debug.h"
+#include "include/defs.h"
+#include "include/ernie.h"
+#include "include/ex.h"
+#include "include/gpio.h"
+#include "include/jig.h"
+#include "include/maika.h"
+#include "include/perv.h"
+#include "include/rpc.h"
+#include "include/spi.h"
+#include "include/types.h"
+#include "include/uart.h"
+#include "include/utils.h"
 
 void glitch_test(void) {
 #ifndef SILENT

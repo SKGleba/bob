@@ -1,17 +1,19 @@
-#include "include/types.h"
-#include "include/defs.h"
-#include "include/utils.h"
-#include "include/debug.h"
-#include "include/ex.h"
-#include "include/crypto.h"
-#include "include/clib.h"
-#include "include/sm.h"
-#include "include/maika.h"
-#include "include/paddr.h"
-#include "include/perv.h"
 #include "include/compat.h"
+
+#include <hardware/paddr.h>
+#include <hardware/xbar.h>
+
 #include "include/alice.h"
-#include "include/xbar.h"
+#include "include/clib.h"
+#include "include/crypto.h"
+#include "include/debug.h"
+#include "include/defs.h"
+#include "include/ex.h"
+#include "include/maika.h"
+#include "include/perv.h"
+#include "include/sm.h"
+#include "include/types.h"
+#include "include/utils.h"
 
 // bring your own keys
 static const uint8_t skso_iv[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };

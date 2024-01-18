@@ -1,9 +1,10 @@
 #ifndef __UART_H__
 #define __UART_H__
 
+#include <hardware/uart.h>
+
 #include "types.h"
 #include "defs.h"
-#include "paddr.h"
 
 #ifndef UART_BUS
 #define UART_BUS 1 // devkit default
@@ -12,13 +13,6 @@
 #ifndef UART_RATE
 #define UART_RATE UART_BAUD_115200 // devkit default
 #endif
-
-#define UART_REGS(i)			((void *)(UART0_OFFSET + (i) * UART0_SIZE))
-
-enum UART_BAUD_TO_CLKGEN {
-    UART_BAUD_115200 = 0x1001A,
-    UART_BAUD_38400 = 0x1004E,
-};
 
 extern int g_uart_bus;
 

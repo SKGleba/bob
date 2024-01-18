@@ -1,11 +1,7 @@
 #ifndef __SPI_H__
 #define __SPI_H__
 
-#include "paddr.h"
-
-#define SPI_REGS(i)	((void *)(SPI0_OFFSET + (i) * SPI0_SIZE))
-
-#define SPI_ERNIE_BUS 0
+#include <hardware/spi.h>
 
 void spi_write_start(int bus);
 void spi_write_end(int bus);

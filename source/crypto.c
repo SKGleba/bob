@@ -1,10 +1,12 @@
-#include "include/types.h"
+#include "include/crypto.h"
+
+#include <hardware/paddr.h>
+
 #include "include/clib.h"
-#include "include/utils.h"
 #include "include/ex.h"
 #include "include/maika.h"
-#include "include/paddr.h"
-#include "include/crypto.h"
+#include "include/types.h"
+#include "include/utils.h"
 
 int crypto_bigmacDefaultCmd(bool second_channel, uint32_t src, uint32_t dst, uint32_t sz, uint32_t cmd, uint32_t work_key, uint32_t iv, uint32_t unk_status) {
 

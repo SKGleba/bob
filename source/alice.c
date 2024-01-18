@@ -1,16 +1,17 @@
 #include "include/alice.h"
 
+#include <hardware/paddr.h>
+#include <hardware/xbar.h>
+
 #include "include/clib.h"
 #include "include/compat.h"
 #include "include/debug.h"
 #include "include/defs.h"
 #include "include/maika.h"
-#include "include/paddr.h"
 #include "include/perv.h"
 #include "include/rpc.h"
 #include "include/types.h"
 #include "include/utils.h"
-#include "include/xbar.h"
 
 volatile alice_vector_s* alice_vectors = NULL;
 volatile alice_xcfg_s* alice_xcfg = NULL;

@@ -1,12 +1,14 @@
-#include "include/types.h"
-#include "include/clib.h"
-#include "include/gpio.h"
-#include "include/spi.h"
-#include "include/utils.h"
-#include "include/crypto.h"
-#include "include/maika.h"
-#include "include/paddr.h"
 #include "include/ernie.h"
+
+#include <hardware/paddr.h>
+
+#include "include/clib.h"
+#include "include/crypto.h"
+#include "include/gpio.h"
+#include "include/maika.h"
+#include "include/spi.h"
+#include "include/types.h"
+#include "include/utils.h"
 
 ernie_comms_t g_ernie_comms;
 

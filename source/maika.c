@@ -1,7 +1,9 @@
-#include "include/types.h"
-#include "include/clib.h"
-#include "include/paddr.h"
 #include "include/maika.h"
+
+#include <hardware/paddr.h>
+
+#include "include/clib.h"
+#include "include/types.h"
 
 // --maika::readas--
 uint32_t readAs(uint32_t addr, uint32_t mode) {
