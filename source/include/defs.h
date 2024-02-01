@@ -23,4 +23,6 @@
 
 #define GLITCH_SKIP_TEST // skip test() on glitch trigger
 
+#define DRAM_UNUSE // dont include the dram init code (large, over 1kb)
+
 #endif

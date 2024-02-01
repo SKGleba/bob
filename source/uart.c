@@ -51,7 +51,7 @@ int uart_read(int bus, unsigned int timeout, bool wait) {
 }
 
 int uart_rxfifo_flush(int bus) {
-    int le_data;
+    int le_data = 0;
     volatile unsigned int* uart_regs = UART_REGS(bus);
     while (uart_regs[0x1A] & 0b111111) {
         le_data = uart_regs[0x1E];

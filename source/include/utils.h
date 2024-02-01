@@ -41,4 +41,7 @@ __attribute__((noinline, optimize("O0"))) bool enable_icache(bool cache);
 // enable default interrupts
 void setup_ints(void);
 
+// stub func for disabled features
+int stub();
+
 #endif

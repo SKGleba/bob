@@ -35,10 +35,11 @@ enum RPC_COMMANDS {
     RPC_CMD_START_ALICE_RPC,
     RPC_CMD_GET_ALICE_TASK_STATUS,
     RPC_CMD_SET_UART_MODE,
+    RPC_CMD_DRAM_INIT,
     RPC_CMD_COPYTO = RPC_FLAG_EXTRA,
     RPC_CMD_COPYFROM,
-    RPC_CMD_EXEC, // exec arg0(arg1, arg2, &extra) | ret to arg0
-    RPC_CMD_EXEC_EXTENDED, // exec arg0(arg1, arg2, extra32[X], extra32[X+1], extra32[X+2], extra32[X+3]) | rets to arg0
+    RPC_CMD_EXEC,           // exec arg0(arg1, arg2, &extra) | ret to arg0
+    RPC_CMD_EXEC_EXTENDED,  // exec arg0(arg1, arg2, extra32[X], extra32[X+1], extra32[X+2], extra32[X+3]) | rets to arg0
     RPC_CMD_SCHEDULE_ALICE_TASK,
     RPC_CMD_LOAD_ALICE
 };

@@ -24,6 +24,7 @@ RPC_COMMANDS = {
     "alice_rpc" : 0xd,
     "alice_task_status" : 0xe,
     "set_uart_mode" : 0xf,
+    "dram_init" : 0x10,
     "copyto" : 0x40,
     "copyfrom" : 0x41,
     "exec" : 0x42, # exec arg0(arg1, arg2, &extra) | ret to arg0

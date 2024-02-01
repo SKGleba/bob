@@ -95,3 +95,7 @@ void setup_ints(void) {
         "stc $0, $psw\n"
     );
 }
+
+int stub() {
+    return 0xD15AB2ED;
+}

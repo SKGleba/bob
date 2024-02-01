@@ -19,8 +19,8 @@ void c_RESET(void) {
     
     statusled(STATUS_RESET_HIT);
 
-    register uint32_t exc asm("exc") = 0;
-    register uint32_t tmp asm("tmp") = 0;
+    __attribute__((unused)) register volatile uint32_t exc asm("exc") = 0;
+    __attribute__((unused)) register volatile uint32_t tmp asm("tmp") = 0;
 
     print("[BOB] warning: did reset\n");
 
@@ -83,8 +83,8 @@ void c_OTHER_INT(void) {
     
     _MEP_INTR_DISABLE_
 
-    register uint32_t exc asm("exc");
-    register uint32_t epc asm("epc");
+    register volatile uint32_t exc asm("exc");
+    register volatile uint32_t epc asm("epc");
     
     printf("[BOB] UNK INTERRUPT: %X @ %X\n", exc, epc);
 
@@ -103,8 +103,8 @@ void c_OTHER_EXC(void) {
     
     _MEP_INTR_DISABLE_
 
-    register uint32_t exc asm("exc");
-    register uint32_t epc asm("epc");
+    register volatile uint32_t exc asm("exc");
+    register volatile uint32_t epc asm("epc");
 
     printf("[BOB] UNK EXCEPTION: %X @ %X\n", exc, epc);
 

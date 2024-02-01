@@ -7,6 +7,7 @@
 #include "include/jig.h"
 #include "include/maika.h"
 #include "include/rpc.h"
+#include "include/dram.h"
 #include "include/utils.h"
 
 volatile int g_rpc_status = 0;
@@ -90,6 +91,9 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
             params->uart_mode = args[0];
             params->uart_scan_timeout = args[1];
             break;
+        case RPC_CMD_DRAM_INIT:
+            cret = dram_init((int)args[0], (bool)args[1]);
+            break;
 
         case RPC_CMD_COPYTO:
             cret = (uint32_t)memcpy((void *)args[0], extra_data, args[1]);
@@ -152,7 +156,7 @@ static bool rpc_rxw_cmd_shbuf(rpc_params_s *params) {
         jig_read_shared_buffer(rpc_buf.extra_data, sizeof(rpc_jig_cmd_s), sizeof(rpc_buf.extra_data));
 
     statusled(STATUS_RPC_EXECUTE);
-    xsize = rpc_handle_cmd(rpc_buf.cmd.cmd_id, rpc_buf.cmd.args, (uint32_t*)rpc_buf.extra_data, params);
+    xsize = rpc_handle_cmd(rpc_buf.cmd.cmd_id, rpc_buf.cmd.args, (uint32_t *)rpc_buf.extra_data, params);
 
     rpc_buf.cmd.cmd_id |= RPC_FLAG_REPLY;
     rpc_buf.cmd.hash = 0;
@@ -227,7 +231,6 @@ static bool rpc_rxw_cmd_uart(rpc_params_s *params) {
 }
 
 void rpc_loop(void) {
-    bool loop = true;
     rpc_params_s params;
     params.push_reply = false;            // push reply to jig
     params.delay_cval = RPC_READ_DELAY;   // recv

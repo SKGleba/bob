@@ -3,5 +3,5 @@
 #include "include/sm.h"
 
 int sm_loadstart(void) {
-    
+    return -1;
 }
