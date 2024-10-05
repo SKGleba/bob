@@ -20,11 +20,20 @@ typedef struct cmdF01_SKSO {
     char cmac_hash[0x10]; // AES256CMAC hash using keyslot 0x514 as key
 } cmdF01_SKSO;
 
+enum AGX_CMD {
+    AGX_CMD_RESET, // arg1: &1 - reset status, &2 - nowait; arg2: mask;
+    AGX_CMD_GATE, // arg1: &1 - open, &2 - nowait; arg2: mask;
+    AGX_CMD_CLOCK, // arg1: clock; arg2: nowait
+    AGX_CMD_ACL, // arg1: new SRAM ACL
+    AGX_CMD_QUERY = 0x100, // query instead of set
+};
+
 void compat_IRQ7_handleCmd(uint32_t cmd, uint32_t arg1, uint32_t arg2, uint32_t arg3);
 int compat_f00dState(uint32_t state, bool set);
 uint32_t compat_Cry2Arm0(uint32_t msg);
 void compat_pListCopy(void* io, compat_paddr_list* paddr_list, uint32_t list_entries_count, bool copy_to_list);
 void compat_armReBoot(int armClk, bool hasCS, bool remap_00);
 void compat_killArm(void);
+int compat_handleAllegrex(int cmd, int arg1, int arg2);
 
 #endif

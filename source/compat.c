@@ -2,6 +2,7 @@
 
 #include <hardware/paddr.h>
 #include <hardware/xbar.h>
+#include <hardware/regbus.h>
 
 #include "include/alice.h"
 #include "include/clib.h"
@@ -269,4 +270,28 @@ void compat_killArm(void) {
     vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_SPAD32K, XBAR_ACCESS_CONTROL_WHITELIST) |= 0b11;
 
     // TODO: fix storm?
+}
+
+int compat_handleAllegrex(int cmd, int arg1, int arg2) {
+    int ret = -1;
+    switch (cmd & 0xFF) {
+    case AGX_CMD_RESET:
+        ret = (cmd & AGX_CMD_QUERY) ? vp PERV_GET_REG(PERV_CTRL_RESET, PERV_CTRL_RESET_DEV_ALLEGREX)
+            : pervasive_control_reset(PERV_CTRL_RESET_DEV_ALLEGREX, arg2, arg1 & 1, !!(arg1 & 2));
+        break;
+    case AGX_CMD_GATE:
+        ret = (cmd & AGX_CMD_QUERY) ? vp PERV_GET_REG(PERV_CTRL_GATE, PERV_CTRL_GATE_DEV_ALLEGREX)
+            : pervasive_control_gate(PERV_CTRL_GATE_DEV_ALLEGREX, arg2, arg1 & 1, !!(arg1 & 2));
+        break;
+    case AGX_CMD_CLOCK:
+        ret = (cmd & AGX_CMD_QUERY) ? vp PERV_GET_REG(PERV_CTRL_BASECLK, 40)
+            : pervasive_control_clock(40, arg1, !!(arg2));
+        break;
+    case AGX_CMD_ACL:
+        if (!(cmd & AGX_CMD_QUERY))
+            vp REGBUS_REG(REGBUS_AGX_SRAM_ACL) = arg1;
+        ret = vp REGBUS_REG(REGBUS_AGX_SRAM_ACL);
+        break;
+    }
+    return ret;
 }

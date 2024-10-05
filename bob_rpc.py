@@ -25,12 +25,16 @@ RPC_COMMANDS = {
     "alice_task_status" : 0xe,
     "set_uart_mode" : 0xf,
     "dram_init" : 0x10,
+    "agx_handle" : 0x11,
+    "regina_memcpy" : 0x12,
     "copyto" : 0x40,
     "copyfrom" : 0x41,
     "exec" : 0x42, # exec arg0(arg1, arg2, &extra) | ret to arg0
     "execbig" : 0x43, # exec arg0(extra32[X], extra32[X+1], extra32[X+2], extra32[X+3]) | rets to argX
     "alice_schedule_bob_task" : 0x44,
-    "alice_load_direct" : 0x45
+    "alice_load_direct" : 0x45,
+    "regina_load" : 0x46,
+    "regina_cmd_direct" : 0x47,
 }
 
 
@@ -159,6 +163,17 @@ def handle_cmd(user_cmd, argv):
                     cv_argv[3] += swapstr32("{:08X}".format(int(argv[x][2:], 16)))
             cv_argv[3] = cv_argv[3].ljust(32, "0")
             return handle_cmd("alice_load_direct", cv_argv)
+        case "regina_cmd":
+            # arg1 is cmd_id
+            ## move all next args to extra_data, max 4
+            cv_argv = ["0x0", "0x0", "0x0", ""]
+            for x,arg in enumerate(argv):
+                if x < 1:
+                    cv_argv[x] = argv[x]
+                else:
+                    cv_argv[3] += swapstr32("{:08X}".format(int(argv[x][2:], 16)))
+            cv_argv[3] = cv_argv[3].ljust(32, "0")
+            return handle_cmd("regina_cmd_direct", cv_argv)
         case _:
             if user_cmd in RPC_COMMANDS:
                 cv_argv = ["0x0", "0x0", "0x0", ""]

@@ -9,6 +9,7 @@
 #include "include/rpc.h"
 #include "include/dram.h"
 #include "include/utils.h"
+#include "include/regina.h"
 
 volatile int g_rpc_status = 0;
 
@@ -94,6 +95,12 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
         case RPC_CMD_DRAM_INIT:
             cret = dram_init((int)args[0], (bool)args[1]);
             break;
+        case RPC_CMD_AGX_HANDLE:
+            cret = compat_handleAllegrex((int)args[0], (int)args[1], (int)args[2]);
+            break;
+        case RPC_CMD_REGINA_MEMCPY:
+            cret = regina_sendCmd(RGN_RPC_CMD_MEMCPY, args, NULL);
+            break;
 
         case RPC_CMD_COPYTO:
             cret = (uint32_t)memcpy((void *)args[0], extra_data, args[1]);
@@ -119,6 +126,12 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
         case RPC_CMD_LOAD_ALICE:
             cret = alice_loadAlice((void *)args[0], (bool)args[1], (int)args[2], (bool)extra_data[0], (bool)extra_data[1], (bool)extra_data[2],
                                    (bool)extra_data[3]);
+            break;
+        case RPC_CMD_LOAD_REGINA:
+            cret = regina_loadRegina((void *)args[0], (bool)args[1], (bool)args[2]);
+            break;
+        case RPC_CMD_REGINA_CMD:
+            cret = regina_sendCmd((int)args[0], extra_data, NULL); // yhh
             break;
         default:
             break;
