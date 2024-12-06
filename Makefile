@@ -10,8 +10,8 @@ OBJCOPY=$(PREFIX)objcopy
 OBJCOPYFLAGS=
 
 SRCS=$(wildcard source/*.c)
-OBJ=$(SRCS:.c=.o) source/ex.ao source/vector.ao source/debug.ao
-OBJ_GLITCH=$(SRCS:.c=.o) source/ex.ao source/glitch_vector.ao source/debug.ao
+OBJ=$(SRCS:.c=.o) source/ex.ao source/vector.ao source/debug.ao source/util.ao
+OBJ_GLITCH=$(SRCS:.c=.o) source/ex.ao source/glitch_vector.ao source/debug.ao source/util.ao
 
 all: output/bob.bin
 

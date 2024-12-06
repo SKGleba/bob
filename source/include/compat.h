@@ -33,7 +33,7 @@ int compat_f00dState(uint32_t state, bool set);
 uint32_t compat_Cry2Arm0(uint32_t msg);
 void compat_pListCopy(void* io, compat_paddr_list* paddr_list, uint32_t list_entries_count, bool copy_to_list);
 void compat_armReBoot(int armClk, bool hasCS, bool remap_00);
-void compat_killArm(void);
+void compat_killArm(bool prehang);
 int compat_handleAllegrex(int cmd, int arg1, int arg2);
 
 #endif

@@ -4,6 +4,6 @@
 #include "types.h"
 
 // initialize bob from glitch
-void glitch_init(void);
+__attribute__((noreturn, section(".text.exs"))) void glitch_init(void);
 
 #endif

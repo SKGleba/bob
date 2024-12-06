@@ -31,14 +31,10 @@ void glitch_test(void) {
         jig_update_shared_buffer((uint8_t*)d_addr, 0, 0x10, true);
 
     statusled(0x33);
-    delay(0x10000);
+    delay_nx(0x10000, 200);
 }
 
-void glitch_init(void) {
-    vp 0xe3103040 = 0x10002; // set min clock to lower glitch success rate
-    
-    _MEP_INTR_DISABLE_ // disable interrupts
-
+__attribute__((noreturn, section(".text.exs"))) void glitch_init(void) {
 #ifndef NO_STATUS_LED
     gpio_port_set(0, GPIO_PORT_PS_LED);
     statusled(STATUS_GLINIT_GPIO);
@@ -86,4 +82,6 @@ void glitch_init(void) {
         "mov $0, $0\n"
         "jmp vectors_exceptions\n"
     );
+
+    PANIC("glitch_init retd", 0);
 }

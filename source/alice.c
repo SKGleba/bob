@@ -12,6 +12,7 @@
 #include "include/rpc.h"
 #include "include/types.h"
 #include "include/utils.h"
+#include "include/stor.h"
 
 volatile alice_vector_s* alice_vectors = NULL;
 volatile alice_xcfg_s* alice_xcfg = NULL;
@@ -89,7 +90,7 @@ int alice_stopReloadAlice(uint32_t reload_config) {
         reload_config = (((vp PERV2_ARM_BOOT_ALIAS_DRAM) ? ALICE_DRAM_ADDR : ALICE_SPAD32K_ADDR) << 1) | ((vp PERV2_ARM_BOOT_ALIAS_DRAM) ? ALICE_RELOAD_USE_DRAM : 0);
 
     printf("[BOB] killing arm...\n");
-    compat_killArm();
+    compat_killArm(false);
 
     return alice_loadAlice((void *)((reload_config & ALICE_RELOAD_SOURCE) >> 1), true, vp(PERV_GET_REG(PERV_CTRL_BASECLK, 0)) & 0xf, true,
                            !!(reload_config & ALICE_RELOAD_ENABLE_CS), !!(reload_config & ALICE_RELOAD_USE_DRAM), !!(reload_config & ALICE_RELOAD_SET_UART));
@@ -141,6 +142,7 @@ int alice_handleCmd(uint32_t cmd, uint32_t arg1, uint32_t arg2, uint32_t arg3) {
         return -1;
     }
 
+    uint32_t cret = 0;
     switch (cmd) {
     case ALICE_RELINQUISH_CMD:
         if (arg3 == cmd) {
@@ -163,7 +165,7 @@ int alice_handleCmd(uint32_t cmd, uint32_t arg1, uint32_t arg2, uint32_t arg3) {
             g_rpc_status |= (arg1);
         else
             g_rpc_status &= ~(arg1);
-        maika->mailbox.cry2arm[1] = g_rpc_status;
+        cret = g_rpc_status;
         break;
     case ALICE_A2B_REBOOT:
         compat_armReBoot(arg1, arg2, arg3);
@@ -179,9 +181,9 @@ int alice_handleCmd(uint32_t cmd, uint32_t arg1, uint32_t arg2, uint32_t arg3) {
         break;
     case ALICE_A2B_READ32:
         if ((int)arg3 < 0)
-            maika->mailbox.cry2arm[1] = readAs(arg1, arg3 & 0x7fffffff);
+            cret = readAs(arg1, arg3 & 0x7fffffff);
         else
-            maika->mailbox.cry2arm[1] = vp arg1;
+            cret = vp arg1;
         break;
     case ALICE_A2B_WRITE32:
         if ((int)arg3 < 0)
@@ -192,13 +194,38 @@ int alice_handleCmd(uint32_t cmd, uint32_t arg1, uint32_t arg2, uint32_t arg3) {
     case ALICE_A2B_STOP_RELOAD_ALICE:
         alice_stopReloadAlice(arg1);
         break;
+    case ALICE_A2B_INIT_STORAGE:
+        if (arg1)
+            cret = stor_init_emmc(arg2, arg3);
+        else
+            cret = stor_init_sd(arg2);
+        break;
+    case ALICE_A2B_READ_SD:
+        cret = stor_read_sd(arg1, (void*)arg2, arg3);
+        break;
+    case ALICE_A2B_WRITE_SD:
+        cret = stor_write_sd(arg1, (void*)arg2, arg3);
+        break;
+    case ALICE_A2B_READ_EMMC:
+        cret = stor_read_emmc(arg1, (void*)arg2, arg3);
+        break;
+    case ALICE_A2B_WRITE_EMMC:
+        cret = stor_write_emmc(arg1, (void*)arg2, arg3);
+        break;
+    case ALICE_A2B_EXPORT_SDIF_CTX:
+        cret = stor_export_ctx(arg1, (unk2_sdif_gigactx*)arg2, (unk_sdif_ctx_init*)arg3);
+        break;
+    case ALICE_A2B_IMPORT_SDIF_CTX:
+        cret = stor_import_ctx(arg1, (unk2_sdif_gigactx*)arg2, (unk_sdif_ctx_init*)arg3);
+        break;
     default:
+        cret = stub();
         break;
     }
 
     maika->mailbox.arm2cry[3] = -1;
     maika->mailbox.arm2cry[2] = -1;
-    maika->mailbox.arm2cry[1] = -1;
+    maika->mailbox.arm2cry[1] = cret;
 
     return -1;
 }

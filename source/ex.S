@@ -1,4 +1,7 @@
+.section .text.exs
+
 .global ex_save_ctx
+.type	ex_save_ctx, @function
 ex_save_ctx:
 sw $1, 0x4($sp)
 sw $2, 0x8($sp)
@@ -34,6 +37,7 @@ sw $12, 0x5C($sp)
 ret
 
 .global ex_restore_ctx
+.type	ex_restore_ctx, @function
 ex_restore_ctx:
 lw $1, 0x4($sp)
 lw $2, 0x8($sp)
@@ -68,6 +72,7 @@ lw $12, 0x30($sp)
 ret
 
 .global s_SWI
+.type	s_SWI, @function
 s_SWI:
 di
 stc $sp, $tmp
@@ -85,6 +90,7 @@ ei
 reti
 
 .global s_IRQ
+.type	s_IRQ, @function
 s_IRQ:
 di
 stc $sp, $tmp
@@ -102,6 +108,7 @@ ei
 reti
 
 .global s_ARM_REQ
+.type	s_ARM_REQ, @function
 s_ARM_REQ:
 di
 stc $sp, $tmp
@@ -119,6 +126,7 @@ ei
 reti
 
 .global s_DBG
+.type	s_DBG, @function
 s_DBG:
 di
 stc $sp, $tmp
@@ -136,6 +144,7 @@ ei
 jmp $0
 
 .global s_GLITCH
+.type	s_GLITCH, @function
 s_GLITCH:
 di
 movh $sp, 0x5
@@ -145,6 +154,7 @@ bsr glitch_init
 bra .LGLITCH
 
 .global s_RESET
+.type	s_RESET, @function
 s_RESET:
 di
 mov $gp, $0

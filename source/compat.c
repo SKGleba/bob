@@ -19,6 +19,7 @@
 // bring your own keys
 static const uint8_t skso_iv[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
+
 static int compat_state = 0;
 
 uint32_t compat_Cry2Arm0(uint32_t msg) {
@@ -250,12 +251,12 @@ void compat_armReBoot(int armClk, bool hasCS, bool remap_00) {
     pervasive_control_reset(PERV_CTRL_RESET_DEV_ARM, 0xFFFFFFFF, false, true);
 }
 
-void compat_killArm(void) {
-    // make ARM hang on bus transfers
-    vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_SPAD32K, XBAR_ACCESS_CONTROL_WHITELIST) &= ~0b11;
-    vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_LPDDR0, XBAR_ACCESS_CONTROL_WHITELIST) &= ~0b11;
-
-    delay(0x800);  // increase delay if it hangs here
+void compat_killArm(bool prehang) {
+    if (prehang) {  // make ARM hang on bus transfers
+        vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_SPAD32K, XBAR_ACCESS_CONTROL_WHITELIST) &= ~0b11;
+        vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_LPDDR0, XBAR_ACCESS_CONTROL_WHITELIST) &= ~0b11;
+        delay_nx(0x800, 200);  // increase delay if it hangs here
+    }
 
     // stop ARM & CS
     pervasive_control_reset(PERV_CTRL_RESET_DEV_ARM, 0x1000f, true, true);
@@ -263,13 +264,13 @@ void compat_killArm(void) {
     pervasive_control_gate(PERV_CTRL_GATE_DEV_ARM, 0xFFFFFFFF, false, true);
     pervasive_control_gate(PERV_CTRL_GATE_DEV_ARM_CS, 0xFFFFFFFF, false, true);
 
-    delay(0x800);
+    delay_nx(0x800, 200);
 
-    // restore ARM access
-    vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_LPDDR0, XBAR_ACCESS_CONTROL_WHITELIST) |= 0b11;
-    vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_SPAD32K, XBAR_ACCESS_CONTROL_WHITELIST) |= 0b11;
-
-    // TODO: fix storm?
+    if (prehang) {  // restore ARM access
+        vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_LPDDR0, XBAR_ACCESS_CONTROL_WHITELIST) |= 0b11;
+        vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_SPAD32K, XBAR_ACCESS_CONTROL_WHITELIST) |= 0b11;
+        // TODO: fix storm?
+    }
 }
 
 int compat_handleAllegrex(int cmd, int arg1, int arg2) {

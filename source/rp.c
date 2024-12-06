@@ -10,6 +10,7 @@
 #include "include/dram.h"
 #include "include/utils.h"
 #include "include/regina.h"
+#include "include/stor.h"
 
 volatile int g_rpc_status = 0;
 
@@ -99,7 +100,25 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
             cret = compat_handleAllegrex((int)args[0], (int)args[1], (int)args[2]);
             break;
         case RPC_CMD_REGINA_MEMCPY:
-            cret = regina_sendCmd(RGN_RPC_CMD_MEMCPY, args, NULL);
+            cret = regina_sendCmd(RGN_RPC_CMD_MEMCPY, args, NULL, 0, 0);
+            break;
+        case RPC_CMD_INIT_STORAGE: // (bool: emmc?)
+            if ((bool)args[0])
+                cret = stor_init_emmc(args[1], args[2]);
+            else
+                cret = stor_init_sd(args[1]);
+            break;
+        case RPC_CMD_READ_SD:
+            cret = stor_read_sd(args[0], (void *)args[1], args[2]);
+            break;
+        case RPC_CMD_WRITE_SD:
+            cret = stor_write_sd(args[0], (void *)args[1], args[2]);
+            break;
+        case RPC_CMD_READ_EMMC:
+            cret = stor_read_emmc(args[0], (void *)args[1], args[2]);
+            break;
+        case RPC_CMD_WRITE_EMMC:
+            cret = stor_write_emmc(args[0], (void *)args[1], args[2]);
             break;
 
         case RPC_CMD_COPYTO:
@@ -131,7 +150,7 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
             cret = regina_loadRegina((void *)args[0], (bool)args[1], (bool)args[2]);
             break;
         case RPC_CMD_REGINA_CMD:
-            cret = regina_sendCmd((int)args[0], extra_data, NULL); // yhh
+            cret = regina_sendCmd((int)args[0], extra_data, NULL, (int)args[1], (int)args[2]); // yhh
             break;
         default:
             break;
@@ -177,7 +196,7 @@ static bool rpc_rxw_cmd_shbuf(rpc_params_s *params) {
         rpc_buf.cmd.hash += *(uint8_t *)((uint8_t *)&rpc_buf.cmd + i);
 
     statusled(STATUS_RPC_WAIT);
-    delay(params->delay_rval);
+    delay_nx(params->delay_rval, 200);
 
     statusled(STATUS_RPC_WRITE);
     if (params->push_reply)
@@ -209,7 +228,7 @@ static bool rpc_rxw_cmd_uart(rpc_params_s *params) {
     statusled(STATUS_RPC_CHECK);
     if (cmd.magic != RPC_UART_MAGIC || cmd.hash != (cmd.id + cmd.data_size)) {
         statusled(STATUS_RPC_WAIT);
-        delay(params->delay_rval);
+        delay_nx(params->delay_rval, 200);
         statusled(STATUS_RPC_WRITE);
         print(RPC_UART_WATERMARK "E1\n");
         rxflush();
@@ -218,7 +237,7 @@ static bool rpc_rxw_cmd_uart(rpc_params_s *params) {
 
     if (cmd.data_size && (cmd.data_size <= sizeof(data))) {
         statusled(STATUS_RPC_WAIT);
-        delay(params->delay_rval);
+        delay_nx(params->delay_rval, 200);
         statusled(STATUS_RPC_READ);
         rxflush();
         print(RPC_UART_WATERMARK "G1\n");
@@ -230,7 +249,7 @@ static bool rpc_rxw_cmd_uart(rpc_params_s *params) {
     rpc_handle_cmd(cmd.id, data, &data[3], params);
 
     statusled(STATUS_RPC_WAIT);
-    delay(params->delay_rval);
+    delay_nx(params->delay_rval, 200);
 
     statusled(STATUS_RPC_WRITE);
     printf(RPC_UART_WATERMARK "%X\n", data[0]);
@@ -262,7 +281,7 @@ void rpc_loop(void) {
 
     while (true) {
         statusled(STATUS_RPC_WAIT);
-        delay(params.delay_cval);
+        delay_nx(params.delay_cval, 200);
 
         if (g_rpc_status & RPC_STATUS_REQUEST_BLOCK) {
             g_rpc_status |= RPC_STATUS_BLOCKED;
@@ -270,9 +289,9 @@ void rpc_loop(void) {
             printf("[BOB] RPC blocked\n");
             do {
                 statusled(STATUS_RPC_BLOCKED);
-                delay(RPC_BLOCKED_DELAY);
+                delay_nx(RPC_BLOCKED_DELAY, 200);
                 statusled(STATUS_RPC_BLOCKED2);
-                delay(RPC_BLOCKED_DELAY);
+                delay_nx(RPC_BLOCKED_DELAY, 200);
             } while (g_rpc_status & RPC_STATUS_REQUEST_BLOCK);
             printf("[BOB] RPC unblocked\n");
             g_rpc_status &= ~RPC_STATUS_BLOCKED;

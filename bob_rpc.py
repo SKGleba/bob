@@ -27,6 +27,11 @@ RPC_COMMANDS = {
     "dram_init" : 0x10,
     "agx_handle" : 0x11,
     "regina_memcpy" : 0x12,
+    "init_storage" : 0x13,
+    "read_sd" : 0x14,
+    "write_sd" : 0x15,
+    "read_emmc" : 0x16,
+    "write_emmc" : 0x17,
     "copyto" : 0x40,
     "copyfrom" : 0x41,
     "exec" : 0x42, # exec arg0(arg1, arg2, &extra) | ret to arg0
@@ -164,12 +169,17 @@ def handle_cmd(user_cmd, argv):
             cv_argv[3] = cv_argv[3].ljust(32, "0")
             return handle_cmd("alice_load_direct", cv_argv)
         case "regina_cmd":
-            # arg1 is cmd_id
-            ## move all next args to extra_data, max 4
-            cv_argv = ["0x0", "0x0", "0x0", ""]
+            cv_argv = ["0x0", "0x0", "0x0", ""] # cmd, timeout_step, timeout_count, args 0-3
             for x,arg in enumerate(argv):
                 if x < 1:
                     cv_argv[x] = argv[x]
+                elif x > 4:
+                    if x == 5:
+                        cv_argv[1] = argv[x]
+                    elif x == 6:
+                        cv_argv[2] = argv[x]
+                    else:
+                        cv_argv[3] += swapstr32("{:08X}".format(int(argv[x][2:], 16)))
                 else:
                     cv_argv[3] += swapstr32("{:08X}".format(int(argv[x][2:], 16)))
             cv_argv[3] = cv_argv[3].ljust(32, "0")

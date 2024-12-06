@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "defs.h"
+#include "utils.h"
 #include "uart.h"
 
 // codes 0x1-0x2f are reserved for bob use
@@ -63,7 +64,9 @@ enum STATUSLED_CODES { // inits, exceptions, command handlers
 #define printn(str, n)
 #define printx(x)
 #define printp(x)
-#define hexdump(addr, length, show_addr)
+#define _hexdump(addr, length)
+#define _hexdump_addr(addr, length, show_addr)
+#define _hexdump_full(addr, length, show_addr, delim)
 
 #else
 
@@ -72,9 +75,13 @@ enum STATUSLED_CODES { // inits, exceptions, command handlers
 #define printn(str, n) uart_printn(g_uart_bus, (char *)(str), n)
 #define printx(x) debug_printU32((uint32_t)(x), true)
 #define printp(x) printf("%X: %X\n", (uint32_t)(x), vp (x))
-#define hexdump(addr, length, show_addr) debug_printRange(addr, length, (int)show_addr)
+#define _hexdump(addr, length) debug_printRange((uint32_t)addr, length, 1, ' ')
+#define _hexdump_addr(addr, length, show_addr) debug_printRange((uint32_t)addr, length, show_addr, ' ')
+#define _hexdump_full(addr, length, show_addr, delim) debug_printRange((uint32_t)addr, length, show_addr, delim)
 
 #endif
+
+#define hexdump(...) FUN_VAR4(__VA_ARGS__, _hexdump_full, _hexdump_addr, _hexdump)(__VA_ARGS__)
 
 // get a "\r\n" terminated string from debug uart
 #define scans(string_buf, max_len) uart_scanns(g_uart_bus, (char *)string_buf, max_len, 0)
@@ -89,7 +96,7 @@ enum STATUSLED_CODES { // inits, exceptions, command handlers
 
 void debug_printU32(uint32_t value, int add_nl);
 void debug_printFormat(char* base, ...);
-void debug_printRange(uint32_t addr, uint32_t size, int show_addr);
+void debug_printRange(uint32_t addr, uint32_t size, int show_addr, char delim);
 void debug_setGpoCode(uint8_t code);
 
 #ifdef ENABLE_REGDUMP

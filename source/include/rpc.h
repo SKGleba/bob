@@ -38,6 +38,11 @@ enum RPC_COMMANDS {
     RPC_CMD_DRAM_INIT,
     RPC_CMD_AGX_HANDLE,
     RPC_CMD_REGINA_MEMCPY,
+    RPC_CMD_INIT_STORAGE,
+    RPC_CMD_READ_SD,
+    RPC_CMD_WRITE_SD,
+    RPC_CMD_READ_EMMC,
+    RPC_CMD_WRITE_EMMC,
     RPC_CMD_COPYTO = RPC_FLAG_EXTRA,
     RPC_CMD_COPYFROM,
     RPC_CMD_EXEC,           // exec arg0(arg1, arg2, &extra) | ret to arg0
@@ -53,7 +58,7 @@ struct _rpc_uart_cmd_s {
     uint8_t id;
     uint8_t data_size;
     uint8_t hash;
-} __attribute__((packed));
+};// __attribute__((packed));
 typedef struct _rpc_uart_cmd_s rpc_uart_cmd_s;
 
 struct _rpc_jig_cmd_s { // size is 0x10
@@ -61,13 +66,13 @@ struct _rpc_jig_cmd_s { // size is 0x10
     uint8_t hash;
     uint8_t cmd_id;
     uint32_t args[3];
-} __attribute__((packed));
+};// __attribute__((packed));
 typedef struct _rpc_jig_cmd_s rpc_jig_cmd_s;
 
 struct _rpc_jig_buf_s { // size is 0x40
     rpc_jig_cmd_s cmd;
     uint8_t extra_data[JIG_KERMIT_SHBUF_SIZE - sizeof(rpc_jig_cmd_s)];
-} __attribute__((packed));
+};// __attribute__((packed));
 typedef struct _rpc_jig_buf_s rpc_jig_buf_s;
 
 struct _rpc_params_s {
@@ -76,7 +81,7 @@ struct _rpc_params_s {
     uint32_t delay_rval;
     bool uart_mode;
     uint32_t uart_scan_timeout;
-} __attribute__((packed));
+};// __attribute__((packed));
 typedef struct _rpc_params_s rpc_params_s;
 
 extern volatile int g_rpc_status;

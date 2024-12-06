@@ -39,7 +39,7 @@ void c_SWI(int a0, int a1, int a2, int a3) {
 
     //TODO
 
-    delay(0x6000);
+    delay_nx(0x6000, 200);
 
     print("[BOB] exiting SWI\n");
     statusled(STATUS_SWI_QUIT);
@@ -51,7 +51,7 @@ void c_IRQ(void) {
 
     // TODO
 
-    delay(0x6000);
+    delay_nx(0x6000, 200);
 
     print("[BOB] exiting IRQ\n");
     statusled(STATUS_IRQ_QUIT);

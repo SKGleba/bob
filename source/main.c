@@ -114,7 +114,7 @@ void test(int arg) {
     _MEP_SYNC_BUS_;
 
     printf("[BOB] killing arm...\n");
-    compat_killArm();
+    compat_killArm(false);
 
     printf("[BOB] arm is dead, disable the OLED screen...\n");
     gpio_port_clear(0, GPIO_PORT_OLED);

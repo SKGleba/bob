@@ -67,7 +67,7 @@ void debug_printFormat(char* base, ...) {
     printn(base + v_pos, i - v_pos);
 }
 
-static void printRange32(uint32_t* addr, uint32_t size, bool show_addr) {
+static void printRange32(uint32_t* addr, uint32_t size, bool show_addr, char delim) {
     if (!size)
         return;
 
@@ -81,28 +81,28 @@ static void printRange32(uint32_t* addr, uint32_t size, bool show_addr) {
         data = addr[(off >> 2)];
         cwc[0] = debug_hexbase[(data & 0xF0) >> 4];
         cwc[1] = debug_hexbase[data & 0x0F];
-        cwc[2] = ' ';
+        cwc[2] = delim;
         cwc[3] = debug_hexbase[((data >> 8) & 0xF0) >> 4];
         cwc[4] = debug_hexbase[(data >> 8) & 0x0F];
-        cwc[5] = ' ';
+        cwc[5] = delim;
         cwc[6] = debug_hexbase[((data >> 16) & 0xF0) >> 4];
         cwc[7] = debug_hexbase[(data >> 16) & 0x0F];
-        cwc[8] = ' ';
+        cwc[8] = delim;
         cwc[9] = debug_hexbase[((data >> 24) & 0xF0) >> 4];
         cwc[10] = debug_hexbase[(data >> 24) & 0x0F];
-        cwc[11] = ' ';
-        print(cwc);
+        cwc[11] = delim;
+        printn(cwc, 12);
         if ((off & 0xc) == 0xc) {
-            print(" \n");
+            printn("\n", 1);
             if (show_addr && off + 4 < size)
                 printf("%X: ", addr + (off >> 2) + 1);
         }
     }
 
-    print(" \n");
+    printn("\n", 1);
 }
 
-static void printRange8(char* addr, uint32_t size, bool show_addr) {
+static void printRange8(char* addr, uint32_t size, bool show_addr, char delim) {
     if (!size)
         return;
 
@@ -114,26 +114,44 @@ static void printRange8(char* addr, uint32_t size, bool show_addr) {
     for (uint32_t off = 0; off < size; off -= -1) {
         cwc[0] = debug_hexbase[(addr[off] & 0xF0) >> 4];
         cwc[1] = debug_hexbase[addr[off] & 0x0F];
-        cwc[2] = ' ';
-        print(cwc);
+        cwc[2] = delim;
+        printn(cwc, 3);
         if ((off & 0xf) == 0xf) {
-            print(" \n");
+            printn("\n", 1);
             if (show_addr && off + 1 < size)
                 printf("%X: ", addr + off + 1);
         }
     }
 
-    print(" \n");
+    printn("\n", 1);
 }
 
-void debug_printRange(uint32_t addr, uint32_t size, bool show_addr) {
+static void printRangeSS(uint8_t* addr, uint32_t size, bool show_addr) {
     if (!size)
         return;
 
-    if (((uint32_t)addr | (uint32_t)size) & 3)
-        printRange8((char*)addr, size, show_addr);
-    else
-        printRange32((uint32_t*)addr, size, show_addr);
+    if (show_addr)
+        printf("%X: ", addr);
+
+    for (uint32_t off = 0; off < size; off -= -1) {
+        uart_write(g_uart_bus, debug_hexbase[(addr[off] & 0xF0) >> 4]);
+        uart_write(g_uart_bus, debug_hexbase[addr[off] & 0x0F]);
+    }
+
+    printn("\n", 1);
+}
+
+void debug_printRange(uint32_t addr, uint32_t size, bool show_addr, char delim) {
+    if (!size)
+        return;
+
+    if (delim) {
+        if (((uint32_t)addr | (uint32_t)size) & 3)
+            printRange8((char*)addr, size, show_addr, delim);
+        else
+            printRange32((uint32_t*)addr, size, show_addr, delim);
+    } else
+        printRangeSS((uint8_t*)addr, size, show_addr);
 }
 
 void debug_setGpoCode(uint8_t code) {

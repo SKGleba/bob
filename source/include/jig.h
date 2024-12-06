@@ -8,14 +8,14 @@ struct _jig_cmd_kermit2jig_s {
     uint8_t offset;
     uint8_t size;
     uint8_t data[0x18];
-} __attribute__((packed));
+};// __attribute__((packed));
 typedef struct _jig_cmd_kermit2jig_s jig_cmd_kermit2jig_s;
 
 struct _jig_cmd_jig2kermit_s {
     uint8_t offset;
     uint8_t size;
     uint8_t data[0x18];
-} __attribute__((packed));
+};// __attribute__((packed));
 typedef struct _jig_cmd_jig2kermit_s jig_cmd_jig2kermit_s;
 
 // funcs

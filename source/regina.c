@@ -40,18 +40,22 @@ int regina_loadRegina(void *src, bool blockFudAccess, bool allowArmAccess) {
     return 0;
 }
 
-int regina_sendCmd(int cmd, uint32_t *args, uint32_t *extra) {
+int regina_sendCmd(int cmd, uint32_t *args, uint32_t *extra, int timeout_step, int timeout_count) {
+    if (!timeout_step)
+        timeout_step = REGINA_RPC_ANSWER_TIMEOUT_STEP;
+    if (!timeout_count)
+        timeout_count = REGINA_RPC_ANSWER_TIMEOUT_COUNT;
     rgn_rpc_combuf_s *combuf = (rgn_rpc_combuf_s *)RGN_RPC_COMBUF_OFFSET;
     if (combuf->rpc_status != RGN_RPC_STATUS_READY) {
         printf("[BOB] regina_sendCmd: rpc_status != READY, wait\n");
-        for (int i = 0; i < REGINA_RPC_ANSWER_TIMEOUT_COUNT; i++) {
+        for (int i = 0; i < timeout_count; i++) {
             if (combuf->rpc_status == RGN_RPC_STATUS_READY)
                 break;
-            delay(REGINA_RPC_ANSWER_TIMEOUT_STEP);
+            delay_nx(timeout_step, 200);
         }
         if (combuf->rpc_status != RGN_RPC_STATUS_READY) {
             printf("[BOB] regina_sendCmd: rpc_status != READY, timed out\n");
-            return -1;
+            return 0xDEADBABE;
         }
     }
 
@@ -68,14 +72,14 @@ int regina_sendCmd(int cmd, uint32_t *args, uint32_t *extra) {
     combuf->cmd.hash = chash;
     combuf->cmd.magic = RGN_RPC_CMD_MAGIC;
 
-    for (int i = 0; i < REGINA_RPC_ANSWER_TIMEOUT_COUNT; i++) {
+    for (int i = 0; i < timeout_count; i++) {
         if (combuf->rpc_status == RGN_RPC_STATUS_REPLY)
             break;
-        delay(REGINA_RPC_ANSWER_TIMEOUT_STEP);
+        delay_nx(timeout_step, 200);
     }
     if (combuf->rpc_status != RGN_RPC_STATUS_REPLY) {
         printf("[BOB] regina_sendCmd: rpc_status != REPLY, timed out\n");
-        return -1;
+        return 0xDEADBABE;
     }
 
     combuf->cmd_packed = 0;

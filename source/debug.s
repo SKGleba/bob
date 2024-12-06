@@ -1,4 +1,5 @@
 .global debug_s_regdump
+.type	debug_s_regdump, @function
 debug_s_regdump:
 sw $0, 0x0($gp)
 sw $1, 0x4($gp)

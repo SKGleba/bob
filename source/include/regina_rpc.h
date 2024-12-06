@@ -15,12 +15,12 @@ struct _rgn_rpc_combuf_s {
             uint16_t magic;
             uint8_t hash;
             uint8_t id;
-        } __attribute__((packed)) cmd;
+        } cmd;
         uint32_t cmd_packed;
     };
     uint32_t args[4];
     uint32_t extra_data[8];
-} __attribute__((packed));
+};
 typedef struct _rgn_rpc_combuf_s rgn_rpc_combuf_s;
 
 #define RGN_RPC_CMD_MAGIC 0x6A6E
