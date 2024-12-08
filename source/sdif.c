@@ -501,7 +501,7 @@ int sdif_write_sector_mmc(unk2_sdif_gigactx *gctx, uint32_t sector, uint32_t dst
     if ((op.op_id != 0x19) || (iret = do_op_0x17(gctx->sctx, nsectors), -1 < iret)) {
         iret = write_args_retry(gctx->sctx, &op, 0);
         if (iret < 0) {
-            if ((((op.op_id == 0x12) && (iret != -0x7fcdfee3)) && (iret != -0x7fcdfee2)) && (iret != -0x7fcdfee1)) {
+            if ((((op.op_id == 0x19) && (iret != -0x7fcdfee3)) && (iret != -0x7fcdfee2)) && (iret != -0x7fcdfee1)) {
                 sdif_do_op_0xc(gctx->sctx, 0);
             }
         } else {
