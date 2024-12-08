@@ -14,39 +14,47 @@
 #define CONCAT13(high, low) ((high << 24) | low)
 
 static void sdif_cfgwait_regs16_x19nx1b(unk_sdif_ctx_init *param_1, uint32_t param_2) {
-    volatile uint16_t *puVar1;
-    uint16_t uVar2;
-
-    puVar1 = param_1->sdif_regs_addr;
     if (param_2 != 0) {
-        uVar2 = puVar1[0x1b];
-        puVar1[0x1b] = 0;
-        do {
-        } while (puVar1[0x1b] != 0);
+        SceSdifReg *sdif = param_1->sdif_regs_addr;
+
+        /* Suspend error interrupts */
+        uint16_t prevEIS = sdif->ErrorInterruptStatusEnable;
+        sdif->ErrorInterruptStatusEnable = 0;
+
+        while (sdif->ErrorInterruptStatusEnable != 0)
+            ;
+
         if ((param_2 & 0xf) != 0) {
-            v8p((int)puVar1 + 0x2f) = 2;
-            do {
-            } while ((v8p((int)puVar1 + 0x2f) & 2) != 0);
+            /* Reset command line logic */
+            sdif->SoftwareReset = SDHC_SOFTWARE_RESET_CMD_LINE;
+            while (sdif->SoftwareReset & SDHC_SOFTWARE_RESET_CMD_LINE)
+                ;
         }
+
         if ((param_2 & 0x70) != 0) {
-            v8p((int)puVar1 + 0x2f) = 4;
-            do {
-            } while ((v8p((int)puVar1 + 0x2f) & 4) != 0);
+            /* Reset data line logic */
+            sdif->SoftwareReset = SDHC_SOFTWARE_RESET_DAT_LINE;
+            while (sdif->SoftwareReset & SDHC_SOFTWARE_RESET_DAT_LINE)
+                ;
         }
-        puVar1[0x19] = puVar1[0x19];
-        do {
-        } while (puVar1[0x19] != 0);
-        puVar1[0x1b] = uVar2;
-        do {
-        } while (puVar1[0x1b] != uVar2);
+
+        /* Clear error interrupt flags */
+        sdif->ErrorInterruptStatus = sdif->ErrorInterruptStatus;
+        while (sdif->ErrorInterruptStatus != 0)
+            ;
+
+        /* Restore error interrupts that we suspended earlier */
+        sdif->ErrorInterruptStatusEnable = prevEIS;
+        while (sdif->ErrorInterruptStatusEnable != prevEIS)
+            ;
     }
     return;
 }
 
 static void sdif_rx_maybe(unk_sdif_ctx_init *ctx, uint32_t param_2, uint32_t param_3) {
+    SceSdifReg *sdif = ctx->sdif_regs_addr;
     sdif_arg_s *psVar1;
     uint32_t uVar2;
-    volatile uint16_t *puVar3;
     uint16_t uVar4;
     uint32_t uVar5;
     int iVar6;
@@ -64,10 +72,15 @@ static void sdif_rx_maybe(unk_sdif_ctx_init *ctx, uint32_t param_2, uint32_t par
         } else if (param_3 == 0) {
             if ((((param_2 & 0x20) != 0) && ((psVar1->some_arg1 & 0x700) == 0x100)) && (0 < (int)psVar1->sector_count)) {
                 uVar2 = psVar1->dst_addr;
-                puVar3 = ctx->sdif_regs_addr;
+
+//                puVar3 = ctx->sdif_regs_addr;
+
                 psVar1->sector_count = psVar1->sector_count - 1;
-                do {
-                } while ((v32p(puVar3 + 0x12) & 0x800) == 0);
+
+                /* Wait for readable data in controller buffer */
+                while (!(sdif->PresentState & SDHC_PRESENT_STATE_BUFFER_READ_ENABLED))
+                    ;
+
                 iVar6 = 0;
                 if (0 < (int)psVar1->sector_size) {
                     do {
@@ -75,16 +88,17 @@ static void sdif_rx_maybe(unk_sdif_ctx_init *ctx, uint32_t param_2, uint32_t par
                         if (iVar8 == 1) {
                             puVar9 = (uint8_t *)(iVar6 + uVar2);
                             iVar6 = iVar6 + 1;
-                            *puVar9 = v8p(puVar3 + 0x10);
+
+                            *puVar9 = v8p(&sdif->BufferDataPort);
                         } else {
                             puVar10 = (uint32_t *)(uVar2 + iVar6);
                             if (iVar8 < 4) {
-                                uVar4 = puVar3[0x10];
+                                uVar4 = v16p(&sdif->BufferDataPort);
                                 iVar6 = iVar6 + 2;
                                 v8p puVar10 = (uint8_t)uVar4;
                                 v8p((int)puVar10 + 1) = (uint8_t)(uVar4 >> 8);
                             } else {
-                                uVar5 = v32p(puVar3 + 0x10);
+                                uVar5 = sdif->BufferDataPort;
                                 if ((uVar2 & 3) == 0) {
                                     *puVar10 = uVar5;
                                 } else {
@@ -102,10 +116,13 @@ static void sdif_rx_maybe(unk_sdif_ctx_init *ctx, uint32_t param_2, uint32_t par
             }
             if ((((param_2 & 0x10) != 0) && ((psVar1->some_arg1 & 0x700) == 0x200)) && (0 < (int)psVar1->sector_count)) {
                 uVar2 = psVar1->dst_addr;
-                puVar3 = ctx->sdif_regs_addr;
+//                puVar3 = ctx->sdif_regs_addr;
                 psVar1->sector_count = psVar1->sector_count - 1;
-                do {
-                } while ((v32p(puVar3 + 0x12) & 0x400) == 0);
+
+                /* Wait for free space in controller write buffer */
+                while (!(sdif->PresentState & SDHC_PRESENT_STATE_BUFFER_WRITE_ENABLED))
+                    ;
+
                 iVar6 = 0;
                 if (0 < (int)psVar1->sector_size) {
                     do {
@@ -113,12 +130,13 @@ static void sdif_rx_maybe(unk_sdif_ctx_init *ctx, uint32_t param_2, uint32_t par
                         if (iVar8 == 1) {
                             puVar9 = (uint8_t *)(iVar6 + uVar2);
                             iVar6 = iVar6 + 1;
-                            v8p(puVar3 + 0x10) = *puVar9;
+
+                            v8p(&sdif->BufferDataPort) = *puVar9;
                         } else {
                             puVar10 = (uint32_t *)(iVar6 + uVar2);
                             if (iVar8 < 4) {
                                 iVar6 = iVar6 + 2;
-                                puVar3[0x10] = CONCAT11(v8p((int)puVar10 + 1), v8p puVar10);
+                                v16p(&sdif->BufferDataPort) = CONCAT11(v8p((int)puVar10 + 1), v8p puVar10);
                             } else {
                                 if ((uVar2 & 3) == 0) {
                                     uVar5 = *puVar10;
@@ -126,7 +144,7 @@ static void sdif_rx_maybe(unk_sdif_ctx_init *ctx, uint32_t param_2, uint32_t par
                                     uVar5 = CONCAT13(v8p((int)puVar10 + 3), CONCAT12(v8p((int)puVar10 + 2), CONCAT11(v8p((int)puVar10 + 1), v8p puVar10)));
                                 }
                                 iVar6 = iVar6 + 4;
-                                v32p(puVar3 + 0x10) = uVar5;
+                                sdif->BufferDataPort = uVar5;
                             }
                         }
                     } while (iVar6 < (int)psVar1->sector_size);
@@ -152,33 +170,36 @@ static void sdif_rx_maybe(unk_sdif_ctx_init *ctx, uint32_t param_2, uint32_t par
 }
 
 static void sdif_prep_txarg(unk_sdif_ctx_init *param_1, sdif_arg_s *param_2) {
+    SceSdifReg *sdif = param_1->sdif_regs_addr;
     uint32_t uVar1;
     uint32_t uVar2;
     int iVar3;
     uint32_t uVar4;
-    volatile uint16_t *regs;
 
-    regs = param_1->sdif_regs_addr;
     param_2->unk_11 = 0;
     uVar4 = param_2->some_arg1 & 0xf8;
     if (((((uVar4 == 0x90) || (uVar4 == 0x80)) || (uVar4 == 0x78)) || ((uVar4 == 0x60 || (uVar4 == 0x50)))) || (uVar4 == 0x40)) {
-        param_2->unk_4 = v32p(regs + 8);
+        param_2->unk_4 = sdif->Response[0];
     } else if (uVar4 == 0x30) {
-        uVar4 = v32p(regs + 8);
-        uVar1 = v32p(regs + 10);
-        uVar2 = v32p(regs + 0xc);
-        iVar3 = *(volatile int *)(regs + 0xe);
+        uVar4 = sdif->Response[0];
+        uVar1 = sdif->Response[1];
+        uVar2 = sdif->Response[2];
+        iVar3 = sdif->Response[3];
         param_2->unk_4 = uVar4 << 8;
         param_2->unk_5 = uVar1 << 8 | uVar4 >> 0x18;
         param_2->unk_6 = uVar2 << 8 | uVar1 >> 0x18;
         param_2->unk_7 = iVar3 << 8 | uVar2 >> 0x18;
-    } else if (((uVar4 == 0x28) || (uVar4 == 0x10)) && (param_2->unk_4 = v32p(regs + 8), (param_2->some_arg1 & 0x800) != 0)) {
-        param_2->unk_7 = v32p(regs + 0xe);
+    } else if (((uVar4 == 0x28) || (uVar4 == 0x10)) && (param_2->unk_4 = sdif->Response[0], (param_2->some_arg1 & 0x800) != 0)) {
+        param_2->unk_7 = sdif->Response[3];
     }
+
     if ((param_2->some_arg1 & 0x3000) != 0) {
-        v8p((int)regs + 0x2f) = 6;
-        do {
-        } while ((v8p((int)regs + 0x2f) & 6) != 0);
+        /* Reset command and data logic (including DMA) */
+        sdif->SoftwareReset = (SDHC_SOFTWARE_RESET_DAT_LINE | SDHC_SOFTWARE_RESET_CMD_LINE);
+
+        while (sdif->SoftwareReset & (SDHC_SOFTWARE_RESET_DAT_LINE | SDHC_SOFTWARE_RESET_CMD_LINE)) {
+            /* Wait until reset is complete */
+        }
     }
     return;
 }
@@ -206,51 +227,71 @@ static void sdif_tx_maybe(unk_sdif_ctx_init *ctx, uint32_t param_2, uint32_t par
 }
 
 static uint32_t sdif_trans_action(uint32_t dev_id, unk_sdif_ctx_init *ctx) {
-    uint16_t uVar1;
-    uint16_t uVar2;
-    volatile uint16_t *sdif;
+    SceSdifReg *sdif = ctx->sdif_regs_addr;
+    uint16_t NIS = sdif->NormalInterruptStatus;
+    uint16_t EIS = sdif->ErrorInterruptStatus;
 
-    sdif = ctx->sdif_regs_addr;
-    uVar1 = sdif[0x18];
-    uVar2 = sdif[0x19];
-    if (((uVar1 & 1) != 0) || ((uVar2 & 0xf) != 0)) {
-        sdif[0x18] = 1;
-        sdif[0x19] = 0xf;
-        do {
-        } while ((sdif[0x18] & 1) != 0);
-        do {
-        } while ((sdif[0x19] & 0xf) != 0);
-        sdif_tx_maybe(ctx, (uint32_t)(uVar1 & 0xfe3f), (uint32_t)uVar2);
+    /* Check for command phase completion or errors */
+    if ((NIS & SDHC_NORMAL_IRQ_STATUS_CMD_COMPLETE) || (EIS & SDHC_ERROR_IRQ_STATUS_COMMAND_PHASE_ERRORS)) {
+        /* Clear related interrupt flags */
+        sdif->NormalInterruptStatus = SDHC_NORMAL_IRQ_STATUS_CMD_COMPLETE;
+        sdif->ErrorInterruptStatus = SDHC_ERROR_IRQ_STATUS_COMMAND_PHASE_ERRORS;
+
+        /* Wait until flags are cleared */
+        while (sdif->NormalInterruptStatus & SDHC_NORMAL_IRQ_STATUS_CMD_COMPLETE)
+            ;   
+        while (sdif->ErrorInterruptStatus & SDHC_ERROR_IRQ_STATUS_COMMAND_PHASE_ERRORS)
+            ;
+
+        sdif_tx_maybe(ctx, (uint32_t)(NIS & ~SDHC_NORMAL_IRQ_STATUS_CARD_STATUS_FLAGS), (uint32_t)EIS);
     }
-    if (((uVar1 & 0x32) != 0) || ((uVar2 & 0x70) != 0)) {
-        sdif[0x18] = 0x32;
-        sdif[0x19] = 0x70;
-        do {
-        } while ((sdif[0x18] & 0x32) != 0);
-        do {
-        } while ((sdif[0x19] & 0x70) != 0);
-        sdif_rx_maybe(ctx, (uint32_t)(uVar1 & 0xfe3f), (uint32_t)uVar2);
+
+    /* Check for data phase completion or errors */
+    const uint32_t DATA_PHASE_STATUS_BITS = SDHC_NORMAL_IRQ_STATUS_TFR_COMPLETE | SDHC_NORMAL_IRQ_STATUS_BUFFER_WRITE_READY | SDHC_NORMAL_IRQ_STATUS_BUFFER_READ_READY;
+    if ((NIS & DATA_PHASE_STATUS_BITS) || (EIS & SDHC_ERROR_IRQ_STATUS_DATA_PHASE_ERRORS)) {
+        /* Clear related interrupt flags */
+        sdif->NormalInterruptStatus = DATA_PHASE_STATUS_BITS;
+        sdif->ErrorInterruptStatus = SDHC_ERROR_IRQ_STATUS_DATA_PHASE_ERRORS;
+
+        /* Wait until flags are cleared */
+        while (sdif->NormalInterruptStatus & DATA_PHASE_STATUS_BITS)
+            ;   
+        while (sdif->ErrorInterruptStatus & SDHC_ERROR_IRQ_STATUS_DATA_PHASE_ERRORS)
+            ;
+
+        sdif_rx_maybe(ctx, (uint32_t)(NIS & ~SDHC_NORMAL_IRQ_STATUS_CARD_STATUS_FLAGS), (uint32_t)EIS);
     }
+
     return 0;
 }
 
 static uint32_t write_args(unk_sdif_ctx_init *ctx, sdif_arg_s *op) {
-    uint16_t uVar1;
+    SceSdifReg *sdif = ctx->sdif_regs_addr;
+    uint16_t transferMode;
     sdif_arg_s *psVar2;
     uint16_t uVar3;
     uint32_t uVar4;
-    volatile uint16_t *sdif_regs;
 
     op->unk_11 = 0;
     op->some_arg1 = op->some_arg1 & 0x3fffffff;
     v8p((int)&ctx->dev_id + 1) = 0;
     ctx->sdif_arg2 = (sdif_arg_s *)0x0;
-    sdif_regs = ctx->sdif_regs_addr;
     ctx->sdif_arg = op;
     do {
-        do {
-        } while ((v32p(sdif_regs + 0x12) & 1) != 0);
-    } while ((op->op_id != 0xc) && ((((op->some_arg1 & 7) == 4 || ((op->some_arg1 & 0xf8) == 0x28)) && ((v32p(sdif_regs + 0x12) & 2) != 0))));
+        while (sdif->PresentState & SDHC_PRESENT_STATE_CMD_INHIBITED) {
+            /* Wait until CMD line is not in use */
+        }
+    } while (
+            /* Check that command doesn't need DAT lines, or wait until they are free */
+            (op->op_id != 12) && 
+            (
+                (
+                    (op->some_arg1 & 7) == 4 || 
+                    ((op->some_arg1 & 0xf8) == 0x28)
+                ) && (sdif->PresentState & SDHC_PRESENT_STATE_DAT_INHIBITED)
+            )
+        );
+
     uVar4 = op->some_arg1 & 0xf8;
     if (uVar4 == 0x30) {
         uVar3 = 9;
@@ -266,38 +307,50 @@ static uint32_t write_args(unk_sdif_ctx_init *ctx, sdif_arg_s *op) {
     uVar4 = op->some_arg1 & 7;
     if (uVar4 == 4) {
         ctx->sdif_arg2 = op;
-        v8p(sdif_regs + 0x17) = 0xe;
-        v8p(sdif_regs + 0x14) = v8p(sdif_regs + 0x14) & 0xe7;
-        sdif_regs[2] = (uint16_t)op->sector_size | 0x7000;
-        sdif_regs[3] = (uint16_t)op->sector_count;
-        uVar1 = 0;
-        if ((op->some_arg1 & 0x100) != 0) {
-            uVar1 = 0x10;
+
+        sdif->TimeoutControl = SDHC_TIMEOUT_CONTROL_DATA_TIMEOUT_2_27;
+        sdif->HostControl1 = (sdif->HostControl1 & ~SDHC_HOST_CONTROL1_DMA_SELECT_Msk) | SDHC_HOST_CONTROL1_DMA_SELECT_SDMA;
+
+        sdif->BlockSize = SDHC_BLOCK_SIZE_HOST_SDMA_BOUNDARY_512K | (uint16_t)op->sector_size;
+        sdif->BlockCount = (uint16_t)op->sector_count;
+
+        if (op->some_arg1 & 0x100) {
+            transferMode = SDHC_TRANSFER_MODE_DATA_DIRECTION_WRITE;
+        } else {
+            transferMode = SDHC_TRANSFER_MODE_DATA_DIRECTION_READ;
         }
+
         if ((op->some_arg1 & 0x800) != 0) {
-            uVar1 = uVar1 | 4;
+            transferMode |= SDHC_TRANSFER_MODE_AUTO_CMD12_ENABLE;
         }
+
         if (op->sector_count == 0) {
             op->sector_count = 1;
         } else if (op->sector_count == 1) {
-            uVar1 = uVar1 | 2;
+            transferMode |= (SDHC_TRANSFER_MODE_BLOCK_COUNT_ENABLE | SDHC_TRANSFER_MODE_SINGLE_BLOCK);
         } else if (1 < (int)op->sector_count) {
-            uVar1 = uVar1 | 0x22;
+            transferMode = (SDHC_TRANSFER_MODE_BLOCK_COUNT_ENABLE | SDHC_TRANSFER_MODE_MULTI_BLOCK);
         }
-        v32p(sdif_regs + 4) = op->sector;
-        sdif_regs[6] = uVar1;
-        sdif_regs[7] = (uint16_t)(op->op_id << 8) | 0x20 | uVar3;
+
+        sdif->Argument1  = op->sector;
+        sdif->TransferMode = transferMode;
+
+        /* Kickstart SDIF command */
+        sdif->Command = (uint16_t)(op->op_id << SDHC_COMMAND_COMMAND_INDEX_Pos) | SDHC_COMMAND_DATA_PRESENT_YES | uVar3;
     } else if (((uVar4 == 3) || (uVar4 == 2)) || (uVar4 == 1)) {
-        v32p(sdif_regs + 4) = op->sector;
-        sdif_regs[6] = 0;
-        sdif_regs[7] = (uint16_t)(op->op_id << 8) | uVar3;
+        sdif->Argument1 = op->sector;
+
+        sdif->TransferMode = SDHC_TRANSFER_MODE_DATA_DIRECTION_READ;
+        sdif->Command = (uint16_t)(op->op_id << SDHC_COMMAND_COMMAND_INDEX_Pos) | uVar3;
     }
+
     while ((op->some_arg1 & 0xc0000000) == 0) {
-        if ((sdif_regs[0x18] != 0) || (sdif_regs[0x19] != 0)) {
+        if (sdif->NormalInterruptStatus || sdif->ErrorInterruptStatus) {
             sdif_trans_action((uint32_t) * (volatile uint8_t *)&ctx->dev_id, ctx);
         }
         delay(1000);
     }
+
     uVar4 = 0;
     psVar2 = (sdif_arg_s *)(op->some_arg1 & 0x40000000);
     if (psVar2 != (sdif_arg_s *)0x0) {
@@ -516,35 +569,52 @@ int sdif_write_sector_mmc(unk2_sdif_gigactx *gctx, uint32_t sector, uint32_t dst
 
 #ifndef SDIF_NOINITS
 static uint32_t sdif_pingwaitcfg_regs(unk_sdif_ctx_init *param_1, uint32_t param_2) {
-    volatile uint16_t *puVar1;
+    SceSdifReg *sdif = param_1->sdif_regs_addr;
 
-    puVar1 = param_1->sdif_regs_addr;
     if ((param_2 & 1) != 0) {
-        v8p((int)puVar1 + 0x2f) = 1;
-        do {
-        } while ((v8p((int)puVar1 + 0x2f) & 1) != 0);
+        /* Reset the entire SD host controller */
+        sdif->SoftwareReset = SDHC_SOFTWARE_RESET_ALL;
+
+        /* Wait until reset is complete */
+        while (sdif->SoftwareReset & SDHC_SOFTWARE_RESET_ALL)
+            ;
     }
+
     if ((param_2 & 2) != 0) {
-        puVar1[0x1a] = 0xf3;
-        puVar1[0x1b] = 0x17f;
-        puVar1[0x1c] = 0xf3;
-        puVar1[0x1d] = 0x17f;
-        v8p(puVar1 + 0x17) = 0xe;
-        do {
-        } while ((v32p(puVar1 + 0x12) & 0x20000) == 0);
-        puVar1[0x18] = puVar1[0x18];
-        puVar1[0x19] = puVar1[0x19];
-        do {
-        } while (puVar1[0x18] != 0);
-        do {
-        } while (puVar1[0x19] != 0);
+        const uint32_t NIS_ENABLED =
+            (SDHC_NORMAL_IRQ_STATUS_CARD_REMOVAL | SDHC_NORMAL_IRQ_STATUS_CARD_INSERTION
+                | SDHC_NORMAL_IRQ_STATUS_BUFFER_READ_READY | SDHC_NORMAL_IRQ_STATUS_BUFFER_WRITE_READY
+                | SDHC_NORMAL_IRQ_STATUS_TFR_COMPLETE | SDHC_NORMAL_IRQ_STATUS_CMD_COMPLETE);
+
+        const uint32_t EIS_ENABLED =
+            (SDHC_ERROR_IRQ_STATUS_AUTO_CMD_ERROR | SDHC_ERROR_IRQ_STATUS_DATA_PHASE_ERRORS
+                | SDHC_ERROR_IRQ_STATUS_COMMAND_PHASE_ERRORS);
+
+        sdif->NormalInterruptStatusEnable = NIS_ENABLED;
+        sdif->ErrorInterruptStatusEnable = EIS_ENABLED;
+        sdif->NormalInterruptSignalEnable = NIS_ENABLED;
+        sdif->ErrorInterruptSignalEnable = EIS_ENABLED;
+
+        sdif->TimeoutControl = SDHC_TIMEOUT_CONTROL_DATA_TIMEOUT_2_27;
+
+        /* Wait until card present state is stable */
+        while (!(sdif->PresentState & SDHC_PRESENT_STATE_CARD_STATE_STABLE))
+            ;
+
+        /* Clear all interrupt flags */
+        sdif->NormalInterruptStatus = sdif->NormalInterruptStatus;
+        sdif->ErrorInterruptStatus = sdif->ErrorInterruptStatus;
+
+        /* Wait for clear to be completed */
+        while (sdif->NormalInterruptStatus != 0)
+            ;
+        while (sdif->ErrorInterruptStatus != 0)
+            ;
     }
     return 0;
 }
 
 int sdif_init_ctx(int id, bool alt_clk, unk_sdif_ctx_init *ctx) {
-    uint8_t *dev_regs;
-
     memset(ctx, 0, sizeof(unk_sdif_ctx_init));
     switch (id) {
         case SDIF_DEV_EMMC:
@@ -562,12 +632,16 @@ int sdif_init_ctx(int id, bool alt_clk, unk_sdif_ctx_init *ctx) {
     ctx->unk_clk2 = alt_clk ? 24000000 : 48000000;
     ctx->dev_id = id;
 
-    dev_regs = (uint8_t *)0xe0b00000;
-    if ((id & 0xff) && id != 0x101)
-        dev_regs = (uint8_t *)(0xe0bf0000 + (id & 0xff) * 0x10000);
-    ctx->sdif_regs_addr = (volatile uint16_t *)dev_regs;
+    uint32_t regBase;
+    if ((id & 0xFF) == 0 || id == 0x101) {
+        regBase = SDIF0_BASE;
+    } else {
+        regBase = (SDIF1_BASE - 0x10000) + (id & 0xFF) * 0x10000;
+    }
 
-    sdif_pingwaitcfg_regs(ctx, 3);
+    ctx->sdif_regs_addr = (SceSdifReg *)regBase;
+
+    sdif_pingwaitcfg_regs(ctx, /* Reset entire controller and IRQ status */ 3);
 
     return 0;
 }
@@ -602,49 +676,60 @@ static uint32_t bitfield_extract(int ptr, uint32_t start_bit, uint32_t numbits) 
     return accu;
 }
 
-static uint32_t sdif_wait_reg16x12(unk_sdif_ctx_init *param_1) {
-    volatile uint16_t *puVar1;
-    int iVar2;
+static int sdif_wait_card_present(unk_sdif_ctx_init *param_1) {
+    SceSdifReg *sdif = param_1->sdif_regs_addr;
+    int remainingTries = 1000;
 
-    puVar1 = param_1->sdif_regs_addr;
-    iVar2 = 1000;
-    while (true) {
-        if ((v32p(puVar1 + 0x12) & 0x20000) != 0) {
-            return (uint32_t)((v32p(puVar1 + 0x12) & 0x10000) != 0);
+    while (remainingTries > 0) {
+        /* Wait for stabilization of card presence state */
+        if (!(sdif->PresentState & SDHC_PRESENT_STATE_CARD_STATE_STABLE)) {
+            remainingTries--;
+            delay(1000);
         }
-        if (iVar2 == 0)
-            break;
-        iVar2 = iVar2 + -1;
-        delay(1000);
+
+        return (sdif->PresentState & SDHC_PRESENT_STATE_CARD_INSERTED_Msk) >> SDHC_PRESENT_STATE_CARD_INSERTED_Pos;
     }
-    return 0x80320002;
+
+    /* 0x80320002 */
+    return -2144206846;
 }
 
-static uint32_t sdif_cfg_reg16x16(unk_sdif_ctx_init *param_1) {
-    volatile uint16_t *puVar1;
+static int sdif_configure_bus(unk_sdif_ctx_init *param_1) {
+    SceSdifReg *sdif = param_1->sdif_regs_addr;
 
-    puVar1 = param_1->sdif_regs_addr;
-    do {
-    } while ((v32p(puVar1 + 0x12) & 0x20000) == 0);
-    if ((v32p(puVar1 + 0x12) & 0x10000) != 0) {
-        v8p((int)puVar1 + 0x29) = v8p((int)puVar1 + 0x29) | 0xf;
-        puVar1[0x16] = 0;
-        puVar1[0x16] = 0x8001;
-        do {
-        } while ((puVar1[0x16] & 2) == 0);
-        puVar1[0x16] = puVar1[0x16] | 4;
-        v8p(puVar1 + 0x14) = 0;
+    while (!(sdif->PresentState & SDHC_PRESENT_STATE_CARD_STATE_STABLE)) {
+        /* Wait for stabilization of card presence state */
     }
+
+    /* If a card is inserted, configure the bus */
+    if ((sdif->PresentState & SDHC_PRESENT_STATE_CARD_INSERTED)) {
+        /* Turn on power on SD Bus @ 1.8V */
+        sdif->PowerControl |= (SDHC_POWER_CONTROL_SD_BUS_VOLTAGE_SELECT_1V8 | SDHC_POWER_CONTROL_SD_BUS_POWER_ON);
+
+        /* Disable all clocks */
+        sdif->ClockControl = 0;
+
+        /* Enable internal clock and configure SD Clock to lowest speed possible */
+        sdif->ClockControl |= (SDHC_CLOCK_CONTROL_SDCLK_FREQ_BASECLK_DIV_256 | SDHC_CLOCK_CONTROL_INTERNAL_CLOCK_ENABLE);
+
+        while (!(sdif->ClockControl & SDHC_CLOCK_CONTROL_INTERNAL_CLOCK_STABLE)) {
+            /* Wait for internal clock to stabilize */
+        }
+
+        /* Enable SD Clock */
+        sdif->ClockControl |= SDHC_CLOCK_CONTROL_SD_CLOCK_ENABLE;
+
+        /* Reset HostControl1 */
+        sdif->HostControl1 = 0;
+    }
+    
     return 0;
 }
 
-static uint32_t sdif_work_reg16x16(unk_sdif_ctx_init *param_1, uint32_t param_2, int param_3) {
-    volatile uint16_t *puVar1;
-    uint8_t bVar2;
-    int iVar3;
+static int sdif_work_reg16x16(unk_sdif_ctx_init *param_1, uint32_t param_2, int enable_high_speed) {
+    SceSdifReg *sdif = param_1->sdif_regs_addr;
     uint32_t uVar4;
 
-    puVar1 = param_1->sdif_regs_addr;
     if (param_1->unk_clk2 < param_2) {
         param_2 = param_1->unk_clk2;
     }
@@ -654,44 +739,51 @@ static uint32_t sdif_work_reg16x16(unk_sdif_ctx_init *param_1, uint32_t param_2,
             break;
         uVar4 = uVar4 + 1;
     } while ((int)uVar4 < 8);
-    iVar3 = 10;
-    puVar1[0x16] = 0;
-    puVar1[0x16] = (uint16_t)((0x80 << (uVar4 & 0x1f)) & 0xff00) | puVar1[0x16] | 1;
-    while (true) {
-        if ((puVar1[0x16] & 2) != 0) {
-            puVar1[0x16] = puVar1[0x16] | 4;
-            if (param_3 == 0) {
-                bVar2 = v8p(puVar1 + 0x14) & 0xfb;
+
+    /* Reset clock configuration and turn off all clocks */
+    sdif->ClockControl = 0;
+
+    /* Enable internal clock and configure SD clock prescaler */
+    const uint16_t freq_sel = ((SDHC_CLOCK_CONTROL_SDCLK_FREQ_BASECLK_DIV_2 >> 1) << uVar4) & SDHC_CLOCK_CONTROL_SDCLK_FREQ_SELECT_Msk;
+    sdif->ClockControl |= (SDHC_CLOCK_CONTROL_INTERNAL_CLOCK_ENABLE | freq_sel);
+
+    int tries = 10;
+    while (tries != 0) {
+        if (sdif->ClockControl & SDHC_CLOCK_CONTROL_INTERNAL_CLOCK_STABLE) {
+            /* Internal clock is stable - enable SD clock */
+            sdif->ClockControl |= SDHC_CLOCK_CONTROL_SD_CLOCK_ENABLE;
+
+            /* Configure high speed mode depending on caller's request */
+            if (!enable_high_speed) {
+                sdif->HostControl1 &= ~SDHC_HOST_CONTROL1_HIGH_SPEED_ENABLE;
             } else {
-                bVar2 = v8p(puVar1 + 0x14) | 4;
+                sdif->HostControl1 |= SDHC_HOST_CONTROL1_HIGH_SPEED_ENABLE;
             }
-            v8p(puVar1 + 0x14) = bVar2;
+
             return 0;
         }
-        if (iVar3 == 0)
-            break;
-        iVar3 = iVar3 + -1;
+
+        tries--;
         delay(1000);
     }
-    return 0x80320002;
+
+    /* 0x80320002 */
+    return -2144206846;
 }
 
-static uint32_t sdif_ack_regx14(unk_sdif_ctx_init *param_1, int param_2) {
-    uint8_t bVar1;
+static uint32_t sdif_ack_regx14(unk_sdif_ctx_init *param_1, int bus_width) {
+    /* This is 1:1 with 2BL implementation but not brom? End results are equivalent */
+    uint8_t HC1 = param_1->sdif_regs_addr->HostControl1;
 
-    bVar1 = v8p(param_1->sdif_regs_addr + 0x14);
-    if (param_2 == 8) {
-        bVar1 = bVar1 | 0x20;
+    if (bus_width == 8) {
+        HC1 = (HC1 & ~SDHC_HOST_CONTROL1_DATA_TRANSFER_WIDTH_4BIT) | SDHC_HOST_CONTROL1_EXTENDED_DATA_WIDTH_ON;
+    } else if (bus_width == 4) {
+        HC1 = (HC1 & ~SDHC_HOST_CONTROL1_EXTENDED_DATA_WIDTH_ON) | SDHC_HOST_CONTROL1_DATA_TRANSFER_WIDTH_4BIT;
     } else {
-        bVar1 = bVar1 & 0xdf;
-        if (param_2 == 4) {
-            bVar1 = bVar1 | 2;
-            goto sdif_ack_regx14_x;
-        }
+        HC1 &= ~(SDHC_HOST_CONTROL1_EXTENDED_DATA_WIDTH_ON | SDHC_HOST_CONTROL1_DATA_TRANSFER_WIDTH_4BIT);
     }
-    bVar1 = bVar1 & 0xfd;
-sdif_ack_regx14_x:
-    v8p(param_1->sdif_regs_addr + 0x14) = bVar1;
+
+    param_1->sdif_regs_addr->HostControl1 = HC1;
     return 0;
 }
 
@@ -873,20 +965,21 @@ int sdif_init_sd(unk2_sdif_gigactx *gctx) {
     sdif_arg_s op;
     if ((!gctx) || (!gctx->sctx))
         return -2;
-    iret = sdif_wait_reg16x12(gctx->sctx);
+    iret = sdif_wait_card_present(gctx->sctx);
     if (iret < 0)
         return iret;
     if (!iret)
         return -0x7fcdffff;
     gctx->quirks = 0;
     if (gctx->op9_switchd) {  // already ran once, do reset?
-        volatile uint16_t *regs = gctx->sctx->sdif_regs_addr;
-        regs[0x16] = 0;
-        v8p(regs + 0x14) = 0;
-        v8p((int)regs + 0x29) = 0;
+        SceSdifReg *sdif = gctx->sctx->sdif_regs_addr;
+
+        sdif->ClockControl = 0;
+        sdif->HostControl1 = 0;
+        sdif->PowerControl = 0;
         delay(10000);
     }
-    iret = sdif_cfg_reg16x16(gctx->sctx);
+    iret = sdif_configure_bus(gctx->sctx);
     if (iret < 0)
         return iret;
     delay(10000);
@@ -1031,14 +1124,14 @@ int sdif_init_mmc(unk2_sdif_gigactx *gctx) {
     if ((!gctx) || (!gctx->sctx))
         return -2;
     // printf("pre sdif_wait_reg16x12\n");
-    iret = sdif_wait_reg16x12(gctx->sctx);
+    iret = sdif_wait_card_present(gctx->sctx);
     if (iret < 0)
         return iret;
     if (!iret)
         return -1;
     gctx->quirks = 1;
     // printf("pre sdif_cfg_reg16x16\n");
-    iret = sdif_cfg_reg16x16(gctx->sctx);
+    iret = sdif_configure_bus(gctx->sctx);
     if (iret < 0)
         return iret;
     // printf("pre sdif_op0_arg1\n");

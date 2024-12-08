@@ -5,6 +5,8 @@
 #include "types.h"
 #include "utils.h"
 
+#include "hardware/sdif.h"
+
 struct _sdif_arg_s {
     uint32_t this_size;
     uint32_t some_arg1;
@@ -29,7 +31,7 @@ struct _unk_sdif_ctx_init {
     uint16_t dev_id;
     sdif_arg_s* sdif_arg;
     sdif_arg_s* sdif_arg2;
-    volatile uint16_t* sdif_regs_addr;
+    SceSdifReg* sdif_regs_addr;
 };
 typedef struct _unk_sdif_ctx_init unk_sdif_ctx_init;
 
