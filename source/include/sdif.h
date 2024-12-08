@@ -7,21 +7,35 @@
 
 #include "hardware/sdif.h"
 
-struct _sdif_arg_s {
+struct _sdif_command_s {
+    /* Size of this structure */
     uint32_t this_size;
-    uint32_t some_arg1;
-    uint32_t op_id;
-    uint32_t sector;
-    uint32_t unk_4;
-    uint32_t unk_5;
-    uint32_t unk_6;
-    uint32_t unk_7;
+
+    /* ? */
+    uint32_t cmd_settings;
+
+    /* Command Index - as defined in the SD Specification */
+    uint32_t cmd_index;
+
+    /* Command Argument1 - as defined in the SD Specification */
+    uint32_t argument1;
+
+    /* Response buffer - as defined in the SD Specification */
+    uint32_t response[4];
+
+    /* Destination address for writes (source for reads?) */
     uint32_t dst_addr;
-    uint32_t sector_size;
-    uint32_t sector_count;
-    uint32_t unk_11;
+
+    /* Block size for operation */
+    uint32_t block_size;
+
+    /* Number of blocks for operation */
+    uint32_t block_count;
+
+    /* Command status / result code (SCE format) */
+    int status;
 };
-typedef struct _sdif_arg_s sdif_arg_s;
+typedef struct _sdif_command_s sdif_command_s;
 
 struct _unk_sdif_ctx_init {
     uint32_t unk_0;
@@ -29,8 +43,8 @@ struct _unk_sdif_ctx_init {
     uint32_t unk_clk2;
     uint16_t unk_half_id;
     uint16_t dev_id;
-    sdif_arg_s* sdif_arg;
-    sdif_arg_s* sdif_arg2;
+    sdif_command_s* sdif_arg;
+    sdif_command_s* sdif_arg2;
     SceSdifReg* sdif_regs_addr;
 };
 typedef struct _unk_sdif_ctx_init unk_sdif_ctx_init;

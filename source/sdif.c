@@ -79,38 +79,38 @@ static void sdif_cfgwait_regs16_x19nx1b(unk_sdif_ctx_init *param_1, uint32_t par
 
 static void sdif_rx_maybe(unk_sdif_ctx_init *ctx, uint32_t param_2, uint32_t param_3) {
     SceSdifReg *sdif = ctx->sdif_regs_addr;
-    sdif_arg_s *psVar1;
+    sdif_command_s *psVar1;
     uint32_t uVar2;
     uint16_t uVar4;
     uint32_t uVar5;
     int iVar6;
-    sdif_arg_s *psVar7;
+    sdif_command_s *psVar7;
     int iVar8;
     uint8_t *puVar9;
     uint32_t *puVar10;
 
     psVar1 = ctx->sdif_arg;
-    if (psVar1 != (sdif_arg_s *)0x0) {
-        if (ctx->sdif_arg2 == (sdif_arg_s *)0x0) {
-            if (((param_2 & 2) != 0) && ((psVar1->some_arg1 & 8) != 0)) {
-                psVar1->some_arg1 = psVar1->some_arg1 | 0x80000000;
+    if (psVar1 != NULL) {
+        if (ctx->sdif_arg2 == NULL) {
+            if (((param_2 & 2) != 0) && ((psVar1->cmd_settings & 8) != 0)) {
+                psVar1->cmd_settings = psVar1->cmd_settings | 0x80000000;
             }
         } else if (param_3 == 0) {
-            if ((((param_2 & 0x20) != 0) && ((psVar1->some_arg1 & 0x700) == 0x100)) && (0 < (int)psVar1->sector_count)) {
+            if ((((param_2 & 0x20) != 0) && ((psVar1->cmd_settings & 0x700) == 0x100)) && (0 < (int)psVar1->block_count)) {
                 uVar2 = psVar1->dst_addr;
 
 //                puVar3 = ctx->sdif_regs_addr;
 
-                psVar1->sector_count = psVar1->sector_count - 1;
+                psVar1->block_count = psVar1->block_count - 1;
 
                 /* Wait for readable data in controller buffer */
                 while (!(sdif->PresentState & SDHC_PRESENT_STATE_BUFFER_READ_ENABLED))
                     ;
 
                 iVar6 = 0;
-                if (0 < (int)psVar1->sector_size) {
+                if (0 < (int)psVar1->block_size) {
                     do {
-                        iVar8 = psVar1->sector_size - iVar6;
+                        iVar8 = psVar1->block_size - iVar6;
                         if (iVar8 == 1) {
                             puVar9 = (uint8_t *)(iVar6 + uVar2);
                             iVar6 = iVar6 + 1;
@@ -136,23 +136,23 @@ static void sdif_rx_maybe(unk_sdif_ctx_init *ctx, uint32_t param_2, uint32_t par
                                 iVar6 = iVar6 + 4;
                             }
                         }
-                    } while (iVar6 < (int)psVar1->sector_size);
+                    } while (iVar6 < (int)psVar1->block_size);
                 }
-                psVar1->dst_addr = psVar1->dst_addr + psVar1->sector_size;
+                psVar1->dst_addr = psVar1->dst_addr + psVar1->block_size;
             }
-            if ((((param_2 & 0x10) != 0) && ((psVar1->some_arg1 & 0x700) == 0x200)) && (0 < (int)psVar1->sector_count)) {
+            if ((((param_2 & 0x10) != 0) && ((psVar1->cmd_settings & 0x700) == 0x200)) && (0 < (int)psVar1->block_count)) {
                 uVar2 = psVar1->dst_addr;
 //                puVar3 = ctx->sdif_regs_addr;
-                psVar1->sector_count = psVar1->sector_count - 1;
+                psVar1->block_count = psVar1->block_count - 1;
 
                 /* Wait for free space in controller write buffer */
                 while (!(sdif->PresentState & SDHC_PRESENT_STATE_BUFFER_WRITE_ENABLED))
                     ;
 
                 iVar6 = 0;
-                if (0 < (int)psVar1->sector_size) {
+                if (0 < (int)psVar1->block_size) {
                     do {
-                        iVar8 = psVar1->sector_size - iVar6;
+                        iVar8 = psVar1->block_size - iVar6;
                         if (iVar8 == 1) {
                             puVar9 = (uint8_t *)(iVar6 + uVar2);
                             iVar6 = iVar6 + 1;
@@ -173,53 +173,53 @@ static void sdif_rx_maybe(unk_sdif_ctx_init *ctx, uint32_t param_2, uint32_t par
                                 sdif->BufferDataPort = uVar5;
                             }
                         }
-                    } while (iVar6 < (int)psVar1->sector_size);
+                    } while (iVar6 < (int)psVar1->block_size);
                 }
-                psVar1->dst_addr = psVar1->dst_addr + psVar1->sector_size;
+                psVar1->dst_addr = psVar1->dst_addr + psVar1->block_size;
             }
             if ((param_2 & 2) != 0) {
-                psVar7 = (sdif_arg_s *)(int)v8p((int)&ctx->dev_id + 1);
-                if (psVar7 != (sdif_arg_s *)0x0) {
-                    psVar7 = (sdif_arg_s *)0x0;
-                    psVar1->some_arg1 = psVar1->some_arg1 | 0x80000000;
+                psVar7 = NULL;
+                if ((int)v8p((int)&ctx->dev_id + 1) != 0x0) {
+
+                    psVar1->cmd_settings = psVar1->cmd_settings | 0x80000000;
                 }
                 ctx->sdif_arg2 = psVar7;
             }
         } else {
-            ctx->sdif_arg2 = (sdif_arg_s *)0x0;
-            psVar1->unk_11 = ((param_3 & 0x10) == 0) + 0x80320002;
-            psVar1->some_arg1 = psVar1->some_arg1 | 0x40000000;
+            ctx->sdif_arg2 = NULL;
+            psVar1->status = ((param_3 & 0x10) == 0) + 0x80320002;
+            psVar1->cmd_settings = psVar1->cmd_settings | 0x40000000;
             sdif_cfgwait_regs16_x19nx1b(ctx, param_3);
         }
     }
     return;
 }
 
-static void sdif_prep_txarg(unk_sdif_ctx_init *param_1, sdif_arg_s *param_2) {
+static void sdif_prep_txarg(unk_sdif_ctx_init *param_1, sdif_command_s *param_2) {
     SceSdifReg *sdif = param_1->sdif_regs_addr;
     uint32_t uVar1;
     uint32_t uVar2;
     int iVar3;
     uint32_t uVar4;
 
-    param_2->unk_11 = 0;
-    uVar4 = param_2->some_arg1 & 0xf8;
+    param_2->status = 0;
+    uVar4 = param_2->cmd_settings & 0xf8;
     if (((((uVar4 == 0x90) || (uVar4 == 0x80)) || (uVar4 == 0x78)) || ((uVar4 == 0x60 || (uVar4 == 0x50)))) || (uVar4 == 0x40)) {
-        param_2->unk_4 = sdif->Response[0];
+        param_2->Response[0] = sdif->Response[0];
     } else if (uVar4 == 0x30) {
         uVar4 = sdif->Response[0];
         uVar1 = sdif->Response[1];
         uVar2 = sdif->Response[2];
         iVar3 = sdif->Response[3];
-        param_2->unk_4 = uVar4 << 8;
-        param_2->unk_5 = uVar1 << 8 | uVar4 >> 0x18;
-        param_2->unk_6 = uVar2 << 8 | uVar1 >> 0x18;
-        param_2->unk_7 = iVar3 << 8 | uVar2 >> 0x18;
-    } else if (((uVar4 == 0x28) || (uVar4 == 0x10)) && (param_2->unk_4 = sdif->Response[0], (param_2->some_arg1 & 0x800) != 0)) {
-        param_2->unk_7 = sdif->Response[3];
+        param_2->response[0] = uVar4 << 8;
+        param_2->response[1] = uVar1 << 8 | uVar4 >> 0x18;
+        param_2->response[2] = uVar2 << 8 | uVar1 >> 0x18;
+        param_2->response[3] = iVar3 << 8 | uVar2 >> 0x18;
+    } else if (((uVar4 == 0x28) || (uVar4 == 0x10)) && (param_2->response[0] = sdif->Response[0], (param_2->cmd_settings & 0x800) != 0)) {
+        param_2->response[3] = sdif->Response[3];
     }
 
-    if ((param_2->some_arg1 & 0x3000) != 0) {
+    if ((param_2->cmd_settings & 0x3000) != 0) {
         /* Reset command and data logic (including DMA) */
         sdif->SoftwareReset = (SDHC_SOFTWARE_RESET_DAT_LINE | SDHC_SOFTWARE_RESET_CMD_LINE);
 
@@ -231,21 +231,21 @@ static void sdif_prep_txarg(unk_sdif_ctx_init *param_1, sdif_arg_s *param_2) {
 }
 
 static void sdif_tx_maybe(unk_sdif_ctx_init *ctx, uint32_t param_2, uint32_t param_3) {
-    sdif_arg_s *psVar1;
+    sdif_command_s *psVar1;
 
     psVar1 = ctx->sdif_arg;
-    if (psVar1 != (sdif_arg_s *)0x0) {
+    if (psVar1 != NULL) {
         if (param_3 == 0) {
             if ((param_2 & 1) != 0) {
                 v8p((int)&ctx->dev_id + 1) = 1;
                 sdif_prep_txarg(ctx, psVar1);
-                if ((ctx->sdif_arg2 == (sdif_arg_s *)0x0) && ((psVar1->some_arg1 & 8) == 0)) {
-                    psVar1->some_arg1 = psVar1->some_arg1 | 0x80000000;
+                if ((ctx->sdif_arg2 == NULL) && ((psVar1->cmd_settings & 8) == 0)) {
+                    psVar1->cmd_settings = psVar1->cmd_settings | 0x80000000;
                 }
             }
         } else {
-            psVar1->unk_11 = ((param_3 & 1) == 0) + 0x80320002;
-            psVar1->some_arg1 = psVar1->some_arg1 | 0x40000000;
+            psVar1->status = ((param_3 & 1) == 0) + 0x80320002;
+            psVar1->cmd_settings = psVar1->cmd_settings | 0x40000000;
             sdif_cfgwait_regs16_x19nx1b(ctx, param_3);
         }
     }
@@ -291,17 +291,17 @@ static uint32_t sdif_trans_action(uint32_t dev_id, unk_sdif_ctx_init *ctx) {
     return 0;
 }
 
-static uint32_t write_args(unk_sdif_ctx_init *ctx, sdif_arg_s *op) {
+static uint32_t write_args(unk_sdif_ctx_init *ctx, sdif_command_s *op) {
     SceSdifReg *sdif = ctx->sdif_regs_addr;
     uint16_t transferMode;
-    sdif_arg_s *psVar2;
+    sdif_command_s *psVar2;
     uint16_t uVar3;
     uint32_t uVar4;
 
-    op->unk_11 = 0;
-    op->some_arg1 = op->some_arg1 & 0x3fffffff;
+    op->status = 0;
+    op->cmd_settings = op->cmd_settings & 0x3fffffff;
     v8p((int)&ctx->dev_id + 1) = 0;
-    ctx->sdif_arg2 = (sdif_arg_s *)0x0;
+    ctx->sdif_arg2 = NULL;
     ctx->sdif_arg = op;
     do {
         while (sdif->PresentState & SDHC_PRESENT_STATE_CMD_INHIBITED) {
@@ -309,16 +309,16 @@ static uint32_t write_args(unk_sdif_ctx_init *ctx, sdif_arg_s *op) {
         }
     } while (
             /* Check that command doesn't need DAT lines, or wait until they are free */
-            (op->op_id != 12) && 
+            (op->cmd_index != 12) && 
             (
                 (
-                    (op->some_arg1 & 7) == 4 || 
-                    ((op->some_arg1 & 0xf8) == 0x28)
+                    (op->cmd_settings & 7) == 4 || 
+                    ((op->cmd_settings & 0xf8) == 0x28)
                 ) && (sdif->PresentState & SDHC_PRESENT_STATE_DAT_INHIBITED)
             )
         );
 
-    uVar4 = op->some_arg1 & 0xf8;
+    uVar4 = op->cmd_settings & 0xf8;
     if (uVar4 == 0x30) {
         uVar3 = 9;
     } else if ((uVar4 == 0x78) || (uVar4 == 0x28)) {
@@ -330,47 +330,47 @@ static uint32_t write_args(unk_sdif_ctx_init *ctx, sdif_arg_s *op) {
     } else {
         uVar3 = 0;
     }
-    uVar4 = op->some_arg1 & 7;
+    uVar4 = op->cmd_settings & 7;
     if (uVar4 == 4) {
         ctx->sdif_arg2 = op;
 
         sdif->TimeoutControl = SDHC_TIMEOUT_CONTROL_DATA_TIMEOUT_2_27;
         sdif->HostControl1 = (sdif->HostControl1 & ~SDHC_HOST_CONTROL1_DMA_SELECT_Msk) | SDHC_HOST_CONTROL1_DMA_SELECT_SDMA;
 
-        sdif->BlockSize = SDHC_BLOCK_SIZE_HOST_SDMA_BOUNDARY_512K | (uint16_t)op->sector_size;
-        sdif->BlockCount = (uint16_t)op->sector_count;
+        sdif->BlockSize = SDHC_BLOCK_SIZE_HOST_SDMA_BOUNDARY_512K | (uint16_t)op->block_size;
+        sdif->BlockCount = (uint16_t)op->block_count;
 
-        if (op->some_arg1 & 0x100) {
+        if (op->cmd_settings & 0x100) {
             transferMode = SDHC_TRANSFER_MODE_DATA_DIRECTION_WRITE;
         } else {
             transferMode = SDHC_TRANSFER_MODE_DATA_DIRECTION_READ;
         }
 
-        if ((op->some_arg1 & 0x800) != 0) {
+        if ((op->cmd_settings & 0x800) != 0) {
             transferMode |= SDHC_TRANSFER_MODE_AUTO_CMD12_ENABLE;
         }
 
-        if (op->sector_count == 0) {
-            op->sector_count = 1;
-        } else if (op->sector_count == 1) {
+        if (op->block_count == 0) {
+            op->block_count = 1;
+        } else if (op->block_count == 1) {
             transferMode |= (SDHC_TRANSFER_MODE_BLOCK_COUNT_ENABLE | SDHC_TRANSFER_MODE_SINGLE_BLOCK);
-        } else if (1 < (int)op->sector_count) {
+        } else if (1 < (int)op->block_count) {
             transferMode = (SDHC_TRANSFER_MODE_BLOCK_COUNT_ENABLE | SDHC_TRANSFER_MODE_MULTI_BLOCK);
         }
 
-        sdif->Argument1  = op->sector;
+        sdif->Argument1  = op->argument1;
         sdif->TransferMode = transferMode;
 
         /* Kickstart SDIF command */
-        sdif->Command = (uint16_t)(op->op_id << SDHC_COMMAND_COMMAND_INDEX_Pos) | SDHC_COMMAND_DATA_PRESENT_YES | uVar3;
+        sdif->Command = (uint16_t)(op->cmd_index << SDHC_COMMAND_COMMAND_INDEX_Pos) | SDHC_COMMAND_DATA_PRESENT_YES | uVar3;
     } else if (((uVar4 == 3) || (uVar4 == 2)) || (uVar4 == 1)) {
-        sdif->Argument1 = op->sector;
+        sdif->Argument1 = op->argument1;
 
         sdif->TransferMode = SDHC_TRANSFER_MODE_DATA_DIRECTION_READ;
-        sdif->Command = (uint16_t)(op->op_id << SDHC_COMMAND_COMMAND_INDEX_Pos) | uVar3;
+        sdif->Command = (uint16_t)(op->cmd_index << SDHC_COMMAND_COMMAND_INDEX_Pos) | uVar3;
     }
 
-    while ((op->some_arg1 & 0xc0000000) == 0) {
+    while ((op->cmd_settings & 0xc0000000) == 0) {
         if (sdif->NormalInterruptStatus || sdif->ErrorInterruptStatus) {
             sdif_trans_action((uint32_t) * (volatile uint8_t *)&ctx->dev_id, ctx);
         }
@@ -378,16 +378,15 @@ static uint32_t write_args(unk_sdif_ctx_init *ctx, sdif_arg_s *op) {
     }
 
     uVar4 = 0;
-    psVar2 = (sdif_arg_s *)(op->some_arg1 & 0x40000000);
-    if (psVar2 != (sdif_arg_s *)0x0) {
-        psVar2 = (sdif_arg_s *)0x0;
-        uVar4 = op->unk_11;
+    psVar2 = NULL;
+    if (op->cmd_settings & 0x40000000) {
+        uVar4 = op->status;
     }
     ctx->sdif_arg = psVar2;
     return uVar4;
 }
 
-static int write_args_retry(unk_sdif_ctx_init *ctx, sdif_arg_s *op, int retry_n) {
+static int write_args_retry(unk_sdif_ctx_init *ctx, sdif_command_s *op, int retry_n) {
     int iret;
 
     do {
@@ -402,15 +401,15 @@ static int write_args_retry(unk_sdif_ctx_init *ctx, sdif_arg_s *op, int retry_n)
 
 static int sdif_do_op_0xc(unk_sdif_ctx_init *ctx, int unk_arg1_0x302b) {
     int iVar1;
-    sdif_arg_s op;
+    sdif_command_s op;
 
     op.this_size = 0x30;
-    op.some_arg1 = 0x3013;
+    op.cmd_settings = 0x3013;
     if (unk_arg1_0x302b != 0) {
-        op.some_arg1 = 0x302b;
+        op.cmd_settings = 0x302b;
     }
-    op.op_id = 0xc;
-    op.sector = 0;
+    op.cmd_index = 0xc;
+    op.argument1 = 0;
     iVar1 = write_args_retry(ctx, &op, 3);
     if (-1 < iVar1) {
         iVar1 = 0;
@@ -418,52 +417,79 @@ static int sdif_do_op_0xc(unk_sdif_ctx_init *ctx, int unk_arg1_0x302b) {
     return iVar1;
 }
 
-static int parse_op_unk_4(uint32_t param_1) {
-    uint32_t uVar1;
+static int R1_card_status_to_errcode(uint32_t card_status) {
+    const uint32_t AKE_SEQ_ERROR = (1U << 3);
+    const uint32_t ERASE_RESET = (1U << 13);
+    const uint32_t CARD_ECC_DISABLED = (1U << 14);
+    const uint32_t WP_ERASE_SKIP = (1U << 15);
+    const uint32_t CSD_OVERWRITE = (1U << 16);
+    const uint32_t rsvd_DEFERRED_RESPONSE = (1U << 17); /* Reserved for eSD */
+    const uint32_t rsvd_18 = (1U << 18);                /* Reserved! */
+    const uint32_t ERROR = (1U << 19);
+    const uint32_t CC_ERROR = (1U << 20);
+    const uint32_t CARD_ECC_FAILED = (1U << 21);
+    const uint32_t ILLEGAL_COMMAND = (1U << 22);
+    const uint32_t COM_CRC_ERROR = (1U << 23);
+    const uint32_t LOCK_UNLOCK_FAILED = (1U << 24);
+    const uint32_t WP_VIOLATION = (1U << 26);
+    const uint32_t ERASE_PARAM = (1U << 27);
+    const uint32_t ERASE_SEQ_ERROR = (1U << 28);
+    const uint32_t BLOCK_LEN_ERROR = (1U << 29);
+    const uint32_t ADDRESS_ERROR = (1U << 30);
+    const uint32_t OUT_OF_RANGE = (1U << 31);
 
-    if ((param_1 & 0xfdffe008) == 0) {
+    const uint32_t ERRORS_MASK = (OUT_OF_RANGE | ADDRESS_ERROR | BLOCK_LEN_ERROR
+        | ERASE_SEQ_ERROR | ERASE_PARAM | WP_VIOLATION | LOCK_UNLOCK_FAILED | COM_CRC_ERROR
+        | ILLEGAL_COMMAND | CARD_ECC_FAILED | CC_ERROR | ERROR | rsvd_18 | rsvd_DEFERRED_RESPONSE
+        | CSD_OVERWRITE | WP_ERASE_SKIP | CARD_ECC_DISABLED | ERASE_RESET | AKE_SEQ_ERROR);
+
+    if ((card_status & ERRORS_MASK) == 0) {
         return 0;
     }
-    uVar1 = 0;
-    do {
-        if ((1 << (uVar1 & 0x1f) & param_1 & 0xfdffe008) != 0)
+
+    int i = 0;
+    while (i < 32) {
+        if ((card_status & ERRORS_MASK) & (1 << i)) {
             break;
-        uVar1 = uVar1 + 1;
-    } while ((int)uVar1 < 0x20);
-    return uVar1 + 0x80320100;
+        }
+        i++;
+    }
+
+    /* 0x80320100 + i */
+    return i - 2144206592;
 }
 
 static int do_op_0x17(unk_sdif_ctx_init *ctx, uint32_t unk_sector_arg) {
     int iVar1;
-    sdif_arg_s local_34;
+    sdif_command_s local_34;
 
     local_34.dst_addr = 0;
-    local_34.op_id = 0x17;
-    local_34.some_arg1 = 0x13;
+    local_34.cmd_index = 0x17;
+    local_34.cmd_settings = 0x13;
     local_34.this_size = 0x30;
-    local_34.sector = unk_sector_arg;
+    local_34.argument1 = unk_sector_arg;
     iVar1 = write_args_retry(ctx, &local_34, 3);
-    if ((-1 < iVar1) && (iVar1 = parse_op_unk_4(local_34.unk_4), -1 < iVar1)) {
+    if ((-1 < iVar1) && (iVar1 = R1_card_status_to_errcode(local_34.response[0]), -1 < iVar1)) {
         iVar1 = 0;
     }
     return iVar1;
 }
 
-static int sdif_do_op_0xd(unk_sdif_ctx_init *ctx, uint32_t *unk_4_ret) {
+static int sdif_do_op_0xd(unk_sdif_ctx_init *ctx, uint32_t *p_response) {
     int iret;
-    sdif_arg_s op;
+    sdif_command_s op;
 
-    op.some_arg1 = 0x13;
-    op.op_id = 0xd;
+    op.cmd_settings = 0x13;
+    op.cmd_index = 0xd;
     op.this_size = 0x30;
     op.dst_addr = 0;
-    op.sector = (uint32_t)ctx->unk_half_id << 0x10;
+    op.argument1 = (uint32_t)ctx->unk_half_id << 0x10;
     iret = write_args_retry(ctx, &op, 3);
     if (-1 < iret) {
-        if (unk_4_ret != (uint32_t *)0x0) {
-            *unk_4_ret = op.unk_4;
+        if (p_response != NULL) {
+            *p_response = op.reponse[0];
         }
-        iret = parse_op_unk_4(op.unk_4);
+        iret = R1_card_status_to_errcode(op.response[0]);
         if (-1 < iret) {
             iret = 0;
         }
@@ -473,25 +499,25 @@ static int sdif_do_op_0xd(unk_sdif_ctx_init *ctx, uint32_t *unk_4_ret) {
 
 int sdif_read_sector_sd(unk2_sdif_gigactx *gctx, uint32_t sector, uint32_t dst, uint32_t nsectors) {
     int iret;
-    sdif_arg_s op;
+    sdif_command_s op;
 
     op.this_size = 0x30;
     if (nsectors == 1) {
-        op.op_id = 0x11;
-        op.some_arg1 = 0x114;
+        op.cmd_index = 0x11;
+        op.cmd_settings = 0x114;
     } else {
-        op.some_arg1 = 0x914;
-        op.op_id = 0x12;
+        op.cmd_settings = 0x914;
+        op.cmd_index = 0x12;
     }
-    op.sector = sector;
+    op.argument1 = sector;
     if (!(gctx->quirks & 1))
-        op.sector = sector * SECTOR_SIZE;
-    op.sector_size = 0x200;
+        op.argument1 = sector * SECTOR_SIZE;
+    op.block_size = 0x200;
     op.dst_addr = dst;
-    op.sector_count = nsectors;
+    op.block_count = nsectors;
     iret = write_args_retry(gctx->sctx, &op, 0);
     if (iret < 0) {
-        if (op.op_id == 0x12) {
+        if (op.cmd_index == 0x12) {
             sdif_do_op_0xc(gctx->sctx, 1);
         }
     } else {
@@ -505,25 +531,25 @@ int sdif_read_sector_sd(unk2_sdif_gigactx *gctx, uint32_t sector, uint32_t dst, 
 
 int sdif_write_sector_sd(unk2_sdif_gigactx *gctx, uint32_t sector, uint32_t dst, uint32_t nsectors) {
     int iret;
-    sdif_arg_s op;
+    sdif_command_s op;
 
     op.this_size = 0x30;
     if (nsectors == 1) {
-        op.op_id = 0x18;
-        op.some_arg1 = 0x214;
+        op.cmd_index = 0x18;
+        op.cmd_settings = 0x214;
     } else {
-        op.some_arg1 = 0xa14;
-        op.op_id = 0x19;
+        op.cmd_settings = 0xa14;
+        op.cmd_index = 0x19;
     }
-    op.sector = sector;
+    op.argument1 = sector;
     if (!(gctx->quirks & 1))
-        op.sector = sector  * SECTOR_SIZE;
-    op.sector_size = 0x200;
+        op.argument1 = sector  * SECTOR_SIZE;
+    op.block_size = 0x200;
     op.dst_addr = dst;
-    op.sector_count = nsectors;
+    op.block_count = nsectors;
     iret = write_args_retry(gctx->sctx, &op, 0);
     if (iret < 0) {
-        if (op.op_id == 0x19) {
+        if (op.cmd_index == 0x19) {
             sdif_do_op_0xc(gctx->sctx, 1);
         }
     } else {
@@ -537,21 +563,21 @@ int sdif_write_sector_sd(unk2_sdif_gigactx *gctx, uint32_t sector, uint32_t dst,
 
 int sdif_read_sector_mmc(unk2_sdif_gigactx *gctx, uint32_t sector, uint32_t dst, uint32_t nsectors) {
     int iret;
-    sdif_arg_s op;
+    sdif_command_s op;
 
-    op.some_arg1 = 0x114;
+    op.cmd_settings = 0x114;
     op.this_size = 0x30;
-    op.op_id = (nsectors != 1) + 0x11;
-    op.sector = sector;
+    op.cmd_index = (nsectors != 1) + 0x11;
+    op.argument1 = sector;
     if (!(gctx->quirks & 1))
-        op.sector = sector * SECTOR_SIZE;
-    op.sector_size = 0x200;
+        op.argument1 = sector * SECTOR_SIZE;
+    op.block_size = 0x200;
     op.dst_addr = dst;
-    op.sector_count = nsectors;
-    if ((op.op_id != 0x12) || (iret = do_op_0x17(gctx->sctx, nsectors), -1 < iret)) {
+    op.block_count = nsectors;
+    if ((op.cmd_index != 0x12) || (iret = do_op_0x17(gctx->sctx, nsectors), -1 < iret)) {
         iret = write_args_retry(gctx->sctx, &op, 0);
         if (iret < 0) {
-            if ((((op.op_id == 0x12) && (iret != -0x7fcdfee3)) && (iret != -0x7fcdfee2)) && (iret != -0x7fcdfee1)) {
+            if ((((op.cmd_index == 0x12) && (iret != -0x7fcdfee3)) && (iret != -0x7fcdfee2)) && (iret != -0x7fcdfee1)) {
                 sdif_do_op_0xc(gctx->sctx, 0);
             }
         } else {
@@ -566,21 +592,21 @@ int sdif_read_sector_mmc(unk2_sdif_gigactx *gctx, uint32_t sector, uint32_t dst,
 
 int sdif_write_sector_mmc(unk2_sdif_gigactx *gctx, uint32_t sector, uint32_t dst, uint32_t nsectors) {
     int iret;
-    sdif_arg_s op;
+    sdif_command_s op;
 
-    op.some_arg1 = 0x214;
+    op.cmd_settings = 0x214;
     op.this_size = 0x30;
-    op.op_id = (nsectors != 1) + 0x18;
-    op.sector = sector;
+    op.cmd_index = (nsectors != 1) + 0x18;
+    op.argument1 = sector;
     if (!(gctx->quirks & 1))
-        op.sector = sector * SECTOR_SIZE;
-    op.sector_size = 0x200;
+        op.argument1 = sector * SECTOR_SIZE;
+    op.block_size = 0x200;
     op.dst_addr = dst;
-    op.sector_count = nsectors;
-    if ((op.op_id != 0x19) || (iret = do_op_0x17(gctx->sctx, nsectors), -1 < iret)) {
+    op.block_count = nsectors;
+    if ((op.cmd_index != 0x19) || (iret = do_op_0x17(gctx->sctx, nsectors), -1 < iret)) {
         iret = write_args_retry(gctx->sctx, &op, 0);
         if (iret < 0) {
-            if ((((op.op_id == 0x12) && (iret != -0x7fcdfee3)) && (iret != -0x7fcdfee2)) && (iret != -0x7fcdfee1)) {
+            if ((((op.cmd_index == 0x12) && (iret != -0x7fcdfee3)) && (iret != -0x7fcdfee2)) && (iret != -0x7fcdfee1)) {
                 sdif_do_op_0xc(gctx->sctx, 0);
             }
         } else {
@@ -815,12 +841,12 @@ static uint32_t sdif_ack_regx14(unk_sdif_ctx_init *param_1, int bus_width) {
 
 static int sdif_op0_arg1(unk_sdif_ctx_init *param_1) {
     int iVar1;
-    sdif_arg_s local_38;
+    sdif_command_s local_38;
 
-    local_38.some_arg1 = 1;
+    local_38.cmd_settings = 1;
     local_38.dst_addr = 0;
-    local_38.sector = 0;
-    local_38.op_id = 0;
+    local_38.argument1 = 0;
+    local_38.cmd_index = 0;
     local_38.this_size = 0x30;
     iVar1 = write_args_retry(param_1, &local_38, 0);
     if (-1 < iVar1) {
@@ -831,10 +857,10 @@ static int sdif_op0_arg1(unk_sdif_ctx_init *param_1) {
     return iVar1;
 }
 
-static int sdif_loop_opx37_argx13_oparg(unk2_sdif_gigactx *gctx, sdif_arg_s *param_2, int param_3) {
+static int sdif_loop_opx37_argx13_oparg(unk2_sdif_gigactx *gctx, sdif_command_s *param_2, int param_3) {
     int iVar1;
     int unaff_r12;
-    sdif_arg_s local_44;
+    sdif_command_s local_44;
 
     if (param_3 < 1) {
         param_3 = 1;
@@ -842,14 +868,14 @@ static int sdif_loop_opx37_argx13_oparg(unk2_sdif_gigactx *gctx, sdif_arg_s *par
     iVar1 = 0;
     if (0 < param_3) {
         do {
-            local_44.op_id = 0x37;
-            local_44.some_arg1 = 0x13;
+            local_44.cmd_index = 0x37;
+            local_44.cmd_settings = 0x13;
             local_44.this_size = 0x30;
             local_44.dst_addr = 0;
-            local_44.sector = (uint32_t)(gctx->sctx)->unk_half_id << 0x10;
+            local_44.argument1 = (uint32_t)(gctx->sctx)->unk_half_id << 0x10;
             unaff_r12 = write_args_retry(gctx->sctx, &local_44, 0);
             if (-1 < unaff_r12) {
-                if ((local_44.unk_4 & 0x20) == 0) {
+                if ((local_44.response[0] & 0x20) == 0) {
                     return -0x7fcdfefb;
                 }
                 unaff_r12 = write_args_retry(gctx->sctx, param_2, 0);
@@ -866,20 +892,20 @@ static int sdif_loop_opx37_argx13_oparg(unk2_sdif_gigactx *gctx, sdif_arg_s *par
 static int sdif_loop_wopx37_opx29_argx42(unk2_sdif_gigactx *gctx, uint32_t param_2, uint32_t *param_3) {
     int iVar1;
     int iVar2;
-    sdif_arg_s local_44;
+    sdif_command_s local_44;
 
     iVar2 = 0;
     local_44.dst_addr = 0;
-    local_44.op_id = 0x29;
-    local_44.some_arg1 = 0x42;
+    local_44.cmd_index = 0x29;
+    local_44.cmd_settings = 0x42;
     local_44.this_size = 0x30;
-    local_44.sector = param_2;
+    local_44.argument1 = param_2;
     while (true) {
         iVar1 = sdif_loop_opx37_argx13_oparg(gctx, &local_44, 3);
         if (iVar1 < 0) {
             return iVar1;
         }
-        if ((param_2 == 0) || ((int)local_44.unk_4 < 0))
+        if ((param_2 == 0) || ((int)local_44.response[0] < 0))
             break;
         delay(10000);
         iVar2 = iVar2 + 1;
@@ -888,23 +914,23 @@ static int sdif_loop_wopx37_opx29_argx42(unk2_sdif_gigactx *gctx, uint32_t param
         }
     }
     if (param_3 != (uint32_t *)0x0) {
-        *param_3 = local_44.unk_4;
+        *param_3 = local_44.response[0];
     }
     return 0;
 }
 
 static int sdif_op2_argx32(unk_sdif_ctx_init *param_1, void *param_2) {
     int iVar1;
-    sdif_arg_s local_38;
+    sdif_command_s local_38;
 
-    local_38.op_id = 2;
-    local_38.some_arg1 = 0x32;
+    local_38.cmd_index = 2;
+    local_38.cmd_settings = 0x32;
     local_38.dst_addr = 0;
-    local_38.sector = 0;
+    local_38.argument1 = 0;
     local_38.this_size = 0x30;
     iVar1 = write_args_retry(param_1, &local_38, 3);
     if (-1 < iVar1) {
-        memcpy(param_2, &local_38.unk_4, 0x10);
+        memcpy(param_2, local_38.response, sizeof(local_38.response));
         iVar1 = 0;
     }
     return iVar1;
@@ -912,16 +938,16 @@ static int sdif_op2_argx32(unk_sdif_ctx_init *param_1, void *param_2) {
 
 static int sdif_op3_argx82(unk2_sdif_gigactx *gctx, uint16_t *param_2) {
     int iVar1;
-    sdif_arg_s local_38;
+    sdif_command_s local_38;
 
-    local_38.sector = 0;
-    local_38.op_id = 3;
-    local_38.some_arg1 = 0x82;
+    local_38.argument1 = 0;
+    local_38.cmd_index = 3;
+    local_38.cmd_settings = 0x82;
     local_38.this_size = 0x30;
     iVar1 = write_args_retry(gctx->sctx, &local_38, 3);
     if (-1 < iVar1) {
         if (param_2 != (uint16_t *)0x0) {
-            *param_2 = (local_38.unk_4 >> 0x10) & 0xffff;
+            *param_2 = (local_38.response[0] >> 0x10) & 0xffff;
         }
         iVar1 = 0;
     }
@@ -930,17 +956,17 @@ static int sdif_op3_argx82(unk2_sdif_gigactx *gctx, uint16_t *param_2) {
 
 static int sdif_op7_argxy3(unk_sdif_ctx_init *param_1, int param_2) {
     int iVar1;
-    sdif_arg_s local_34;
+    sdif_command_s local_34;
 
     local_34.this_size = 0x30;
-    local_34.some_arg1 = 3;
+    local_34.cmd_settings = 3;
     if (param_2 != 0) {
-        local_34.some_arg1 = 0x13;
+        local_34.cmd_settings = 0x13;
     }
-    local_34.sector = 0;
-    local_34.op_id = 7;
+    local_34.argument1 = 0;
+    local_34.cmd_index = 7;
     if (param_2 != 0) {
-        local_34.sector = (uint32_t)param_1->unk_half_id << 0x10;
+        local_34.argument1 = (uint32_t)param_1->unk_half_id << 0x10;
     }
     iVar1 = write_args_retry(param_1, &local_34, 3);
     if (-1 < iVar1) {
@@ -951,16 +977,16 @@ static int sdif_op7_argxy3(unk_sdif_ctx_init *param_1, int param_2) {
 
 static int sdif_op9_argx33(unk_sdif_ctx_init *param_1, void *param_2) {
     int iVar1;
-    sdif_arg_s op;
+    sdif_command_s op;
 
-    op.some_arg1 = 0x33;
-    op.op_id = 9;
+    op.cmd_settings = 0x33;
+    op.cmd_index = 9;
     op.this_size = 0x30;
     op.dst_addr = 0;
-    op.sector = (uint32_t)param_1->unk_half_id << 0x10;
+    op.argument1 = (uint32_t)param_1->unk_half_id << 0x10;
     iVar1 = write_args_retry(param_1, &op, 3);
     if (-1 < iVar1) {
-        memcpy(param_2, &op.unk_4, 0x10);
+        memcpy(param_2, op.response, sizeof(op.response));
         iVar1 = 0;
     }
     return iVar1;
@@ -968,15 +994,15 @@ static int sdif_op9_argx33(unk_sdif_ctx_init *param_1, void *param_2) {
 
 static int sdif_opx10_argx13(unk_sdif_ctx_init *param_1, uint32_t param_2) {
     int iVar1;
-    sdif_arg_s op;
+    sdif_command_s op;
 
     op.dst_addr = 0;
-    op.op_id = 0x10;
-    op.some_arg1 = 0x13;
+    op.cmd_index = 0x10;
+    op.cmd_settings = 0x13;
     op.this_size = 0x30;
-    op.sector = param_2;
+    op.argument1 = param_2;
     iVar1 = write_args_retry(param_1, &op, 3);
-    if ((-1 < iVar1) && (iVar1 = parse_op_unk_4(op.unk_4), -1 < iVar1)) {
+    if ((-1 < iVar1) && (iVar1 = R1_card_status_to_errcode(op.response[0]), -1 < iVar1)) {
         iVar1 = 0;
     }
     return iVar1;
@@ -1004,7 +1030,7 @@ static const uint8_t CSD_TRAN_SPEED_value_LUT[] = {
 int sdif_init_sd(unk2_sdif_gigactx *gctx) {
     int iret;
     uint32_t sdif_unk0;
-    sdif_arg_s op;
+    sdif_command_s op;
     if ((!gctx) || (!gctx->sctx))
         return -2;
     iret = sdif_wait_card_present(gctx->sctx);
@@ -1033,13 +1059,13 @@ int sdif_init_sd(unk2_sdif_gigactx *gctx) {
         return iret;
     sdif_unk0 = gctx->sctx->unk_0;
     {  // sdif_op8_argx92
-        memset(&op, 0, sizeof(sdif_arg_s));
-        op.some_arg1 = 0x92;
-        op.op_id = 8;
+        memset(&op, 0, sizeof(op));
+        op.cmd_settings = 0x92;
+        op.cmd_index = 8;
         op.this_size = 0x30;
-        op.sector = 0xaa;
+        op.argument1 = 0xaa;
         if ((sdif_unk0 & 0xff8000) != 0) {
-            op.sector = 0x1aa;
+            op.argument1 = 0x1aa;
         }
         op.dst_addr = 0;
         iret = write_args_retry(gctx->sctx, &op, 3);
@@ -1066,13 +1092,13 @@ int sdif_init_sd(unk2_sdif_gigactx *gctx) {
     if (iret < 0)
         return iret;
     {  // sdif_opx2a_argx13
-        memset(&op, 0, sizeof(sdif_arg_s));
-        op.op_id = 0x2a;
-        op.some_arg1 = 0x13;
-        op.sector = 0;
+        memset(&op, 0, sizeof(op));
+        op.cmd_index = 0x2a;
+        op.cmd_settings = 0x13;
+        op.argument1 = 0;
         op.this_size = 0x30;
         iret = sdif_loop_opx37_argx13_oparg(gctx, &op, 3);
-        if ((-1 < iret) && (iret = parse_op_unk_4(op.unk_4), -1 < iret)) {
+        if ((-1 < iret) && (iret = R1_card_status_to_errcode(op.response[0]), -1 < iret)) {
             iret = 0;
         }
     }
@@ -1126,12 +1152,12 @@ int sdif_init_sd(unk2_sdif_gigactx *gctx) {
     uint8_t opx33_argx114[0x200];
     memset(opx33_argx114, 0, 0x200);
     {  // sdif_opx33_argx114
-        memset(&op, 0, sizeof(sdif_arg_s));
-        op.sector_count = 0;
-        op.sector = 0;
-        op.op_id = 0x33;
-        op.some_arg1 = 0x114;
-        op.sector_size = 8;
+        memset(&op, 0, sizeof(op));
+        op.block_count = 0;
+        op.argument1 = 0;
+        op.cmd_index = 0x33;
+        op.cmd_settings = 0x114;
+        op.block_size = 8;
         op.this_size = 0x30;
         op.dst_addr = (uint32_t)opx33_argx114;  // orig gigactx + 0x36;
         iret = sdif_loop_opx37_argx13_oparg(gctx, &op, 3);
@@ -1151,20 +1177,20 @@ int sdif_init_sd(unk2_sdif_gigactx *gctx) {
 static int sdif_op1_argx42(unk2_sdif_gigactx *gctx, uint32_t param_2, uint32_t *param_3) {
     int iVar1;
     int iVar2;
-    sdif_arg_s op;
+    sdif_command_s op;
 
     iVar2 = 0;
     op.dst_addr = 0;
-    op.op_id = 1;
-    op.some_arg1 = 0x42;
+    op.cmd_index = 1;
+    op.cmd_settings = 0x42;
     op.this_size = 0x30;
-    op.sector = param_2;
+    op.argument1 = param_2;
     while (true) {
         iVar1 = write_args_retry(gctx->sctx, &op, 0);
         if (iVar1 < 0) {
             return iVar1;
         }
-        if ((param_2 == 0) || ((int)op.unk_4 < 0))
+        if ((param_2 == 0) || ((int)op.response[0] < 0))
             break;
         delay(10000);
         iVar2 = iVar2 + 1;
@@ -1173,7 +1199,7 @@ static int sdif_op1_argx42(unk2_sdif_gigactx *gctx, uint32_t param_2, uint32_t *
         }
     }
     if (param_3 != (uint32_t *)0x0) {
-        *param_3 = op.unk_4;
+        *param_3 = op.response[0];
     }
     return 0;
 }
@@ -1181,7 +1207,7 @@ static int sdif_op1_argx42(unk2_sdif_gigactx *gctx, uint32_t param_2, uint32_t *
 // TODO: replicate a "-1" / failed init, left commented printf's for now
 int sdif_init_mmc(unk2_sdif_gigactx *gctx) {
     int iret;
-    sdif_arg_s op;
+    sdif_command_s op;
     if ((!gctx) || (!gctx->sctx))
         return -2;
     // printf("pre sdif_wait_reg16x12\n");
@@ -1216,14 +1242,14 @@ int sdif_init_mmc(unk2_sdif_gigactx *gctx) {
         return iret;
 
     {  // sdif_op3_argx13
-        memset(&op, 0, sizeof(sdif_arg_s));
-        op.op_id = 3;
-        op.some_arg1 = 0x13;
-        op.sector = 1 << 0x10;
+        memset(&op, 0, sizeof(op));
+        op.cmd_index = 3;
+        op.cmd_settings = 0x13;
+        op.argument1 = 1 << 0x10;
         op.this_size = 0x30;
         // printf("pre write_args_retry [sdif_op3_argx13]\n");
         iret = write_args_retry(gctx->sctx, &op, 3);
-        if ((-1 < iret) && (iret = parse_op_unk_4(op.unk_4), -1 < iret)) {
+        if ((-1 < iret) && (iret = R1_card_status_to_errcode(op.response[0]), -1 < iret)) {
             iret = 0;
         }
     }
@@ -1255,12 +1281,12 @@ int sdif_init_mmc(unk2_sdif_gigactx *gctx) {
     uint8_t buf[0x200];
     memset(buf, 0, 0x200);
     {  // sdif_op8_argx114
-        memset(&op, 0, sizeof(sdif_arg_s));
-        op.sector_count = 0;
-        op.sector = 0;
-        op.op_id = 8;
-        op.some_arg1 = 0x114;
-        op.sector_size = 0x200;
+        memset(&op, 0, sizeof(op));
+        op.block_count = 0;
+        op.argument1 = 0;
+        op.cmd_index = 8;
+        op.cmd_settings = 0x114;
+        op.block_size = 0x200;
         op.this_size = 0x30;
         op.dst_addr = (uint32_t)buf;
         // printf("pre write_args_retry [sdif_op8_argx114]\n");
@@ -1289,11 +1315,11 @@ int sdif_init_mmc(unk2_sdif_gigactx *gctx) {
     if (-1 < iret) {
         if (gctx->op8_switchd) {
             {  // sdif_op6_argx2b
-                memset(&op, 0, sizeof(sdif_arg_s));
-                op.some_arg1 = 0x2b;
-                op.op_id = 6;
+                memset(&op, 0, sizeof(op));
+                op.cmd_settings = 0x2b;
+                op.cmd_index = 6;
                 op.this_size = 0x30;
-                op.sector = ((1) & 0xff) << 8 | (((0xb9) & 0xff) << 0x10) | ((0) & 3) | 0x3000000;
+                op.argument1 = ((1) & 0xff) << 8 | (((0xb9) & 0xff) << 0x10) | ((0) & 3) | 0x3000000;
                 // printf("pre write_args_retry [sdif_op6_argx2b]\n");
                 iret = write_args_retry(gctx->sctx, &op, 3);
                 if (-1 < iret) {
