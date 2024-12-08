@@ -399,7 +399,7 @@ static int write_args_retry(unk_sdif_ctx_init *ctx, sdif_command_s *op, int retr
     return iret;
 }
 
-static int sdif_do_op_0xc(unk_sdif_ctx_init *ctx, int unk_arg1_0x302b) {
+static int sdif_cmd12_stop_transmission(unk_sdif_ctx_init *ctx, int unk_arg1_0x302b) {
     int iVar1;
     sdif_command_s op;
 
@@ -408,7 +408,7 @@ static int sdif_do_op_0xc(unk_sdif_ctx_init *ctx, int unk_arg1_0x302b) {
     if (unk_arg1_0x302b != 0) {
         op.cmd_settings = 0x302b;
     }
-    op.cmd_index = 0xc;
+    op.cmd_index = 12;
     op.argument1 = 0;
     iVar1 = write_args_retry(ctx, &op, 3);
     if (-1 < iVar1) {
@@ -459,15 +459,15 @@ static int R1_card_status_to_errcode(uint32_t card_status) {
     return i - 2144206592;
 }
 
-static int do_op_0x17(unk_sdif_ctx_init *ctx, uint32_t unk_sector_arg) {
+static int sdif_cmd23_set_block_count(unk_sdif_ctx_init *ctx, uint32_t block_count) {
     int iVar1;
     sdif_command_s local_34;
 
     local_34.dst_addr = 0;
-    local_34.cmd_index = 0x17;
+    local_34.cmd_index = 23;
     local_34.cmd_settings = 0x13;
     local_34.this_size = 0x30;
-    local_34.argument1 = unk_sector_arg;
+    local_34.argument1 = block_count;
     iVar1 = write_args_retry(ctx, &local_34, 3);
     if ((-1 < iVar1) && (iVar1 = R1_card_status_to_errcode(local_34.response[0]), -1 < iVar1)) {
         iVar1 = 0;
@@ -475,19 +475,19 @@ static int do_op_0x17(unk_sdif_ctx_init *ctx, uint32_t unk_sector_arg) {
     return iVar1;
 }
 
-static int sdif_do_op_0xd(unk_sdif_ctx_init *ctx, uint32_t *p_response) {
+static int sdif_cmd13_send_status(unk_sdif_ctx_init *ctx, uint32_t *p_card_status) {
     int iret;
     sdif_command_s op;
 
     op.cmd_settings = 0x13;
-    op.cmd_index = 0xd;
+    op.cmd_index = 13;
     op.this_size = 0x30;
     op.dst_addr = 0;
     op.argument1 = (uint32_t)ctx->unk_half_id << 0x10;
     iret = write_args_retry(ctx, &op, 3);
     if (-1 < iret) {
-        if (p_response != NULL) {
-            *p_response = op.reponse[0];
+        if (p_card_status != NULL) {
+            *p_card_status = op.reponse[0];
         }
         iret = R1_card_status_to_errcode(op.response[0]);
         if (-1 < iret) {
@@ -503,11 +503,11 @@ int sdif_read_sector_sd(unk2_sdif_gigactx *gctx, uint32_t sector, uint32_t dst, 
 
     op.this_size = 0x30;
     if (nsectors == 1) {
-        op.cmd_index = 0x11;
+        op.cmd_index = 17;
         op.cmd_settings = 0x114;
     } else {
         op.cmd_settings = 0x914;
-        op.cmd_index = 0x12;
+        op.cmd_index = 18;
     }
     op.argument1 = sector;
     if (!(gctx->quirks & 1))
@@ -517,11 +517,11 @@ int sdif_read_sector_sd(unk2_sdif_gigactx *gctx, uint32_t sector, uint32_t dst, 
     op.block_count = nsectors;
     iret = write_args_retry(gctx->sctx, &op, 0);
     if (iret < 0) {
-        if (op.cmd_index == 0x12) {
-            sdif_do_op_0xc(gctx->sctx, 1);
+        if (op.cmd_index == 18) {
+            sdif_cmd12_stop_transmission(gctx->sctx, 1);
         }
     } else {
-        iret = sdif_do_op_0xd(gctx->sctx, 0);
+        iret = sdif_cmd13_send_status(gctx->sctx, NULL);
         if (-1 < iret) {
             iret = 0;
         }
@@ -535,11 +535,11 @@ int sdif_write_sector_sd(unk2_sdif_gigactx *gctx, uint32_t sector, uint32_t dst,
 
     op.this_size = 0x30;
     if (nsectors == 1) {
-        op.cmd_index = 0x18;
+        op.cmd_index = 24;
         op.cmd_settings = 0x214;
     } else {
         op.cmd_settings = 0xa14;
-        op.cmd_index = 0x19;
+        op.cmd_index = 25;
     }
     op.argument1 = sector;
     if (!(gctx->quirks & 1))
@@ -549,11 +549,11 @@ int sdif_write_sector_sd(unk2_sdif_gigactx *gctx, uint32_t sector, uint32_t dst,
     op.block_count = nsectors;
     iret = write_args_retry(gctx->sctx, &op, 0);
     if (iret < 0) {
-        if (op.cmd_index == 0x19) {
-            sdif_do_op_0xc(gctx->sctx, 1);
+        if (op.cmd_index == 25) {
+            sdif_cmd12_stop_transmission(gctx->sctx, 1);
         }
     } else {
-        iret = sdif_do_op_0xd(gctx->sctx, 0);
+        iret = sdif_cmd13_send_status(gctx->sctx, 0);
         if (-1 < iret) {
             iret = 0;
         }
@@ -567,21 +567,21 @@ int sdif_read_sector_mmc(unk2_sdif_gigactx *gctx, uint32_t sector, uint32_t dst,
 
     op.cmd_settings = 0x114;
     op.this_size = 0x30;
-    op.cmd_index = (nsectors != 1) + 0x11;
+    op.cmd_index = (nsectors != 1) ? 18 : 17;
     op.argument1 = sector;
     if (!(gctx->quirks & 1))
         op.argument1 = sector * SECTOR_SIZE;
     op.block_size = 0x200;
     op.dst_addr = dst;
     op.block_count = nsectors;
-    if ((op.cmd_index != 0x12) || (iret = do_op_0x17(gctx->sctx, nsectors), -1 < iret)) {
+    if ((op.cmd_index != 18) || (iret = sdif_cmd23_set_block_count(gctx->sctx, nsectors), -1 < iret)) {
         iret = write_args_retry(gctx->sctx, &op, 0);
         if (iret < 0) {
-            if ((((op.cmd_index == 0x12) && (iret != -0x7fcdfee3)) && (iret != -0x7fcdfee2)) && (iret != -0x7fcdfee1)) {
-                sdif_do_op_0xc(gctx->sctx, 0);
+            if ((((op.cmd_index == 18) && (iret != -0x7fcdfee3)) && (iret != -0x7fcdfee2)) && (iret != -0x7fcdfee1)) {
+                sdif_cmd12_stop_transmission(gctx->sctx, 0);
             }
         } else {
-            iret = sdif_do_op_0xd(gctx->sctx, 0);
+            iret = sdif_cmd13_send_status(gctx->sctx, 0);
             if (-1 < iret) {
                 iret = 0;
             }
@@ -596,21 +596,22 @@ int sdif_write_sector_mmc(unk2_sdif_gigactx *gctx, uint32_t sector, uint32_t dst
 
     op.cmd_settings = 0x214;
     op.this_size = 0x30;
-    op.cmd_index = (nsectors != 1) + 0x18;
+    op.cmd_index = (nsectors != 1) ? 25 : 24;
     op.argument1 = sector;
     if (!(gctx->quirks & 1))
         op.argument1 = sector * SECTOR_SIZE;
     op.block_size = 0x200;
     op.dst_addr = dst;
     op.block_count = nsectors;
-    if ((op.cmd_index != 0x19) || (iret = do_op_0x17(gctx->sctx, nsectors), -1 < iret)) {
+    if ((op.cmd_index != 25) || (iret = sdif_cmd23_set_block_count(gctx->sctx, nsectors), -1 < iret)) {
         iret = write_args_retry(gctx->sctx, &op, 0);
         if (iret < 0) {
-            if ((((op.cmd_index == 0x12) && (iret != -0x7fcdfee3)) && (iret != -0x7fcdfee2)) && (iret != -0x7fcdfee1)) {
-                sdif_do_op_0xc(gctx->sctx, 0);
+            //bug? 18 -> 24
+            if ((((op.cmd_index == 18) && (iret != -0x7fcdfee3)) && (iret != -0x7fcdfee2)) && (iret != -0x7fcdfee1)) {
+                sdif_cmd12_stop_transmission(gctx->sctx, 0);
             }
         } else {
-            iret = sdif_do_op_0xd(gctx->sctx, 0);
+            iret = sdif_cmd13_send_status(gctx->sctx, 0);
             if (-1 < iret) {
                 iret = 0;
             }
@@ -620,10 +621,11 @@ int sdif_write_sector_mmc(unk2_sdif_gigactx *gctx, uint32_t sector, uint32_t dst
 }
 
 #ifndef SDIF_NOINITS
-static uint32_t sdif_pingwaitcfg_regs(unk_sdif_ctx_init *param_1, uint32_t param_2) {
+/** reset_mask: bit 0 -> reset controller, bit 1 -> reset IRQ configuration & timeout control */
+static uint32_t sdif_reset_controller_config(unk_sdif_ctx_init *param_1, uint32_t reset_mask) {
     SceSdifReg *sdif = param_1->sdif_regs_addr;
 
-    if ((param_2 & 1) != 0) {
+    if ((reset_mask & 1) != 0) {
         /* Reset the entire SD host controller */
         sdif->SoftwareReset = SDHC_SOFTWARE_RESET_ALL;
 
@@ -632,7 +634,7 @@ static uint32_t sdif_pingwaitcfg_regs(unk_sdif_ctx_init *param_1, uint32_t param
             ;
     }
 
-    if ((param_2 & 2) != 0) {
+    if ((reset_mask & 2) != 0) {
         const uint32_t NIS_ENABLED =
             (SDHC_NORMAL_IRQ_STATUS_CARD_REMOVAL | SDHC_NORMAL_IRQ_STATUS_CARD_INSERTION
                 | SDHC_NORMAL_IRQ_STATUS_BUFFER_READ_READY | SDHC_NORMAL_IRQ_STATUS_BUFFER_WRITE_READY
@@ -680,8 +682,8 @@ int sdif_init_ctx(int id, bool alt_clk, unk_sdif_ctx_init *ctx) {
             ctx->unk_0 = 0;
     }
 
-    ctx->unk_clk1 = 48000000;
-    ctx->unk_clk2 = alt_clk ? 24000000 : 48000000;
+    ctx->base_clock = 48000000;
+    ctx->max_clock = alt_clk ? 24000000 : 48000000;
     ctx->dev_id = id;
 
     uint32_t regBase;
@@ -693,7 +695,7 @@ int sdif_init_ctx(int id, bool alt_clk, unk_sdif_ctx_init *ctx) {
 
     ctx->sdif_regs_addr = (SceSdifReg *)regBase;
 
-    sdif_pingwaitcfg_regs(ctx, /* Reset entire controller and IRQ status */ 3);
+    sdif_reset_controller_config(ctx, /* Reset entire controller and IRQ status */ 3);
 
     return 0;
 }
@@ -778,25 +780,30 @@ static int sdif_configure_bus(unk_sdif_ctx_init *param_1) {
     return 0;
 }
 
-static int sdif_work_reg16x16(unk_sdif_ctx_init *param_1, uint32_t param_2, int enable_high_speed) {
+static int sdif_configure_bus_speed(unk_sdif_ctx_init *param_1, uint32_t bus_speed, int enable_high_speed) {
     SceSdifReg *sdif = param_1->sdif_regs_addr;
     uint32_t uVar4;
 
-    if (param_1->unk_clk2 < param_2) {
-        param_2 = param_1->unk_clk2;
+    if (param_1->max_clock < bus_speed) {
+        bus_speed = param_1->max_clock;
     }
-    uVar4 = 0;
-    do {
-        if (param_1->unk_clk1 >> ((uint8_t)uVar4 & 0x1f) <= param_2)
-            break;
-        uVar4 = uVar4 + 1;
-    } while ((int)uVar4 < 8);
+
+    /**
+     * Find the smallest prescaler such that SD clock is less than or equal
+     * to the bus speed requested by caller.
+     * N.B. 1: prescalers are powers of two between 0 and 8.
+     * N.B. 2: (a >> b) is equal to (a / (2^b))
+     */
+    uint32_t prescaler_log2 = 0;
+    while ((param_1->base_clock >> prescaler_log2) > bus_speed && prescaler_log2 < 8) {
+        prescaler_log2++;
+    }
 
     /* Reset clock configuration and turn off all clocks */
     sdif->ClockControl = 0;
 
     /* Enable internal clock and configure SD clock prescaler */
-    const uint16_t freq_sel = ((SDHC_CLOCK_CONTROL_SDCLK_FREQ_BASECLK_DIV_2 >> 1) << uVar4) & SDHC_CLOCK_CONTROL_SDCLK_FREQ_SELECT_Msk;
+    const uint16_t freq_sel = ((SDHC_CLOCK_CONTROL_SDCLK_FREQ_BASECLK_DIV_2 >> 1) << prescaler_log2) & SDHC_CLOCK_CONTROL_SDCLK_FREQ_SELECT_Msk;
     sdif->ClockControl |= (SDHC_CLOCK_CONTROL_INTERNAL_CLOCK_ENABLE | freq_sel);
 
     int tries = 10;
@@ -823,7 +830,7 @@ static int sdif_work_reg16x16(unk_sdif_ctx_init *param_1, uint32_t param_2, int 
     return -2144206846;
 }
 
-static uint32_t sdif_ack_regx14(unk_sdif_ctx_init *param_1, int bus_width) {
+static uint32_t sdif_set_bus_width(unk_sdif_ctx_init *param_1, int bus_width) {
     /* This is 1:1 with 2BL implementation but not brom? End results are equivalent */
     uint8_t HC1 = param_1->sdif_regs_addr->HostControl1;
 
@@ -839,7 +846,7 @@ static uint32_t sdif_ack_regx14(unk_sdif_ctx_init *param_1, int bus_width) {
     return 0;
 }
 
-static int sdif_op0_arg1(unk_sdif_ctx_init *param_1) {
+static int sdif_cmd0_go_idle_state(unk_sdif_ctx_init *param_1) {
     int iVar1;
     sdif_command_s local_38;
 
@@ -850,8 +857,8 @@ static int sdif_op0_arg1(unk_sdif_ctx_init *param_1) {
     local_38.this_size = 0x30;
     iVar1 = write_args_retry(param_1, &local_38, 0);
     if (-1 < iVar1) {
-        sdif_work_reg16x16(param_1, 400000, 0);
-        sdif_ack_regx14(param_1, 1);
+        sdif_configure_bus_speed(param_1, 400000, 0);
+        sdif_set_bus_width(param_1, 1);
         iVar1 = 0;
     }
     return iVar1;
@@ -868,7 +875,7 @@ static int sdif_loop_opx37_argx13_oparg(unk2_sdif_gigactx *gctx, sdif_command_s 
     iVar1 = 0;
     if (0 < param_3) {
         do {
-            local_44.cmd_index = 0x37;
+            local_44.cmd_index = 55;
             local_44.cmd_settings = 0x13;
             local_44.this_size = 0x30;
             local_44.dst_addr = 0;
@@ -896,7 +903,7 @@ static int sdif_loop_wopx37_opx29_argx42(unk2_sdif_gigactx *gctx, uint32_t param
 
     iVar2 = 0;
     local_44.dst_addr = 0;
-    local_44.cmd_index = 0x29;
+    local_44.cmd_index = 41;
     local_44.cmd_settings = 0x42;
     local_44.this_size = 0x30;
     local_44.argument1 = param_2;
@@ -997,7 +1004,7 @@ static int sdif_opx10_argx13(unk_sdif_ctx_init *param_1, uint32_t param_2) {
     sdif_command_s op;
 
     op.dst_addr = 0;
-    op.cmd_index = 0x10;
+    op.cmd_index = 16;
     op.cmd_settings = 0x13;
     op.this_size = 0x30;
     op.argument1 = param_2;
@@ -1051,10 +1058,10 @@ int sdif_init_sd(unk2_sdif_gigactx *gctx) {
     if (iret < 0)
         return iret;
     delay(10000);
-    iret = sdif_pingwaitcfg_regs(gctx->sctx, 2);
+    iret = sdif_reset_controller_config(gctx->sctx, 2);
     if (iret < 0)
         return iret;
-    iret = sdif_op0_arg1(gctx->sctx);
+    iret = sdif_cmd0_go_idle_state(gctx->sctx);
     if (iret < 0)
         return iret;
     sdif_unk0 = gctx->sctx->unk_0;
@@ -1093,7 +1100,7 @@ int sdif_init_sd(unk2_sdif_gigactx *gctx) {
         return iret;
     {  // sdif_opx2a_argx13
         memset(&op, 0, sizeof(op));
-        op.cmd_index = 0x2a;
+        op.cmd_index = 42;
         op.cmd_settings = 0x13;
         op.argument1 = 0;
         op.this_size = 0x30;
@@ -1155,7 +1162,7 @@ int sdif_init_sd(unk2_sdif_gigactx *gctx) {
         memset(&op, 0, sizeof(op));
         op.block_count = 0;
         op.argument1 = 0;
-        op.cmd_index = 0x33;
+        op.cmd_index = 51;
         op.cmd_settings = 0x114;
         op.block_size = 8;
         op.this_size = 0x30;
@@ -1224,8 +1231,8 @@ int sdif_init_mmc(unk2_sdif_gigactx *gctx) {
     if (iret < 0)
         return iret;
 
-    // printf("pre sdif_op0_arg1\n");
-    iret = sdif_op0_arg1(gctx->sctx);
+    // printf("pre sdif_cmd0_go_idle_state\n");
+    iret = sdif_cmd0_go_idle_state(gctx->sctx);
     if (iret < 0)
         return iret;
 
@@ -1328,11 +1335,11 @@ int sdif_init_mmc(unk2_sdif_gigactx *gctx) {
             }
             if (iret < 0)
                 return iret;
-            // printf("pre sdif_work_reg16x16\n");
-            iret = sdif_work_reg16x16(gctx->sctx, gctx->maxTransferSpeed, 1);
+            // printf("pre sdif_configure_bus_speed\n");
+            iret = sdif_configure_bus_speed(gctx->sctx, gctx->maxTransferSpeed, 1);
         } else {
-            // printf("pre sdif_work_reg16x16\n");
-            iret = sdif_work_reg16x16(gctx->sctx, gctx->op8_switchd, 0);
+            // printf("pre sdif_configure_bus_speed\n");
+            iret = sdif_configure_bus_speed(gctx->sctx, gctx->op8_switchd, 0);
         }
         if (-1 < iret)
             iret = 0;

@@ -39,8 +39,8 @@ typedef struct _sdif_command_s sdif_command_s;
 
 struct _unk_sdif_ctx_init {
     uint32_t unk_0;
-    uint32_t unk_clk1;
-    uint32_t unk_clk2;
+    uint32_t base_clock;
+    uint32_t max_clock;
     uint16_t unk_half_id;
     uint16_t dev_id;
     sdif_command_s* sdif_arg;
