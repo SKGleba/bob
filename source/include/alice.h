@@ -1,7 +1,10 @@
 #ifndef __ALICE_H__
 #define __ALICE_H__
 
+#include "defs.h"
 #include "types.h"
+#include "utils.h"
+#include "compat.h"
 
 struct _alice_xcfg_s {
     void* sp_per_core[4];
@@ -105,17 +108,25 @@ enum ALICE_THREE_TASKS {
 #define ALICE_CORE_STATUS_WAITING 0b10 // core is waiting
 #define ALICE_CORE_STATUS_TASKING 0b100 // core is running a task (chain)
 
-int alice_handleCmd(uint32_t cmd, uint32_t arg1, uint32_t arg2, uint32_t arg3);
-int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool enable_cs, bool dram, bool set_uart);
-int alice_stopReloadAlice(uint32_t reload_config);
+#ifndef ALICE_UNUSE
+    int alice_handleCmd(uint32_t cmd, uint32_t arg1, uint32_t arg2, uint32_t arg3);
+    int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool enable_cs, bool dram, bool set_uart);
+    int alice_stopReloadAlice(uint32_t reload_config);
+    int alice_schedule_task(int target_core, volatile alice_core_task_s* task, bool wait_core_done, bool wait_task_done);
+    int alice_get_task_status(int core, bool ret, bool actual_core_task);
+    int alice_schedule_bob_task(int core, int task_id, bool wait_core_done, bool wait_task_done, int a0, int a1, int a2, int a3);
 
-int alice_schedule_task(int target_core, volatile alice_core_task_s* task, bool wait_core_done, bool wait_task_done);
-int alice_get_task_status(int core, bool ret, bool actual_core_task);
-int alice_schedule_bob_task(int core, int task_id, bool wait_core_done, bool wait_task_done, int a0, int a1, int a2, int a3);
-
-extern volatile alice_vector_s* alice_vectors;
-extern volatile alice_xcfg_s* alice_xcfg;
-extern volatile alice_core_task_s* (* volatile alice_tasks)[4];
-extern volatile int(*alice_core_status)[4];
+    extern volatile alice_vector_s* alice_vectors;
+    extern volatile alice_xcfg_s* alice_xcfg;
+    extern volatile alice_core_task_s* (* volatile alice_tasks)[4];
+    extern volatile int(*alice_core_status)[4];
+#else
+    #define alice_handleCmd(a, b, c, d) stub()
+    #define alice_loadAlice(a, b, c, d, e, f, g) stub()
+    int alice_stopReloadAlice(uint32_t reload_config); // its hard exported in vectors
+    #define alice_schedule_task(a, b, c, d) stub()
+    #define alice_get_task_status(a, b, c) stub()
+    #define alice_schedule_bob_task(a, b, c, d, e, f, g, h) stub()
+#endif
 
 #endif

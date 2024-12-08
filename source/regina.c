@@ -9,6 +9,8 @@
 #include "include/types.h"
 #include "include/utils.h"
 
+#ifndef REGINA_UNUSE
+
 // TODO: support coldboot
 int regina_loadRegina(void *src, bool blockFudAccess, bool allowArmAccess) {
     printf("[BOB] put AGX into reset\n");
@@ -85,3 +87,5 @@ int regina_sendCmd(int cmd, uint32_t *args, uint32_t *extra, int timeout_step, i
     combuf->cmd_packed = 0;
     return combuf->ret;
 }
+
+#endif

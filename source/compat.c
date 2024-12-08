@@ -16,9 +16,10 @@
 #include "include/types.h"
 #include "include/utils.h"
 
+#ifndef COMPAT_UNUSE
+
 // bring your own keys
 static const uint8_t skso_iv[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-
 
 static int compat_state = 0;
 
@@ -296,3 +297,5 @@ int compat_handleAllegrex(int cmd, int arg1, int arg2) {
     }
     return ret;
 }
+
+#endif

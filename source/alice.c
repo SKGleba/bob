@@ -14,6 +14,8 @@
 #include "include/utils.h"
 #include "include/stor.h"
 
+#ifndef ALICE_UNUSE
+
 volatile alice_vector_s* alice_vectors = NULL;
 volatile alice_xcfg_s* alice_xcfg = NULL;
 volatile alice_core_task_s* (* volatile alice_tasks)[4] = NULL;
@@ -225,7 +227,16 @@ int alice_handleCmd(uint32_t cmd, uint32_t arg1, uint32_t arg2, uint32_t arg3) {
 
     maika->mailbox.arm2cry[3] = -1;
     maika->mailbox.arm2cry[2] = -1;
-    maika->mailbox.arm2cry[1] = cret;
+    maika->mailbox.arm2cry[1] = -1;
+    maika->mailbox.cry2arm[1] = cret;
 
     return -1;
 }
+
+#else
+
+int alice_stopReloadAlice(uint32_t reload_config) {
+    return stub();
+}
+
+#endif

@@ -34,7 +34,7 @@ void glitch_test(void) {
     delay_nx(0x10000, 200);
 }
 
-__attribute__((noreturn, section(".text.exs"))) void glitch_init(void) {
+__attribute__((noreturn)) void glitch_init(void) {
 #ifndef NO_STATUS_LED
     gpio_port_set(0, GPIO_PORT_PS_LED);
     statusled(STATUS_GLINIT_GPIO);
@@ -83,5 +83,5 @@ __attribute__((noreturn, section(".text.exs"))) void glitch_init(void) {
         "jmp vectors_exceptions\n"
     );
 
-    PANIC("glitch_init retd", 0);
+    PANIC("GRET", 0);
 }

@@ -7,6 +7,10 @@
 // atrocious, but i love it
 #define p *(uint32_t*)
 #define vp *(volatile uint32_t*)
+#define v8p *(volatile uint8_t*)
+#define v16p *(volatile uint16_t*)
+#define v32p *(volatile uint32_t*)
+#define v64p *(volatile uint64_t*)
 
 // function selector based on argc
 #define FUN_VAR4(_1, _2, _3, _4, _fun, ...) _fun

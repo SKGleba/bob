@@ -5,7 +5,7 @@
 
 #include "types.h"
 
-//#define NO_STATUS_LED // disable usage of devkit gpo leds as status output
+#define NO_STATUS_LED // disable usage of devkit gpo leds as status output
 
 //#define SILENT // suppress prints and uart init
 
@@ -23,8 +23,14 @@
 
 #define GLITCH_SKIP_TEST // skip test() on glitch trigger
 
-//#define DRAM_UNUSE // dont include the dram init code (large, over 1kb)
-//#define SDIF_UNUSE // dont include the storage/sdif code (very large, around 6kb)
-//#define SDIF_NOINITS // dont include the storage/sdif init functions (saves around 2kb, requires ctx import)
+//#define DRAM_UNUSE // dont include the dram init code (-1kb)
+//#define SDIF_UNUSE // dont include the storage/sdif code (-6kb)
+//#define SDIF_NOINITS // dont include the storage/sdif init functions (-2kb), requires ctx import
+//#define COMPAT_UNUSE // dont include the arm, alice and regina code (-5kb)
+
+#ifndef COMPAT_UNUSE
+//#define ALICE_UNUSE   // dont include the alice code (-2kb)
+//#define REGINA_UNUSE  // dont include the regina code (-1kb)
+#endif
 
 #endif

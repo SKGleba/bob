@@ -22,8 +22,8 @@
     #define stor_write_emmc(a, b, c) stub()
     #define stor_init_sd(a) stub()
     #define stor_init_emmc(a, b) stub()
-    #define stor_export_ctx(a, b) stub()
-    #define stor_import_ctx(a, b) stub()
+    #define stor_export_ctx(a, b, c) stub()
+    #define stor_import_ctx(a, b, c) stub()
 #endif
 
 #endif
