@@ -38,10 +38,16 @@ typedef struct _unk_sdif_ctx_init unk_sdif_ctx_init;
 struct _unk2_sdif_gigactx {  // shrunk version of the original gigactx
     unk_sdif_ctx_init* sctx;
     uint32_t quirks;  // bit 0: use sector offset instead of byte offset
-    uint8_t op9_argx33[0x10];
-    uint32_t op9_lutd;  // lut0[op9_4b99] * lut1[op9_3bx60]
+    uint8_t cardSpecificData[0x10];
+    uint32_t maxTransferSpeed; /* Maximum data transfer rate per one data line, in bits per second */
     union {
-        uint32_t op9_switchd;  // (op9_22bx30 + 1) * 0x400 or (op9_12bx3e + 1) << ((op9_3bx2f + 2) & 0x1f)
+        /**
+         * For GC-SD only: card size, in number of blocks
+         *  + SD standard capacity: block size is fixed in READ_BL_LEN field of CSD
+         *  + SDHC / SDXC: block size is fixed at 512 bytes
+         */
+        uint32_t gcsdCardSizeInBlocks;
+        /* For eMMC only: clock speed? */
         uint32_t op8_switchd;
     };
 };

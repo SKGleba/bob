@@ -13,6 +13,32 @@
 #define CONCAT12(high, low) ((high << 16) | low)
 #define CONCAT13(high, low) ((high << 24) | low)
 
+#define SECTOR_SIZE (512)
+
+/* SD Card-Specific Data structure layout */
+#define CSD_STRUCTURE_OFFSET    126
+#define CSD_STRUCTURE_SIZE      2
+
+#define CSD_TAAC_VALUE_OFFSET   115
+#define CSD_TAAC_VALUE_SIZE     4
+#define CSD_TAAC_UNIT_OFFSET    112
+#define CSD_TAAC_UNIT_SIZE      3
+
+#define CSD_TRAN_SPEED_VALUE_OFFSET 99
+#define CSD_TRAN_SPEED_VALUE_SIZE   4
+#define CSD_TRAN_SPEED_UNIT_OFFSET  96
+#define CSD_TRAN_SPEED_UNIT_SIZE    3
+
+/* CSD Version 2.0-only definitions */
+#define CSD_20_C_SIZE_OFFSET        48
+#define CSD_20_C_SIZE_SIZE          22
+
+/* CSD Version 1.0-only definitions */
+#define CSD_10_C_SIZE_OFFSET        62
+#define CSD_10_C_SIZE_SIZE          12
+#define CSD_10_C_SIZE_MULT_OFFSET   47
+#define CSD_10_C_SIZE_MULT_SIZE     3
+
 static void sdif_cfgwait_regs16_x19nx1b(unk_sdif_ctx_init *param_1, uint32_t param_2) {
     if (param_2 != 0) {
         SceSdifReg *sdif = param_1->sdif_regs_addr;
@@ -459,7 +485,7 @@ int sdif_read_sector_sd(unk2_sdif_gigactx *gctx, uint32_t sector, uint32_t dst, 
     }
     op.sector = sector;
     if (!(gctx->quirks & 1))
-        op.sector = sector << 9;
+        op.sector = sector * SECTOR_SIZE;
     op.sector_size = 0x200;
     op.dst_addr = dst;
     op.sector_count = nsectors;
@@ -491,7 +517,7 @@ int sdif_write_sector_sd(unk2_sdif_gigactx *gctx, uint32_t sector, uint32_t dst,
     }
     op.sector = sector;
     if (!(gctx->quirks & 1))
-        op.sector = sector << 9;
+        op.sector = sector  * SECTOR_SIZE;
     op.sector_size = 0x200;
     op.dst_addr = dst;
     op.sector_count = nsectors;
@@ -518,7 +544,7 @@ int sdif_read_sector_mmc(unk2_sdif_gigactx *gctx, uint32_t sector, uint32_t dst,
     op.op_id = (nsectors != 1) + 0x11;
     op.sector = sector;
     if (!(gctx->quirks & 1))
-        op.sector = sector << 9;
+        op.sector = sector * SECTOR_SIZE;
     op.sector_size = 0x200;
     op.dst_addr = dst;
     op.sector_count = nsectors;
@@ -547,7 +573,7 @@ int sdif_write_sector_mmc(unk2_sdif_gigactx *gctx, uint32_t sector, uint32_t dst
     op.op_id = (nsectors != 1) + 0x18;
     op.sector = sector;
     if (!(gctx->quirks & 1))
-        op.sector = sector << 9;
+        op.sector = sector * SECTOR_SIZE;
     op.sector_size = 0x200;
     op.dst_addr = dst;
     op.sector_count = nsectors;
@@ -646,7 +672,7 @@ int sdif_init_ctx(int id, bool alt_clk, unk_sdif_ctx_init *ctx) {
     return 0;
 }
 
-static uint32_t bitfield_extract(int ptr, uint32_t start_bit, uint32_t numbits) {
+static uint32_t bitfield_extract(void *ptr, uint32_t start_bit, uint32_t numbits) {
     uint32_t ui;
     uint8_t *pos;
     uint32_t mask1;
@@ -956,8 +982,24 @@ static int sdif_opx10_argx13(unk_sdif_ctx_init *param_1, uint32_t param_2) {
     return iVar1;
 }
 
-static uint32_t sdinit_lut0[8] = {0x2710, 0x186a0, 0xf4240, 0x989680, 0, 0, 0, 0};
-static uint8_t sdinit_lut1[0x10] = {0x0, 0xA, 0xC, 0xD, 0xF, 0x14, 0x19, 0x1E, 0x23, 0x28, 0x2d, 0x32, 0x37, 0x3c, 0x46, 0x50};
+/**
+ * TRAN_SPEED unit and time value look-up tables
+ * 
+ * N.B.: to remove the need for floating point arithmetic, values in the
+ * time value LUT are pre-multiplied by 10, and values in the unit LUT are
+ * pre-divided by 10 to compensate.
+ */
+static const uint32_t CSD_TRAN_SPEED_unit_LUT[] = {
+    10000,      /* 100 Kbit/s */
+    100000,     /* 1   Mbit/s */
+    1000000,    /* 10  Mbit/s */
+    10000000,   /* 100 Mbit/s */
+    0, 0, 0, 0  /* Reserved */
+};
+
+static const uint8_t CSD_TRAN_SPEED_value_LUT[] = {
+    0, 10, 12, 13, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80
+};
 
 int sdif_init_sd(unk2_sdif_gigactx *gctx) {
     int iret;
@@ -971,7 +1013,7 @@ int sdif_init_sd(unk2_sdif_gigactx *gctx) {
     if (!iret)
         return -0x7fcdffff;
     gctx->quirks = 0;
-    if (gctx->op9_switchd) {  // already ran once, do reset?
+    if (gctx->gcsdCardSizeInBlocks) {  // already ran once, do reset?
         SceSdifReg *sdif = gctx->sctx->sdif_regs_addr;
 
         sdif->ClockControl = 0;
@@ -1037,26 +1079,48 @@ int sdif_init_sd(unk2_sdif_gigactx *gctx) {
     if (iret < 0)
         return iret;
     sdif_op7_argxy3(gctx->sctx, 0);
-    iret = sdif_op9_argx33(gctx->sctx, gctx->op9_argx33);
+    iret = sdif_op9_argx33(gctx->sctx, gctx->cardSpecificData);
     if (iret < 0)
         return iret;
+
     iret = sdif_op7_argxy3(gctx->sctx, 1);
     if (iret < 0)
         return iret;
 
-    uint32_t *tmptr = (uint32_t *)gctx->op9_argx33;
-    int op9_2bx7e = (uint8_t)bitfield_extract((int)tmptr, 0x7e, 2);  // orig gigactx + 0x38
-    iret = (int)bitfield_extract((int)tmptr, 99, 4);
-    if (iret > 0xf)
-        iret = 0;
-    gctx->op9_lutd = (uint32_t)sdinit_lut1[iret] * sdinit_lut0[bitfield_extract((int)tmptr, 0x60, 3)];  // orig gigactx + 0x39
-    if (op9_2bx7e == 1) {
-        gctx->op9_switchd = (bitfield_extract((int)tmptr, 0x30, 22) + 1) * 0x400;  // orig gigactx + 0x3b
+    // orig gigactx + 0x38
+    int csd_structure_version = (uint8_t)bitfield_extract(gctx->cardSpecificData, CSD_STRUCTURE_OFFSET, CSD_STRUCTURE_SIZE);
+    {
+        int tran_speed_val = (int)bitfield_extract(gctx->cardSpecificData, CSD_TRAN_SPEED_VALUE_OFFSET, CSD_TRAN_SPEED_VALUE_SIZE);
+        if (tran_speed_val > 0xf)
+            tran_speed_val = 0;
+
+        int tran_speed_unit = (int)bitfield_extract(gctx->cardSpecificData, CSD_TRAN_SPEED_UNIT_OFFSET, CSD_TRAN_SPEED_UNIT_SIZE);
+
+        // orig gigactx + 0x39
+        gctx->maxTransferSpeed = (uint32_t)CSD_TRAN_SPEED_value_LUT[tran_speed_val] * CSD_TRAN_SPEED_unit_LUT[tran_speed_unit];
+    }
+
+    if (csd_structure_version == 1) { //CSD Version 2.0
+        /**
+         * memory capacity = (C_SIZE + 1) * 512Kbytes, BLOCKNR = memory capacity / SECTOR_SIZE
+         * ==> BLOCKNR = (C_SIZE + 1) * (512 * 1024) / 512 = (C_SIZE + 1) * 1024 
+         */
+        // orig gigactx + 0x3b
+        gctx->gcsdCardSizeInBlocks = (bitfield_extract(gctx->cardSpecificData, CSD_20_C_SIZE_OFFSET, CSD_20_C_SIZE_SIZE) + 1) * 1024;
+
+        /* SDHC/SDXC use sector-based addressing */
         gctx->quirks = gctx->quirks | 1;
-    } else {
-        if (op9_2bx7e)
+    } else if (csd_structure_version == 0) { //CSD Version 1.0
+        /**
+         * MULT = 2^(C_SIZE_MULT + 2)
+         * BLOCKNR = (C_SIZE + 1) * MULT
+         */
+        uint32_t C_SIZE = bitfield_extract(gctx->cardSpecificData, CSD_10_C_SIZE_OFFSET, CSD_10_C_SIZE_SIZE);
+        uint32_t C_SIZE_MULT = bitfield_extract(gctx->cardSpecificData, CSD_10_C_SIZE_MULT_OFFSET, CSD_10_C_SIZE_MULT_SIZE);
+
+        gctx->gcsdCardSizeInBlocks = (C_SIZE + 1) << (2 + C_SIZE_MULT);
+    } else { // unknown CSD version
             return -1;
-        gctx->op9_switchd = ((int)bitfield_extract((int)tmptr, 0x3e, 12) + 1) << (((int)bitfield_extract((int)tmptr, 0x2f, 3) + 2) & 0x1f);
     }
 
     uint8_t opx33_argx114[0x200];
@@ -1114,9 +1178,6 @@ static int sdif_op1_argx42(unk2_sdif_gigactx *gctx, uint32_t param_2, uint32_t *
     return 0;
 }
 
-static uint32_t *mmcinit_lut0 = sdinit_lut0;
-static uint8_t mmcinit_lut1[0x10] = {0x0, 0xA, 0xC, 0xD, 0xF, 0x14, 0x1A, 0x1E, 0x23, 0x28, 0x2d, 0x34, 0x37, 0x3c, 0x46, 0x50};
-
 // TODO: replicate a "-1" / failed init, left commented printf's for now
 int sdif_init_mmc(unk2_sdif_gigactx *gctx) {
     int iret;
@@ -1127,17 +1188,21 @@ int sdif_init_mmc(unk2_sdif_gigactx *gctx) {
     iret = sdif_wait_card_present(gctx->sctx);
     if (iret < 0)
         return iret;
-    if (!iret)
+
+    if (!iret) /* device not present */
         return -1;
+
     gctx->quirks = 1;
     // printf("pre sdif_cfg_reg16x16\n");
     iret = sdif_configure_bus(gctx->sctx);
     if (iret < 0)
         return iret;
+
     // printf("pre sdif_op0_arg1\n");
     iret = sdif_op0_arg1(gctx->sctx);
     if (iret < 0)
         return iret;
+
     // printf("pre sdif_op1_argx42\n");
     iret = sdif_op1_argx42(gctx, gctx->sctx->unk_0 | 0x40000000, 0);
     if (iret < 0)
@@ -1164,17 +1229,23 @@ int sdif_init_mmc(unk2_sdif_gigactx *gctx) {
     }
     if (iret < 0)
         return iret;
+
     gctx->sctx->unk_half_id = 1;
     // printf("pre sdif_op9_argx33\n");
-    iret = sdif_op9_argx33(gctx->sctx, gctx->op9_argx33);
+    iret = sdif_op9_argx33(gctx->sctx, gctx->cardSpecificData);
     if (iret < 0)
         return iret;
 
-    uint32_t *tmptr = (uint32_t *)gctx->op9_argx33;
-    iret = (int)bitfield_extract((int)tmptr, 99, 4);
-    if (iret > 0xf)
-        iret = 0;
-    gctx->op9_lutd = (uint32_t)mmcinit_lut1[iret] * mmcinit_lut0[bitfield_extract((int)tmptr, 0x60, 3)];  // orig gigactx + 0xa9
+    {
+        int tran_speed_val = (int)bitfield_extract(gctx->cardSpecificData, CSD_TRAN_SPEED_VALUE_OFFSET, CSD_TRAN_SPEED_VALUE_SIZE);
+        if (tran_speed_val > 0xf)
+            tran_speed_val = 0;
+
+        int tran_speed_unit = (int)bitfield_extract(gctx->cardSpecificData, CSD_TRAN_SPEED_UNIT_OFFSET, CSD_TRAN_SPEED_UNIT_SIZE);
+
+        // orig gigactx + 0xa9
+        gctx->maxTransferSpeed = (uint32_t)CSD_TRAN_SPEED_value_LUT[tran_speed_val] * CSD_TRAN_SPEED_unit_LUT[trans_speed_unit];
+    }
 
     // printf("pre sdif_op7_argxy3\n");
     iret = sdif_op7_argxy3(gctx->sctx, 1);
@@ -1232,7 +1303,7 @@ int sdif_init_mmc(unk2_sdif_gigactx *gctx) {
             if (iret < 0)
                 return iret;
             // printf("pre sdif_work_reg16x16\n");
-            iret = sdif_work_reg16x16(gctx->sctx, gctx->op9_lutd, 1);
+            iret = sdif_work_reg16x16(gctx->sctx, gctx->maxTransferSpeed, 1);
         } else {
             // printf("pre sdif_work_reg16x16\n");
             iret = sdif_work_reg16x16(gctx->sctx, gctx->op8_switchd, 0);
