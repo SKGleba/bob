@@ -5,41 +5,63 @@
 #include "types.h"
 #include "utils.h"
 
-struct _sdif_arg_s {
+#include "hardware/sdif.h"
+
+struct _sdif_command_s {
+    /* Size of this structure */
     uint32_t this_size;
-    uint32_t some_arg1;
-    uint32_t op_id;
-    uint32_t sector;
-    uint32_t unk_4;
-    uint32_t unk_5;
-    uint32_t unk_6;
-    uint32_t unk_7;
+
+    /* ? */
+    uint32_t cmd_settings;
+
+    /* Command Index - as defined in the SD Specification */
+    uint32_t cmd_index;
+
+    /* Command Argument1 - as defined in the SD Specification */
+    uint32_t argument1;
+
+    /* Response buffer - as defined in the SD Specification */
+    uint32_t response[4];
+
+    /* Destination address for writes (source for reads?) */
     uint32_t dst_addr;
-    uint32_t sector_size;
-    uint32_t sector_count;
-    uint32_t unk_11;
+
+    /* Block size for operation */
+    uint32_t block_size;
+
+    /* Number of blocks for operation */
+    uint32_t block_count;
+
+    /* Command status / result code (SCE format) */
+    int status;
 };
-typedef struct _sdif_arg_s sdif_arg_s;
+typedef struct _sdif_command_s sdif_command_s;
 
 struct _unk_sdif_ctx_init {
     uint32_t unk_0;
-    uint32_t unk_clk1;
-    uint32_t unk_clk2;
+    uint32_t base_clock;
+    uint32_t max_clock;
     uint16_t unk_half_id;
     uint16_t dev_id;
-    sdif_arg_s* sdif_arg;
-    sdif_arg_s* sdif_arg2;
-    volatile uint16_t* sdif_regs_addr;
+    sdif_command_s* sdif_arg;
+    sdif_command_s* sdif_arg2;
+    SceSdifReg* sdif_regs_addr;
 };
 typedef struct _unk_sdif_ctx_init unk_sdif_ctx_init;
 
 struct _unk2_sdif_gigactx {  // shrunk version of the original gigactx
     unk_sdif_ctx_init* sctx;
     uint32_t quirks;  // bit 0: use sector offset instead of byte offset
-    uint8_t op9_argx33[0x10];
-    uint32_t op9_lutd;  // lut0[op9_4b99] * lut1[op9_3bx60]
+    uint8_t cardSpecificData[0x10];
+    uint32_t maxTransferSpeed; /* Maximum data transfer rate per one data line, in bits per second */
     union {
-        uint32_t op9_switchd;  // (op9_22bx30 + 1) * 0x400 or (op9_12bx3e + 1) << ((op9_3bx2f + 2) & 0x1f)
+        /**
+         * For GC-SD only: card size, in number of blocks
+         *  + SD standard capacity: block size is fixed in READ_BL_LEN field of CSD
+         *  + SDHC / SDXC: block size is fixed at 512 bytes
+         */
+        uint32_t gcsdCardSizeInBlocks;
+        /* For eMMC only: clock speed? */
         uint32_t op8_switchd;
     };
 };
