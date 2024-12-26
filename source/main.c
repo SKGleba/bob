@@ -18,10 +18,9 @@
 #include "include/types.h"
 #include "include/uart.h"
 #include "include/utils.h"
+#include "include/test.h"
 
 static bob_config options;
-
-void test(int arg);
 
 bool ce_framework(bool bg) {
     if (options.ce_framework_parms[bg]) {
@@ -86,7 +85,7 @@ void init(bob_config* arg_config) {
         options.test_arg = arg_config->test_arg;
         statusled(STATUS_INIT_TEST);
         if (options.run_tests == 1)
-            test(options.test_arg);
+            dfl_test(options.test_arg);
         else {
             void(*test_func)(int arg) = (void*)(options.run_tests);
             test_func(options.test_arg);
@@ -103,27 +102,4 @@ void init(bob_config* arg_config) {
 
     // jump to reset
     asm("jmp vectors_exceptions\n");
-}
-
-void test(int arg) {
-    printf("[BOB] test test test\n");
-
-    if (arg & 1)
-        set_dbg_mode(true);
-
-    _MEP_SYNC_BUS_;
-
-    printf("[BOB] killing arm...\n");
-    compat_killArm(false);
-
-    printf("[BOB] arm is dead, disable the OLED screen...\n");
-    gpio_port_clear(0, GPIO_PORT_OLED);
-
-    printf("[BOB] set max clock\n");
-    vp 0xe3103040 = 0x10007;
-
-    printf("[BOB] test test stuff\n");
-    rpc_loop();
-
-    printf("[BOB] all tests done\n");
 }

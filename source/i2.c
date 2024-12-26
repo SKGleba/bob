@@ -49,6 +49,10 @@ void i2c_transfer_write(int bus, unsigned char addr, const unsigned char* buffer
     i2c_wait_busy(i2c_regs);
 }
 
+void i2c_transfer_write_short(int bus, unsigned char addr, uint32_t data, int size) {
+    i2c_transfer_write(bus, addr, (unsigned char*)&data, size);
+}
+
 void i2c_transfer_read(int bus, unsigned char addr, unsigned char* buffer, int size) {
     int i;
     volatile unsigned int* i2c_regs = I2C_REGS(bus);

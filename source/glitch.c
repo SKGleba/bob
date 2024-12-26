@@ -19,20 +19,7 @@
 #include "include/types.h"
 #include "include/uart.h"
 #include "include/utils.h"
-
-void glitch_test(void) {
-#ifndef SILENT
-    statusled(0x31);
-    hexdump(0x40000, 0x20000, true);
-#endif
-
-    statusled(0x32);
-    for (uint32_t d_addr = 0x40000; d_addr < 0x60000; d_addr += 0x10)
-        jig_update_shared_buffer((uint8_t*)d_addr, 0, 0x10, true);
-
-    statusled(0x33);
-    delay_nx(0x10000, 200);
-}
+#include "include/test.h"
 
 __attribute__((noreturn)) void glitch_init(void) {
 #ifndef NO_STATUS_LED
@@ -60,14 +47,14 @@ __attribute__((noreturn)) void glitch_init(void) {
     uint32_t msg = 0xCAFEBABE;
     jig_update_shared_buffer((uint8_t*)&msg, 0, 0x10, true);
 
-    vp 0xe3103040 = 0x10007; // back up
-
     // test test stuff
 #ifndef GLITCH_SKIP_TEST
     statusled(STATUS_GLINIT_TEST);
     printf("[BOB] test test test\n");
     glitch_test();
 #endif
+
+    vp 0xe3103040 = 0x10007;  // back up
 
     // start the rpc server
     statusled(STATUS_GLINIT_RPC);

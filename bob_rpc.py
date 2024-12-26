@@ -64,7 +64,7 @@ def print_cmd(pinfo, cmd):
         xdata = cmd[32:]
     print(pinfo + " 0x" + swapstr32(cmd_arr[1]) + " 0x" + swapstr32(cmd_arr[2]) + " 0x" + swapstr32(cmd_arr[3]) + " [ " + xdata + " ] <0x" + cmd_arr[0][6:8] + ">")
 
-def exec_cmd(cmd_base):
+def exec_cmd(cmd_base, wait4resp=True):
     global wait4push
 
     base_arr = bytearray.fromhex(cmd_base)
@@ -83,6 +83,9 @@ def exec_cmd(cmd_base):
     bert.handle_cmd("lock-1", ["","",0])
     bert.handle_cmd("shbuf-write", ["", "", request])
     bert.handle_cmd("unlock-1", ["","",0])
+
+    if not wait4resp:
+        return ""
 
     if wait4push:
         line = bert.client.get_resp()
@@ -104,7 +107,7 @@ def exec_cmd(cmd_base):
     return line.hex()[10:-4].upper()
 
 
-def handle_cmd(user_cmd, argv):
+def handle_cmd(user_cmd, argv, wait4resp=True):
     global wait4push
     match user_cmd:
         case "file_send": # arg0 = dst, arg1 = src, arg2 = skip_to (opt)
@@ -193,7 +196,7 @@ def handle_cmd(user_cmd, argv):
                     else:
                         cv_argv[3] = arg
                         break
-                return exec_cmd("{:02X}".format(RPC_COMMANDS[user_cmd]) + swapstr32("{:08X}".format(int(cv_argv[0][2:], 16))) + swapstr32("{:08X}".format(int(cv_argv[1][2:], 16))) + swapstr32("{:08X}".format(int(cv_argv[2][2:], 16))) + cv_argv[3])
+                return exec_cmd("{:02X}".format(RPC_COMMANDS[user_cmd]) + swapstr32("{:08X}".format(int(cv_argv[0][2:], 16))) + swapstr32("{:08X}".format(int(cv_argv[1][2:], 16))) + swapstr32("{:08X}".format(int(cv_argv[2][2:], 16))) + cv_argv[3], wait4resp)
             else:
                 print("command not found and/or malformed input")
     return ""
