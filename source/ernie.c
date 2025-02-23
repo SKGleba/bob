@@ -10,6 +10,8 @@
 #include "include/types.h"
 #include "include/utils.h"
 
+#ifndef ERNIE_UNUSE
+
 ernie_comms_t g_ernie_comms;
 
 // bring your own keys
@@ -117,7 +119,7 @@ void ernie_3auth_single(uint8_t keyset_id, uint8_t *key, uint8_t *data) {
     memset(rx, 0, sizeof(rx));
     
     crypto_bigmacDefaultCmd(
-        false,
+        true,
         (uint32_t)enc_buf, // src and dst can be the same
         (uint32_t)enc_buf,
         sizeof(enc_buf),
@@ -156,3 +158,5 @@ uint32_t ernie_init(bool set_kbsz, bool enable_3auth) {
     
     return 0;
 }
+
+#endif
