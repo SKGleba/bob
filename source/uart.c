@@ -1,8 +1,11 @@
 #include "include/types.h"
 #include "include/perv.h"
 #include "include/uart.h"
+#include "include/defs.h"
 
 int g_uart_bus = UART_BUS;
+
+#ifndef UART_UNUSE
 
 void uart_init(int bus, unsigned int clk) {
     volatile unsigned int* uart_regs = UART_REGS(bus);
@@ -52,6 +55,8 @@ int uart_read(int bus, unsigned int timeout, bool wait) {
 
 int uart_rxfifo_flush(int bus) {
     int le_data = 0;
+    if (bus >= UART_BUS_COUNT)
+        bus = g_uart_bus;
     volatile unsigned int* uart_regs = UART_REGS(bus);
     while (uart_regs[0x1A] & 0b111111) {
         le_data = uart_regs[0x1E];
@@ -60,6 +65,8 @@ int uart_rxfifo_flush(int bus) {
 }
 
 void uart_print(int bus, char* str) {
+    if (bus >= UART_BUS_COUNT)
+        bus = g_uart_bus;
     while (*str) {
         if (*str == '\n')
             uart_write(bus, '\r');
@@ -70,7 +77,10 @@ void uart_print(int bus, char* str) {
 
 void uart_printn(int bus, char* str, int n) {
     char* z = str;
-    
+
+    if (bus >= UART_BUS_COUNT)
+        bus = g_uart_bus;
+
     while (n && *z) {
         if (*z == '\n')
             uart_write(bus, '\r');
@@ -84,6 +94,8 @@ void uart_printn(int bus, char* str, int n) {
 // setting [timeout] to 0 will make it wait indefinitely
 int uart_scann(int bus, uint8_t* out, int outsize, unsigned int timeout) {
     int data;
+    if (bus >= UART_BUS_COUNT)
+        bus = g_uart_bus;
     for (int i = 0; i < outsize; i++) {
         data = uart_read(bus, timeout, !timeout);
         if (data < 0)
@@ -96,6 +108,8 @@ int uart_scann(int bus, uint8_t* out, int outsize, unsigned int timeout) {
 // setting [timeout] to 0 will make it wait indefinitely
 int uart_scanns(int bus, char* out, int outsize, unsigned int timeout) {
     int data;
+    if (bus >= UART_BUS_COUNT)
+        bus = g_uart_bus;
     for (int i = 0; i < outsize; i++) {
         data = uart_read(bus, timeout, !timeout);
         if (data < 0)
@@ -108,3 +122,5 @@ int uart_scanns(int bus, char* out, int outsize, unsigned int timeout) {
     }
     return -1;
 }
+
+#endif

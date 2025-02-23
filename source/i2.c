@@ -4,6 +4,8 @@
 
 #include "include/i2c.h"
 
+#ifndef I2C_UNUSE
+
 static inline void i2c_wait_busy(volatile unsigned int* i2c_regs) {
     while (i2c_regs[7])
         ;
@@ -103,3 +105,5 @@ void i2c_transfer_write_read(int bus, unsigned char write_addr, const unsigned c
 
     i2c_wait_busy(i2c_regs);
 }
+
+#endif

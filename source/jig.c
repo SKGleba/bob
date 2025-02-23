@@ -1,7 +1,10 @@
 #include "include/ernie.h"
 #include "include/utils.h"
+#include "include/defs.h"
 #include "include/clib.h"
 #include "include/jig.h"
+
+#ifndef ERNIE_UNUSE
 
 int jig_update_shared_buffer(uint8_t* msg, uint8_t offset, uint8_t size, bool push) {
     int ret = -1;
@@ -59,3 +62,5 @@ int jig_read_shared_buffer(uint8_t* msg, uint8_t offset, uint8_t size) {
     }
     return ret;
 }
+
+#endif

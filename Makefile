@@ -5,7 +5,7 @@ CC=$(PREFIX)gcc
 ADDEFS=-I$(PSP2REF_DIR)
 CFLAGS=-ml -Os -std=gnu99 -nostdlib -fno-builtin -fno-inline -fno-strict-aliasing -Wall -Wno-volatile-register-var
 LD=$(PREFIX)gcc
-LDFLAGS=-Wl,-T linker.x -nodefaultlibs -nostdlib -nostartfiles
+LDFLAGS=-Wl,-T linker.x -nodefaultlibs -nostdlib -nostartfiles -Wl,-Map=bob.map
 OBJCOPY=$(PREFIX)objcopy
 OBJCOPYFLAGS=
 BOB_MAX_SIZE=32768
@@ -65,6 +65,7 @@ output/bob.bin: bob.bin bob_glitch.bin
 	@echo " | bob (main) -> output"
 	@mv bob.elf output/bob.elf
 	@mv bob.bin output/bob.bin
+	@mv bob.map output/bob.map
 	@echo " | ensure bob fits (BOB_MAX_SIZE: $(BOB_MAX_SIZE))"
 	@if [ $$(stat -c %s output/bob.bin) -gt $(BOB_MAX_SIZE) ]; then echo "\033[0;31m\nERROR: bob.bin is too large\033[0m"; exit 1; fi
 	@if [ $$(stat -c %s output/bob_glitch.bin) -gt $(BOB_MAX_SIZE) ]; then echo "\033[0;31m\nERROR: bob_glitch.bin is too large\033[0m"; exit 1; fi

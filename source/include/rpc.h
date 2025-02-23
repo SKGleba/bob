@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "jig.h"
+#include "defs.h"
 
 #define RPC_MAGIC 0xEB0B
 #define RPC_UART_MAGIC '&'
@@ -43,6 +44,9 @@ enum RPC_COMMANDS {
     RPC_CMD_WRITE_SD,
     RPC_CMD_READ_EMMC,
     RPC_CMD_WRITE_EMMC,
+    RPC_CMD_FEATURES,
+    RPC_CMD_RUN_TEST,
+    RPC_CMD_SET_TEST,
     RPC_CMD_COPYTO = RPC_FLAG_EXTRA,
     RPC_CMD_COPYFROM,
     RPC_CMD_EXEC,           // exec arg0(arg1, arg2, &extra) | ret to arg0
@@ -50,7 +54,7 @@ enum RPC_COMMANDS {
     RPC_CMD_SCHEDULE_ALICE_TASK,
     RPC_CMD_LOAD_ALICE,
     RPC_CMD_LOAD_REGINA,
-    RPC_CMD_REGINA_CMD
+    RPC_CMD_REGINA_CMD,
 };
 
 struct _rpc_uart_cmd_s {

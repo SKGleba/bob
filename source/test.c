@@ -14,6 +14,7 @@
 #include "include/perv.h"
 #include "include/i2c.h"
 #include "include/uart.h"
+#include "include/config.h"
 
 #include "include/test.h"
 
@@ -34,11 +35,6 @@ void dfl_test(int arg) {
 
     printf("[BOB] set max clock\n");
     vp 0xe3103040 = 0x10007;
-
-#ifndef GLITCH_SKIP_TEST
-    gpio_set_port_mode(0, GPIO_PORT_GAMECARD_LED, GPIO_PORT_MODE_OUTPUT);
-    gpio_port_set(0, GPIO_PORT_GAMECARD_LED);
-#endif
 
     printf("[BOB] test test stuff\n");
     rpc_loop();

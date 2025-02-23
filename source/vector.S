@@ -70,22 +70,20 @@ jmp debug_printFormat
 s_alice_stopReloadAlice:
 jmp alice_stopReloadAlice
 
-.global jmp_s_reset_xc
-jmp_s_reset_xc:
-jmp s_RESET
+.global s_rpc_loop
+s_rpc_loop:
+jmp rpc_loop
 
-.global jmp_s_swi_xc
-jmp_s_swi_xc:
-jmp s_SWI
+.global s_ce_framework
+s_ce_framework:
+jmp ce_framework
 
-.global jmp_s_dbg_xc
-jmp_s_dbg_xc:
-jmp s_DBG
+.global g_state
+.type   g_state, @object
+g_state:
+.word 0x0
 
-.global jmp_s_glitch_xc
-jmp_s_glitch_xc:
-jmp s_GLITCH
-
-.global jmp_c_other_xc
-jmp_c_other_xc:
-jmp c_OTHER_EXC
+.global g_config
+.type   g_config, @object
+g_config:
+.word 0x0, 0x0, 0x0, 0x0

@@ -29,8 +29,8 @@
   - 1 : unk
   - 2 : unk
   - 3 : emmc_crypto_ctrl reset [e007]
-  - 4 : unk
-  - 5 : keyring_ctrl reset [e003]
+  - 4 : e008 device reset
+  - 5 : keyring_ctrl reset [e003+e006]
   - 6 : unk
   - 7 : unk
   - 8 : unk

@@ -6,6 +6,8 @@
 #include "include/gpio.h"
 #include "include/debug.h"
 
+#ifndef DEBUG_UNUSE
+
 static const char debug_hexbase[] = "0123456789ABCDEF";
 
 // equ printf(0x08X)
@@ -161,6 +163,15 @@ void debug_setGpoCode(uint8_t code) {
     gpio_regs[2] = (code & 0xff) << 0x10;
     gpio_regs[0xD];
 }
+
+#else
+
+void debug_printFormat(char* base, ...) {
+    print("[BOB] debug_printFormat called when disabled!");
+    _MEP_SYNC_BUS_
+}
+
+#endif
 
 #ifdef ENABLE_REGDUMP
 #ifndef REGDUMP_SMALL

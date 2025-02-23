@@ -83,6 +83,8 @@ int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool en
     if (start)
         compat_armReBoot(arm_clock, enable_cs, dram);
 
+    printf("[BOB] alice loaded\n");
+
     return 0;
 }
 

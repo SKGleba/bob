@@ -23,7 +23,8 @@
 
 __attribute__((noreturn)) void glitch_init(void) {
 #ifndef NO_STATUS_LED
-    gpio_port_set(0, GPIO_PORT_PS_LED);
+    gpio_set_port_mode(0, GPIO_PORT_GAMECARD_LED, GPIO_PORT_MODE_OUTPUT);
+    gpio_port_set(0, GPIO_PORT_GAMECARD_LED);
     statusled(STATUS_GLINIT_GPIO);
     gpio_init(true);
 #else
@@ -49,7 +50,7 @@ __attribute__((noreturn)) void glitch_init(void) {
 
     // test test stuff
 #ifndef GLITCH_SKIP_TEST
-    statusled(STATUS_GLINIT_TEST);
+    statusled(STATUS_TEST_STARTING);
     printf("[BOB] test test test\n");
     glitch_test();
 #endif
@@ -61,9 +62,9 @@ __attribute__((noreturn)) void glitch_init(void) {
     printf("[BOB] cleanup, move stack & exit to rpc\n");
     memset32((void*)0x5a000, 0x0, 0x2000);
     asm(
-        "movu $1, 0x5b800\n"
+        "movu $1, 0x4fcb8\n"
         "mov $gp, $1\n"
-        "movu $0, 0x5aff0\n"
+        "movu $0, 0x49ff0\n"
         "mov $sp, $0\n"
         "bsr rpc_loop\n"
         "mov $0, $0\n"

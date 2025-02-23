@@ -20,86 +20,87 @@
 #include "include/utils.h"
 #include "include/test.h"
 
-static bob_config options;
+static bob_fm_nfo_s main_test_params = {0, 0, 0, 0, 0};
 
-bool ce_framework(bool bg) {
-    if (options.ce_framework_parms[bg]) {
-        if ((options.ce_framework_parms[bg]->magic == 0x14FF) && (options.ce_framework_parms[bg]->status == 0x34)) {
-            options.ce_framework_parms[bg]->status = 0x69;
+#ifndef MAIN_NOCCX
+bool ce_framework(bool bg, bob_fm_nfo_s* params) {
+    if (!params)
+        params = g_config.ce_framework_parms[bg];
 
-            uint32_t(*ccode)(uint32_t arg, volatile uint8_t * status_addr) = (void*)(options.ce_framework_parms[bg]->codepaddr);
+    if (params) {
+        if (CEFW_ISMAGIC(params->magic) && (params->status == CE_FRAMEWORK_STATUS_TORUN)) {
+            params->status = CE_FRAMEWORK_STATUS_RUNNING;
 
-            statusled(STATUS_CEFW_OFF_ICACHE);
-            bool icache_stat = enable_icache(false);
+            bool icache_stat = false;
+            if (CEFW_FLAG(params->magic, _ICACHEOFF)) {
+                statusled(STATUS_CEFW_OFF_ICACHE);
+                icache_stat = enable_icache(false);
+            }
 
             statusled(STATUS_CEFW_CCODE);
-            options.ce_framework_parms[bg]->resp = ccode(options.ce_framework_parms[bg]->arg, &options.ce_framework_parms[bg]->status);
+            params->resp = params->codepaddr(params->arg, &params->status);
 
-            statusled(STATUS_CEFW_ON_ICACHE);
-            enable_icache(icache_stat);
+            if (CEFW_FLAG(params->magic, _ICACHEOFF) && icache_stat) {
+                statusled(STATUS_CEFW_ON_ICACHE);
+                enable_icache(icache_stat);
+            }
 
-            options.ce_framework_parms[bg]->status = options.ce_framework_parms[bg]->exp_status;
+            if (CEFW_FLAG(params->magic, _EXTENDED) && params->next) {
+                statusled(STATUS_CEFW_NEXT);
+                ce_framework(bg, params->next); // watch the stack
+            }
 
-            statusled(STATUS_CEFW_WAIT);
+            params->status = params->exp_status;
+
+            statusled(STATUS_CEFW_DONE_WAIT);
             return true;
         }
     } else if (bg)
         _MEP_SLEEP_
 
-        return false;
+    return false;
 }
+#else
+bool ce_framework(bool bg, bob_fm_nfo_s* params) {
+    return false;
+}
+#endif
 
-void init(bob_config* arg_config) {
+void init(bob_config_s* arg_config) {
+    _MEP_INTR_DISABLE_  // disable interrupts
 
-    _MEP_INTR_DISABLE_ // disable interrupts
-
-    statusled(STATUS_INIT_CEFW);
-
-    // foreground framework (only runs from arm request)
-    options.ce_framework_parms[0] = arg_config->ce_framework_parms[0];
-    if (options.ce_framework_parms[0]) {
-        options.ce_framework_parms[0]->resp = 0;
-        if (options.ce_framework_parms[0]->exp_status)
-            options.ce_framework_parms[0]->status = options.ce_framework_parms[0]->exp_status;
-        ((maika_s*)(MAIKA_OFFSET))->mailbox.arm2cry[0] = -1;
+    // init config
+    if (!CONFIG_GFLAGK(_ISLATEST)) {
+        statusled(STATUS_INIT_CFG);
+        memset(&main_test_params, 0, sizeof(bob_fm_nfo_s));
+        //memset((void*)&g_config, 0, sizeof(bob_config_s));
+        int ret = config_parse(arg_config, (bob_config_s*)&g_config, &main_test_params);
+        if (ret)
+            PANIC("CFGP", ret);
     }
 
-    // background framework (runs when idle)
-    options.ce_framework_parms[1] = arg_config->ce_framework_parms[1];
-    if (options.ce_framework_parms[1]) {
-        options.ce_framework_parms[1]->resp = 0;
-        options.ce_framework_parms[1]->status = options.ce_framework_parms[1]->exp_status;
-    }
-
+    // init uart
 #ifndef SILENT
-    statusled(STATUS_INIT_UART);
-    options.uart_params = arg_config->uart_params;
-    g_uart_bus = (options.uart_params & 0x0F000000) >> 0x18;
-    uart_init(g_uart_bus, options.uart_params & 0xfffff);
+    if (CONFIG_GFLAGK(_SET_UART)) {
+        statusled(STATUS_INIT_UART);
+        g_uart_bus = CONFIG_GVAL(_UART_BUS);
+        uart_init(g_uart_bus, 0x10000 | CONFIG_GVAL(_UART_CLK));
+    }
     printf("[BOB] init bob [%X], me @ %X\n", get_build_timestamp(), init);
 #endif
 
     // test test stuff
-    options.run_tests = arg_config->run_tests;
-    if (options.run_tests) {
-        options.test_arg = arg_config->test_arg;
-        statusled(STATUS_INIT_TEST);
-        if (options.run_tests == 1)
-            dfl_test(options.test_arg);
-        else {
-            void(*test_func)(int arg) = (void*)(options.run_tests);
-            test_func(options.test_arg);
-        }
+    if (CONFIG_GFLAGK(_TEST_ONINIT)) {
+        statusled(STATUS_TEST_STARTING);
+        ce_framework(false, g_config.test_params);
     }
 
-    statusled(STATUS_INIT_ICACHE);
-
     // enable and clean icache
+    statusled(STATUS_INIT_ICACHE);
     enable_icache(true);
     memset((void*)F00D_ICACHE_OFFSET, 0, F00D_ICACHE_SIZE);
 
-    statusled(STATUS_INIT_RESET);
-
     // jump to reset
+    statusled(STATUS_INIT_RESET);
     asm("jmp vectors_exceptions\n");
 }

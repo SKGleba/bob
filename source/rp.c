@@ -11,8 +11,12 @@
 #include "include/utils.h"
 #include "include/regina.h"
 #include "include/stor.h"
+#include "include/config.h"
+#include "include/test.h"
 
 volatile int g_rpc_status = 0;
+
+#ifndef RPC_UNUSE
 
 static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_data, rpc_params_s *params) {
     int cret = -1;
@@ -119,6 +123,19 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
             break;
         case RPC_CMD_WRITE_EMMC:
             cret = stor_write_emmc(args[0], (void *)args[1], args[2]);
+            break;
+        case RPC_CMD_FEATURES:
+            cret = g_config.features;
+            if (CONFIG_FLAGK(args[0], _ISLATEST))
+                g_config.features = args[0];
+            break;
+        case RPC_CMD_RUN_TEST:
+            if (g_config.test_params && g_config.test_params->codepaddr)
+                cret = g_config.test_params->codepaddr(args[0], NULL);
+            break;
+        case RPC_CMD_SET_TEST:
+            if (g_config.test_params)
+                cret = config_set_dfl_test(g_config.test_params, (void *)args[0], args[1], (bool)args[2]);
             break;
 
         case RPC_CMD_COPYTO:
@@ -311,3 +328,11 @@ void rpc_loop(void) {
     printf("[BOB] exiting RPC mode\n");
     statusled(STATUS_RPC_EXIT);
 }
+
+#else
+
+void rpc_loop(void) {
+    printf("[BOB] RPC disabled!\n");
+}
+
+#endif

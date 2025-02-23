@@ -10,6 +10,7 @@
 #include "include/main.h"
 #include "include/types.h"
 #include "include/utils.h"
+#include "include/config.h"
 
 __attribute__((optimize("O0"), noreturn))
 void c_RESET(void) {
@@ -24,12 +25,17 @@ void c_RESET(void) {
 
     print("[BOB] warning: did reset\n");
 
-    statusled(STATUS_CEFW_WAIT);
+    if (CONFIG_GFLAGK(_TEST_ONRESET)) {
+        statusled(STATUS_TEST_STARTING);
+        ce_framework(false, g_config.test_params);
+    }
+
+    statusled(STATUS_CEFW_DONE_WAIT);
 
     _MEP_INTR_ENABLE_
 
     while (1) {
-        ce_framework(true);
+        ce_framework(true, NULL);
     };
 }
 
@@ -63,7 +69,7 @@ void c_ARM_REQ(void) {
     uint32_t arm_req = maika->mailbox.arm2cry[0];
     printf("[BOB] entering ARM req %X\n", arm_req);
 
-    if (!ce_framework(false))
+    if (ce_framework(false, NULL) != true)
         compat_IRQ7_handleCmd(arm_req, maika->mailbox.arm2cry[1], maika->mailbox.arm2cry[2], maika->mailbox.arm2cry[3]);
 
     printf("[BOB] exiting ARM req %X\n", arm_req);
@@ -138,13 +144,12 @@ void c_DBG(void) {
 }
 
 void set_exception_table(bool glitch) {
-    uint32_t* table = (uint32_t * )&vectors_exceptions;
     if (glitch) {
-        memset32(table, (uint32_t)jmp_s_glitch_xc, 0x34);
+        memset32(vectors_exceptions, ex_cxctable[CXCTABLE_ETR_GLITCH], 0x34);
         return;
     } else
-        memset32(table, (uint32_t)jmp_c_other_xc, 0x34);
-    table[0] = (uint32_t)jmp_s_reset_xc;
-    table[5] = (uint32_t)jmp_s_swi_xc;
-    table[6] = (uint32_t)jmp_s_dbg_xc;
+        memset32(vectors_exceptions, ex_cxctable[CXCTABLE_ETR_OTHER], 0x34);
+    vectors_exceptions[0] = ex_cxctable[CXCTABLE_ETR_RESET];
+    vectors_exceptions[5] = ex_cxctable[CXCTABLE_ETR_SWI];
+    vectors_exceptions[6] = ex_cxctable[CXCTABLE_ETR_DBG];
 }

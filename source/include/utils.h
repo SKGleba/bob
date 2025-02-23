@@ -12,6 +12,14 @@
 #define v32p *(volatile uint32_t*)
 #define v64p *(volatile uint64_t*)
 
+#define BITF(n) (~(-1 << (n)))
+#define BITFL(n) (BITF((n) + 1))
+#define BITN(n) (1 << (n))
+#define BITNVAL(n, val) ((val) << (n))
+#define BITNVALM(n, val, mask) (((val) & (mask)) << (n))
+#define XBITN(v, n) (((v) >> (n)) & 1)
+#define XBITNVALM(v, n, mask) (((v) >> (n)) & (mask))
+
 // function selector based on argc
 #define FUN_VAR4(_1, _2, _3, _4, _fun, ...) _fun
 
@@ -40,6 +48,8 @@ extern int cbus_read(uint16_t cb_line);
 extern void cbus_write(uint16_t cb_line, uint32_t data);
 extern void set_dbg_mode(bool debug_mode);
 extern bool enable_icache(bool cache);
+
+extern volatile uint32_t g_state;
 
 // get compile timestamp
 __attribute__((noinline)) uint32_t get_build_timestamp(void);

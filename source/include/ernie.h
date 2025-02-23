@@ -2,6 +2,8 @@
 #define __ERNIE_H__
 
 #include "types.h"
+#include "defs.h"
+#include "utils.h"
 
 // basics
 #define ERNIE_TX_CMD_LO	0
@@ -45,9 +47,8 @@ enum ERNIE_UART0_SWITCH_MODES {
 
 #define ERNIE_3AUTH_SIZE 0x28
 
+#ifndef ERNIE_UNUSE
 extern ernie_comms_t g_ernie_comms;
-
-// cfuncs
 uint32_t ernie_init(bool set_kbsz, bool enable_3auth);
 void ernie_write(uint8_t* data, uint8_t size);
 bool ernie_read(uint8_t *data, uint8_t max_size);
@@ -55,5 +56,14 @@ int ernie_exec(uint8_t* tx, uint8_t tx_size, uint8_t* rx, uint8_t rx_size);
 int ernie_exec_cmd(uint16_t cmd, void *data_in, uint8_t data_in_size);
 int ernie_exec_cmd_short(uint16_t cmd, uint32_t data_in, uint8_t data_in_size);
 void ernie_3auth_single(uint8_t keyset_id, uint8_t* key, uint8_t* data);
+#else
+#define ernie_init(...) stub()
+#define ernie_write(...) stub()
+#define ernie_read(...) stub()
+#define ernie_exec(...) stub()
+#define ernie_exec_cmd(...) stub()
+#define ernie_exec_cmd_short(...) stub()
+#define ernie_3auth_single(...) stub()
+#endif
 
 #endif

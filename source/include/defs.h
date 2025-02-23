@@ -11,8 +11,7 @@
 
 #ifndef SILENT
 #define UART_BUS 0 // default uart bus to print to
-//#define UART_RATE 0x1004E // 38400 override
-#define ENABLE_REGDUMP // enable/disable register dumping on exceptions
+//#define ENABLE_REGDUMP // enable/disable register dumping on exceptions
 //#define REGDUMP_SMALL // only display register number at regdump
 #endif
 
@@ -24,14 +23,23 @@
 
 #define GLITCH_SKIP_TEST // skip test() on glitch trigger
 
-//#define DRAM_UNUSE // dont include the dram init code (-1kb)
-//#define SDIF_UNUSE // dont include the storage/sdif code (-6kb)
-//#define SDIF_NOINITS // dont include the storage/sdif init functions (-2kb), requires ctx import
-//#define COMPAT_UNUSE // dont include the arm, alice and regina code (-5kb)
+#define CONFIG_ADD_TRANSLATORS // support older bob configs
+
+//#define MAIN_NOCCX // disable the code exec framework
+
+//#define RPC_UNUSE // dont include the rpc code
+//#define DRAM_UNUSE // dont include the dram init code
+//#define SDIF_UNUSE // dont include the storage/sdif code
+//#define SDIF_NOINITS // dont include the storage/sdif init functions, requires ctx import
+//#define COMPAT_UNUSE // dont include the arm, alice and regina code
+//#define ERNIE_UNUSE // dont include the ernie code
+//#define DEBUG_UNUSE // dont include the debug code
+//#define I2C_UNUSE // dont include the i2c code
+//#define UART_UNUSE // dont include the uart code
 
 #ifndef COMPAT_UNUSE
-//#define ALICE_UNUSE   // dont include the alice code (-2kb)
-//#define REGINA_UNUSE  // dont include the regina code (-1kb)
+//#define ALICE_UNUSE   // dont include the alice code
+//#define REGINA_UNUSE  // dont include the regina code
 #endif
 
 #endif

@@ -13,22 +13,22 @@
 #define statusled(x) debug_setGpoCode(x)
 #endif
 
-enum STATUSLED_CODES { // inits, exceptions, command handlers
-    STATUS_INIT_CEFW = 1,
+enum STATUSLED_CODES {  // inits, exceptions, command handlers
+    STATUS_INIT_CFG = 1,
     STATUS_INIT_UART,
-    STATUS_INIT_TEST,
     STATUS_INIT_ICACHE,
     STATUS_INIT_RESET,
     STATUS_GLINIT_GPIO,
     STATUS_GLINIT_ERNIE,
     STATUS_GLINIT_JIG,
     STATUS_GLINIT_UART,
-    STATUS_GLINIT_TEST,
     STATUS_GLINIT_RPC,
+    STATUS_TEST_STARTING,
     STATUS_CEFW_OFF_ICACHE,
     STATUS_CEFW_CCODE,
     STATUS_CEFW_ON_ICACHE,
-    STATUS_CEFW_WAIT,
+    STATUS_CEFW_NEXT,
+    STATUS_CEFW_DONE_WAIT,
     STATUS_RESET_HIT,
     STATUS_SWI_HIT,
     STATUS_SWI_QUIT,
@@ -70,9 +70,9 @@ enum STATUSLED_CODES { // inits, exceptions, command handlers
 
 #else
 
-#define print(str) uart_print(g_uart_bus, (char *)(str))
+#define print(str) uart_print(UART_BUS_COUNT, (char *)(str))
 #define printf debug_printFormat
-#define printn(str, n) uart_printn(g_uart_bus, (char *)(str), n)
+#define printn(str, n) uart_printn(UART_BUS_COUNT, (char *)(str), n)
 #define printx(x) debug_printU32((uint32_t)(x), true)
 #define printp(x) printf("%X: %X\n", (uint32_t)(x), vp (x))
 #define _hexdump(addr, length) debug_printRange((uint32_t)addr, length, 1, ' ')
@@ -84,20 +84,26 @@ enum STATUSLED_CODES { // inits, exceptions, command handlers
 #define hexdump(...) FUN_VAR4(__VA_ARGS__, _hexdump_full, _hexdump_addr, _hexdump)(__VA_ARGS__)
 
 // get a "\r\n" terminated string from debug uart
-#define scans(string_buf, max_len) uart_scanns(g_uart_bus, (char *)string_buf, max_len, 0)
-#define scans_timeout(string_buf, max_len, timeout) uart_scanns(g_uart_bus, (char *)string_buf, max_len, timeout)
+#define scans(string_buf, max_len) uart_scanns(UART_BUS_COUNT, (char *)string_buf, max_len, 0)
+#define scans_timeout(string_buf, max_len, timeout) uart_scanns(UART_BUS_COUNT, (char *)string_buf, max_len, timeout)
 
 // get [count] bytes from debug uart
-#define scanb(bytes_buf, count) uart_scann(g_uart_bus, (uint8_t *)bytes_buf, count, 0)
-#define scanb_timeout(bytes_buf, count, timeout) uart_scann(g_uart_bus, (uint8_t *)bytes_buf, count, timeout)
+#define scanb(bytes_buf, count) uart_scann(UART_BUS_COUNT, (uint8_t *)bytes_buf, count, 0)
+#define scanb_timeout(bytes_buf, count, timeout) uart_scann(UART_BUS_COUNT, (uint8_t *)bytes_buf, count, timeout)
 
-#define rxflush() uart_rxfifo_flush(g_uart_bus)
+#define rxflush() uart_rxfifo_flush(UART_BUS_COUNT)
 
-
+#ifndef DEBUG_UNUSE
 void debug_printU32(uint32_t value, int add_nl);
-void debug_printFormat(char* base, ...);
 void debug_printRange(uint32_t addr, uint32_t size, int show_addr, char delim);
 void debug_setGpoCode(uint8_t code);
+#else
+#define debug_printU32(value, add_nl) stub()
+#define debug_printRange(addr, size, show_addr, delim) stub()
+#define debug_setGpoCode(code) stub()
+#endif
+
+void debug_printFormat(char *base, ...);
 
 #ifdef ENABLE_REGDUMP
 extern void debug_s_regdump(void);

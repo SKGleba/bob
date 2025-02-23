@@ -135,7 +135,7 @@ def handle_cmd(user_cmd, argv, wait4resp=True):
                     size = RPC_EXTRA_DATA_SIZE
                     if x + RPC_EXTRA_DATA_SIZE > full_size:
                         size = full_size - x
-                    fp.write(bytearray.fromhex(handle_cmd("copyfrom", ["0x{:08X}".format(offset + x), "0x{:08X}".format(int(size))]))[RPC_CMD_SIZE:])
+                    fp.write(bytearray.fromhex(handle_cmd("copyfrom", ["0x{:08X}".format(offset + x), "0x{:08X}".format(int(size))]))[RPC_CMD_SIZE:(RPC_CMD_SIZE + size)])
             return handle_cmd("delay", [prev_delay, "0x{:08X}".format(RPC_WRITE_DELAY)])
         case "file_dump": # arg0 = dst, arg1 = src, arg2 = size
             fp = open(argv[0], 'wb')

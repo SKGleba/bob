@@ -1,6 +1,10 @@
 #ifndef __JIG_H__
 #define __JIG_H__
 
+#include "types.h"
+#include "defs.h"
+#include "utils.h"
+
 #define JIG_KERMIT_SHBUF_SIZE 0x28
 
 struct _jig_cmd_kermit2jig_s {
@@ -19,7 +23,12 @@ struct _jig_cmd_jig2kermit_s {
 typedef struct _jig_cmd_jig2kermit_s jig_cmd_jig2kermit_s;
 
 // funcs
+#ifndef ERNIE_UNUSE
 int jig_update_shared_buffer(uint8_t* msg, uint8_t offset, uint8_t size, bool push);
 int jig_read_shared_buffer(uint8_t* msg, uint8_t offset, uint8_t size);
+#else
+#define jig_update_shared_buffer(...) stub()
+#define jig_read_shared_buffer(...) stub()
+#endif
 
 #endif

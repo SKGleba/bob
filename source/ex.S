@@ -160,18 +160,27 @@ di
 mov $gp, $0
 ldc $0, $pc
 movh $sp, 0x4
-or3	$sp, $sp, 0x9000
+or3	$sp, $sp, 0x9ff0
 sltu3 $0, $sp, $0
 beqz $0, .LNG
 movh $sp, 0x80
-or3	$sp, $sp, 0x9000
+or3	$sp, $sp, 0x9ff0
 mov $0, $gp
 movh $gp, 0x80
-or3	$gp, $gp, 0xfc00
+or3	$gp, $gp, 0xfcb8
 bra .LJMP
 .LNG:
 mov $0, $gp
 movh $gp, 0x4
-or3	$gp, $gp, 0xfc00
+or3	$gp, $gp, 0xfcb8
 .LJMP:
 jmp c_RESET
+
+.global ex_cxctable
+.type   ex_cxctable, @object
+ex_cxctable:
+jmp s_RESET
+jmp s_SWI
+jmp s_DBG
+jmp s_GLITCH
+jmp c_OTHER_EXC
