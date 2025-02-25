@@ -13,6 +13,11 @@
 
 // TODO: support coldboot
 int regina_loadRegina(void *src, bool blockFudAccess, bool allowArmAccess) {
+    if (vp(0xE3101024) & 0x1) { // temp detection method
+        printf("[BOB] W: regbus not ready, initializing..\n");
+        compat_pspemuColdInit(true, true);
+    }
+
     printf("[BOB] put AGX into reset\n");
     compat_handleAllegrex(AGX_CMD_RESET, true, 3);
 

@@ -59,8 +59,9 @@ __attribute__((noreturn)) void glitch_init(void) {
 
     // start the rpc server
     statusled(STATUS_GLINIT_RPC);
-    printf("[BOB] cleanup, move stack & exit to rpc\n");
-    memset32((void*)0x5a000, 0x0, 0x2000);
+    printf("[BOB] icache off, cleanup, move stack & exit to rpc\n");
+    enable_icache(false);
+    memset32((void*)0x48000, 0x0, 0x2000);
     asm(
         "movu $1, 0x4fcb8\n"
         "mov $gp, $1\n"

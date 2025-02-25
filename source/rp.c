@@ -137,6 +137,10 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
             if (g_config.test_params)
                 cret = config_set_dfl_test(g_config.test_params, (void *)args[0], args[1], (bool)args[2]);
             break;
+        case RPC_CMD_PSPEMU_COLD_INIT:
+            compat_pspemuColdInit((bool)args[0], (bool)args[1]);
+            cret = 0;
+            break;
 
         case RPC_CMD_COPYTO:
             cret = (uint32_t)memcpy((void *)args[0], extra_data, args[1]);

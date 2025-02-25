@@ -32,6 +32,10 @@ RPC_COMMANDS = {
     "write_sd" : 0x15,
     "read_emmc" : 0x16,
     "write_emmc" : 0x17,
+    "cfg_features" : 0x18,
+    "test_run" : 0x19,
+    "test_set" : 0x1a,
+    "pspemu_coldinit" : 0x1b,
     "copyto" : 0x40,
     "copyfrom" : 0x41,
     "exec" : 0x42, # exec arg0(arg1, arg2, &extra) | ret to arg0

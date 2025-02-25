@@ -37,6 +37,7 @@ enum AGX_CMD {
     void compat_pListCopy(void* io, compat_paddr_list* paddr_list, uint32_t list_entries_count, bool copy_to_list);
     void compat_armReBoot(int armClk, bool hasCS, bool remap_00);
     void compat_killArm(bool prehang);
+    void compat_pspemuColdInit(bool dram, bool regbus);
     int compat_handleAllegrex(int cmd, int arg1, int arg2);
 #else
     #define compat_IRQ7_handleCmd(a, b, c, d) stub()
@@ -45,6 +46,7 @@ enum AGX_CMD {
     #define compat_pListCopy(a, b, c, d) stub()
     #define compat_armReBoot(a, b, c) stub()
     #define compat_killArm(a) stub()
+    #define compat_pspemuColdInit(a, b) stub()
     #define compat_handleAllegrex(a, b, c) stub()
     #define ALICE_UNUSE
     #define REGINA_UNUSE

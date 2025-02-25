@@ -13,8 +13,8 @@ __attribute__((optimize("O0"))) void c_ARM_REQ(void);
 
 __attribute__((optimize("O0"), noreturn)) void PANIC(const char* panic_string, uint32_t panic_value);
 
-extern uint32_t* volatile vectors_exceptions;
-extern uint32_t* ex_cxctable;
+extern uint32_t vectors_exceptions[];
+extern uint32_t ex_cxctable[];
 void set_exception_table(bool glitch);
 
 enum CXCTABLE_ETR {

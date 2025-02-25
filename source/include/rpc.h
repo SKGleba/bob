@@ -47,6 +47,7 @@ enum RPC_COMMANDS {
     RPC_CMD_FEATURES,
     RPC_CMD_RUN_TEST,
     RPC_CMD_SET_TEST,
+    RPC_CMD_PSPEMU_COLD_INIT,
     RPC_CMD_COPYTO = RPC_FLAG_EXTRA,
     RPC_CMD_COPYFROM,
     RPC_CMD_EXEC,           // exec arg0(arg1, arg2, &extra) | ret to arg0

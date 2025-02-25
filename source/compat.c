@@ -274,6 +274,53 @@ void compat_killArm(bool prehang) {
     }
 }
 
+void compat_pspemuColdInit(bool dram, bool regbus) {
+    int ret;
+    if (dram) {
+        pervasive_control_clock(49, 0, false);
+        pervasive_control_misc(190, 0x1, false);
+        pervasive_control_reset(PERV_CTRL_RESET_DEV_COMPAT_RAM, 0b1, true, false);
+        pervasive_control_gate(PERV_CTRL_GATE_DEV_COMPAT_RAM, 0b1, true, false);
+        { // ??
+            pervasive_control_misc(15, 0x0, false);
+            vp 0xE310005c = 0x1;
+            do {
+                ret = (int)vp(0xE310005c);
+            } while ((ret << 0x1f) < 0);
+            do {
+                ret = (int)vp(0xE31000c0);
+            } while (-1 < (ret << 0x1c));
+            vp 0xE31000c0 = 0x8;
+            do {
+                ret = (int)vp(0xE31000c0);
+            } while ((ret & 0x8) != 0);
+        }
+        pervasive_control_gate(PERV_CTRL_GATE_DEV_COMPAT_RAM, 0b1, false, false);
+        pervasive_control_reset(PERV_CTRL_RESET_DEV_COMPAT_RAM, 0b1, false, false);
+        pervasive_control_misc(190, 0x0, false);
+        pervasive_control_gate(PERV_CTRL_GATE_DEV_COMPAT_RAM, 0b1, true, false);
+    }
+    if (regbus) {
+        { // ??2
+            pervasive_control_misc(16, 0x0, false);
+            vp 0xE3100060 = 0x1;
+            do {
+                ret = (int)vp(0xE3100060);
+            } while ((ret << 0x1f) < 0);
+            do {
+                ret = (int)vp(0xE31000c0);
+            } while (-1 < (ret << 0x1b));
+            vp 0xE31000c0 = 0x10;
+            do {
+                ret = (int)vp(0xE31000c0);
+            } while ((ret & 0x10) != 0);
+        }
+        pervasive_control_clock(56, 0, false);
+        pervasive_control_gate(9, 0b1, true, false);
+        pervasive_control_reset(9, 0b1, false, false);
+    }
+}
+
 int compat_handleAllegrex(int cmd, int arg1, int arg2) {
     int ret = -1;
     switch (cmd & 0xFF) {

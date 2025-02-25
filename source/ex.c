@@ -145,10 +145,10 @@ void c_DBG(void) {
 
 void set_exception_table(bool glitch) {
     if (glitch) {
-        memset32(vectors_exceptions, ex_cxctable[CXCTABLE_ETR_GLITCH], 0x34);
+        memset32(&vectors_exceptions[0], ex_cxctable[CXCTABLE_ETR_GLITCH], 0x34);
         return;
     } else
-        memset32(vectors_exceptions, ex_cxctable[CXCTABLE_ETR_OTHER], 0x34);
+        memset32(&vectors_exceptions[0], ex_cxctable[CXCTABLE_ETR_OTHER], 0x34);
     vectors_exceptions[0] = ex_cxctable[CXCTABLE_ETR_RESET];
     vectors_exceptions[5] = ex_cxctable[CXCTABLE_ETR_SWI];
     vectors_exceptions[6] = ex_cxctable[CXCTABLE_ETR_DBG];
