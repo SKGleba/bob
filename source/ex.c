@@ -70,11 +70,11 @@ void c_ARM_REQ(void) {
     printf("[BOB] entering ARM req %X\n", arm_req);
 
     if (ce_framework(false, NULL) != true)
-        compat_IRQ7_handleCmd(arm_req, maika->mailbox.arm2cry[1], maika->mailbox.arm2cry[2], maika->mailbox.arm2cry[3]);
+        compat_IRQ7_handleCmd(arm_req);
+    else
+        maika->mailbox.arm2cry[0] = -1; // ack
 
     printf("[BOB] exiting ARM req %X\n", arm_req);
-
-    ((maika_s*)(MAIKA_OFFSET))->mailbox.arm2cry[0] = -1; // full clear
 
     statusled(STATUS_ARM_QUIT);
 }

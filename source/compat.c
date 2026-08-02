@@ -18,14 +18,25 @@
 
 #ifndef COMPAT_UNUSE
 
-// bring your own keys
+/* bring your own keys
 static const uint8_t skso_iv[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+*/
+
+static const uint8_t skso_iv[16] = {
+    0xa1, 0x32, 0x5a, 0xd8, 0xb9, 0x21, 0x2f, 0xef,
+    0x72, 0x16, 0xef, 0xfb, 0x30, 0xcb, 0x4d, 0xfc
+};
 
 static int compat_state = 0;
 
-uint32_t compat_Cry2Arm0(uint32_t msg) {
+uint32_t compat_Cry2Arm0(uint32_t msg, bool full) {
+    statusled(STATUS_COMPAT_CRY2ARM0);
     maika_s* maika = (maika_s*)MAIKA_OFFSET;
-    if (msg & 0xFFFF) {
+    if (full) {
+        maika->mailbox.cry2arm[0] = msg;
+        _MEP_SYNC_BUS_
+        while (maika->mailbox.cry2arm[0] == msg) {};
+    } else if (msg & 0xFFFF) {
         maika->mailbox.cry2arm[0] = msg & 0xFFFF;
         _MEP_SYNC_BUS_
         while (maika->mailbox.cry2arm[0] & 0xFFFF) {};
@@ -106,42 +117,34 @@ static void compat_IRQ7_forceExitSm(void) {
     maika->mailbox.cry2arm_inv[2] = -1;
     maika->mailbox.cry2arm_inv[3] = -1;
     compat_state = 7;
-    compat_Cry2Arm0(0x104);
+    compat_Cry2Arm0(0x104, false);
     register volatile uint32_t psw asm("psw");
     psw = psw & -3;
     asm("jmp vectors_exceptions\n");
     PANIC("NOEXIT", 0);
 }
 
-void compat_IRQ7_handleCmd(uint32_t cmd, uint32_t arg1, uint32_t arg2, uint32_t arg3) {
-    if (compat_state < 0) {
-        compat_state = alice_handleCmd(cmd, arg1, arg2, arg3);
-        return;
-    }
-    
+void compat_IRQ7_handleCmd(uint32_t cmd) {
     statusled(STATUS_COMPAT_HANDLE);
-    bool shortcmd = true;
+    uint32_t ret = 0x802e;
+    bool shortcmd = false;
     maika_s* maika = (maika_s*)MAIKA_OFFSET;
 
-    printf("[BOB] got ARM cmd %X\n", cmd);
+    if ((int)cmd < 0) { // nothing retail has cmdbuf > 32k
+        maika->mailbox.arm2cry[0] = -1; // ack
+        compat_Cry2Arm0((uint32_t)alice_handleCmd(cmd), true);
+        return;
+    }
 
-    switch (cmd) {
-    case ALICE_ACQUIRE_CMD:
-        if (arg3 == cmd) {
-            compat_state = -1;
-            printf("[BOB] compat service terminated\n");
-            maika->mailbox.arm2cry[3] = -1;
-            maika->mailbox.arm2cry[2] = -1;
-            maika->mailbox.arm2cry[1] = -1;
-        } else
-            printf("[BOB] invalid arg for alice acquire: %X %X %X\n", arg1, arg2, arg3);
-            break;
+    switch (cmd & 0x8000FFFF) {
     case 0xC01:
     case 0xD01:
+        shortcmd = true;
         if (!(maika->keyring[0x10C][0] & 4))
             break;
     case 0xB01:
     case 0xE01:
+        shortcmd = true;
         statusled(STATUS_COMPAT_RESET_PERV);
         compat_IRQ7_resetPervDevice();
         compat_IRQ7_setEmmcKeyslots(cmd != 0xC01);
@@ -150,24 +153,20 @@ void compat_IRQ7_handleCmd(uint32_t cmd, uint32_t arg1, uint32_t arg2, uint32_t 
         compat_IRQ7_setSomeEmmcDatax14();
         break;
     case 0xF01:
+        shortcmd = true;
         statusled(STATUS_COMPAT_SKSO);
         compat_IRQ7_genSKSO();
-        break;
-    case 0x101:
-    case 0x601:
-        shortcmd = false;
         break;
     default:
         break;
     }
 
-    if (shortcmd)
+    maika->mailbox.arm2cry[0] = -1;
+    if (shortcmd) // no reply required, just ^
         return;
 
-    maika->mailbox.arm2cry[0] = -1;
-
-    uint32_t ret = 0x802d;
-    if (!compat_Cry2Arm0(false)) {
+    ret = 0x802d;
+    if (!compat_Cry2Arm0(false, false)) { // make sure previous cry2arm was ackd
         ret = 0x8029;
         switch (cmd) {
         default:
@@ -182,8 +181,10 @@ void compat_IRQ7_handleCmd(uint32_t cmd, uint32_t arg1, uint32_t arg2, uint32_t 
         }
     }
 
-    statusled(STATUS_COMPAT_CRY2ARM0);
-    compat_Cry2Arm0(ret);
+    if (!(ret & 0xFFFF))
+        ret = 0x0B0B0B0B; // always write non0 to mailbox
+    compat_Cry2Arm0(ret, false);
+    return;
 }
 
 void compat_pListCopy(void* io, compat_paddr_list* paddr_list, uint32_t list_entries_count, bool copy_to_list) {

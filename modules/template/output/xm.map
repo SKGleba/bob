@@ -1,0 +1,186 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+LOAD source/module.o
+LOAD source/module.ao
+
+.bob_linker     0x0000000000000000        0x0
+                0x00000000000451c0                setup_ints = 0x451c0
+                0x0000000000041aa0                dram_init = 0x41aa0
+                0x0000000000040312                s_GLITCH = 0x40312
+                0x00000000000422d8                gpio_port_read = 0x422d8
+                0x0000000000040f8c                compat_pspemuColdInit = 0x40f8c
+                0x0000000000041dbe                ernie_3auth_single = 0x41dbe
+                0x0000000000042554                i2c_transfer_write = 0x42554
+                0x000000000004116a                config_set_dfl_test = 0x4116a
+                0x00000000000402b2                s_IRQ = 0x402b2
+                0x00000000000421ae                c_OTHER_EXC = 0x421ae
+                0x00000000000449ec                sm_loadstart = 0x449ec
+                0x0000000000040542                alice_schedule_task = 0x40542
+                0x0000000000040da0                compat_armReBoot = 0x40da0
+                0x0000000000045078                uart_printn = 0x45078
+                0x000000000004207e                c_IRQ = 0x4207e
+                0x000000000004036c                alice_get_task_status = 0x4036c
+                0x00000000000418e2                debug_setGpoCode = 0x418e2
+                0x0000000000044a52                spi_write_start = 0x44a52
+                0x0000000000042be8                pervasive_control_clock = 0x42be8
+                0x0000000000044fbe                uart_write = 0x44fbe
+                0x00000000000404b4                alice_stopReloadAlice = 0x404b4
+                0x000000000004522e                debug_s_regdump = 0x4522e
+                0x0000000000045378                set_dbg_mode = 0x45378
+                0x0000000000042d20                regina_sendCmd = 0x42d20
+                0x00000000000402f2                s_DBG = 0x402f2
+                0x0000000000045d90                g_rpc_status = 0x45d90
+                0x00000000000410c4                compat_handleAllegrex = 0x410c4
+                0x0000000000040928                memcpy = 0x40928
+                0x00000000000427c4                jig_read_shared_buffer = 0x427c4
+                0x000000000004503a                uart_print = 0x4503a
+                0x00000000000420e0                c_ARM_REQ = 0x420e0
+                0x0000000000041c74                ernie_exec = 0x41c74
+                0x00000000000422ba                gpio_set_port_mode = 0x422ba
+                0x0000000000041d10                ernie_exec_cmd = 0x41d10
+                0x00000000000449f0                spi_init = 0x449f0
+                0x00000000000421e0                PANIC = 0x421e0
+                0x0000000000042c12                pervasive_control_misc = 0x42c12
+                0x00000000000428a2                readAs = 0x428a2
+                0x00000000000443ca                sdif_read_sector_mmc = 0x443ca
+                0x000000000004262c                i2c_transfer_write_read = 0x4262c
+                0x0000000000045b30                alice_core_status = 0x45b30
+                0x00000000000428fc                keyring_slot_data = 0x428fc
+                0x0000000000040c18                compat_IRQ7_handleCmd = 0x40c18
+                0x0000000000040214                ex_save_ctx = 0x40214
+                0x000000000004190c                debug_c_regdump = 0x4190c
+                0x000000000004538c                enable_icache = 0x4538c
+                0x0000000000044d28                stor_read_emmc = 0x44d28
+                0x000000000004157e                debug_printFormat = 0x4157e
+                0x0000000000045b3c                alice_vectors = 0x45b3c
+                0x0000000000042c38                regina_loadRegina = 0x42c38
+                0x0000000000044522                sdif_init_ctx = 0x44522
+                0x000000000004500e                uart_rxfifo_flush = 0x4500e
+                0x000000000004039e                alice_loadAlice = 0x4039e
+                0x0000000000044d78                stor_write_emmc = 0x44d78
+                0x00000000000408da                memset32 = 0x408da
+                0x0000000000041386                crypto_bigmacDefaultCmd = 0x41386
+                0x00000000000442d2                sdif_read_sector_sd = 0x442d2
+                0x0000000000041510                debug_printU32 = 0x41510
+                0x0000000000044e62                dfl_test = 0x44e62
+                0x00000000000445ac                sdif_init_sd = 0x445ac
+                0x00000000000408b4                memset8 = 0x408b4
+                0x0000000000044c88                stor_read_sd = 0x44c88
+                0x0000000000042b58                pervasive_control_reset = 0x42b58
+                0x0000000000045b38                alice_xcfg = 0x45b38
+                0x0000000000044ed2                glitch_test = 0x44ed2
+                0x000000000004480e                sdif_init_mmc = 0x4480e
+                0x000000000004217c                c_OTHER_INT = 0x4217c
+                0x0000000000044f2e                uart_init = 0x44f2e
+                0x0000000000044dc8                stor_export_ctx = 0x44dc8
+                0x0000000000041bfa                ernie_read = 0x41bfa
+                0x000000000004518c                delay_nx = 0x4518c
+                0x0000000000042ba0                pervasive_control_gate = 0x42ba0
+                0x00000000000425c2                i2c_transfer_read = 0x425c2
+                0x0000000000042466                gpio_enable_port = 0x42466
+                0x00000000000422ee                gpio_port_set = 0x422ee
+                0x0000000000042376                gpio_query_intr = 0x42376
+                0x0000000000044aaa                spi_read = 0x44aaa
+                0x000000000004125a                config_parse = 0x4125a
+                0x0000000000041da2                ernie_exec_cmd_short = 0x41da2
+                0x0000000000045358                cbus_write = 0x45358
+                0x0000000000040130                glitch_init = 0x40130
+                0x0000000000044e0e                stor_import_ctx = 0x44e0e
+                0x0000000000044ab6                spi_read_end = 0x44ab6
+                0x0000000000040966                memcmp = 0x40966
+                0x000000000004225a                set_exception_table = 0x4225a
+                0x0000000000044c0c                stor_init_emmc = 0x44c0c
+                0x00000000000450c0                uart_scann = 0x450c0
+                0x0000000000040322                s_RESET = 0x40322
+                0x0000000000042a60                init = 0x42a60
+                0x00000000000424e2                i2c_init_bus = 0x424e2
+                0x000000000004067c                alice_handleCmd = 0x4067c
+                0x0000000000045db4                g_uart_bus = 0x45db4
+                0x000000000004144a                crypto_waitStopBigmacOps = 0x4144a
+                0x0000000000040d56                compat_pListCopy = 0x40d56
+                0x000000000004232e                gpio_set_intr_mode = 0x4232e
+                0x0000000000044b8e                stor_init_sd = 0x44b8e
+                0x0000000000041ef4                ernie_init = 0x41ef4
+                0x00000000000408fc                memset = 0x408fc
+                0x00000000000402d2                s_ARM_REQ = 0x402d2
+                0x00000000000451b6                get_build_timestamp = 0x451b6
+                0x00000000000423e2                gpio_acquire_intr = 0x423e2
+                0x00000000000428d8                writeAs = 0x428d8
+                0x0000000000045330                delay = 0x45330
+                0x00000000000435c6                rpc_loop = 0x435c6
+                0x00000000000426c4                jig_update_shared_buffer = 0x426c4
+                0x00000000000400e0                g_iceparams = 0x400e0
+                0x0000000000042990                ce_framework = 0x42990
+                0x0000000000045338                cbus_read = 0x45338
+                0x000000000004511e                uart_scanns = 0x4511e
+                0x000000000004296a                keyring_slot_prot = 0x4296a
+                0x0000000000044a72                spi_write_end = 0x44a72
+                0x0000000000044a8e                spi_write = 0x44a8e
+                0x0000000000045224                stub = 0x45224
+                0x0000000000040eee                compat_killArm = 0x40eee
+                0x0000000000041ba2                ernie_write = 0x41ba2
+                0x000000000004200a                c_SWI = 0x4200a
+                0x00000000000418ba                debug_printRange = 0x418ba
+                0x0000000000044476                sdif_write_sector_mmc = 0x44476
+                0x00000000000400d0                g_config = 0x400d0
+                0x0000000000044fda                uart_read = 0x44fda
+                0x0000000000045b34                alice_tasks = 0x45b34
+                0x00000000000425b0                i2c_transfer_write_short = 0x425b0
+                0x0000000000040356                ex_cxctable = 0x40356
+                0x0000000000044a9c                spi_read_available = 0x44a9c
+                0x0000000000045dbc                g_ernie_comms = 0x45dbc
+                0x000000000004230e                gpio_port_clear = 0x4230e
+                0x00000000000409aa                strlen = 0x409aa
+                0x0000000000042216                c_DBG = 0x42216
+                0x0000000000042482                gpio_init = 0x42482
+                0x000000000004060e                alice_schedule_bob_task = 0x4060e
+                0x0000000000040292                s_SWI = 0x40292
+                0x000000000004434e                sdif_write_sector_sd = 0x4434e
+                0x0000000000040254                ex_restore_ctx = 0x40254
+                0x0000000000044cd8                stor_write_sd = 0x44cd8
+                0x00000000000414d4                crypto_memset = 0x414d4
+                0x0000000000041f76                c_RESET = 0x41f76
+                0x00000000000400cc                g_state = 0x400cc
+                0x00000000000409b8                compat_Cry2Arm0 = 0x409b8
+                0x000000000004a000                . = 0x4a000
+
+.text           0x000000000004a000       0x24
+ *(.text.modinfo)
+ .text.modinfo  0x000000000004a000        0xc source/module.ao
+                0x000000000004a000                xm_j_init
+                0x000000000004a004                xm_bssinfo
+ *(.text .text.* .gnu.linkonce.t.*)
+ .text          0x000000000004a00c       0x18 source/module.o
+                0x000000000004a00c                xm_init
+ .text          0x000000000004a024        0x0 source/module.ao
+
+.rodata         0x000000000004a024       0x10
+ *(.rodata .rodata.* .gnu.linkonce.r.*)
+ .rodata        0x000000000004a024       0x10 source/module.o
+
+.data           0x000000000004a034        0x0
+ *(.data .data.* .gnu.linkonce.d.*)
+ .data          0x000000000004a034        0x0 source/module.o
+ .data          0x000000000004a034        0x0 source/module.ao
+ *(.far .far.*)
+
+.bss            0x000000000004a034        0x0
+                0x000000000004a034                mod_bss_start = .
+ *(.bss .bss.* .gnu.linkonce.b.*)
+ .bss           0x000000000004a034        0x0 source/module.o
+ .bss           0x000000000004a034        0x0 source/module.ao
+ *(.farbss .farbss.*)
+ *(COMMON)
+                0x000000000004a034                . = ALIGN (0x4)
+                0x000000000004a034                mod_bss_end = .
+OUTPUT(xm.elf elf32-mep-little)
+
+.comment        0x0000000000000000       0x30
+ .comment       0x0000000000000000       0x30 source/module.o
+                                         0x31 (size before relaxing)

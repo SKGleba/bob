@@ -11,6 +11,7 @@ OBJCOPYFLAGS=
 BOB_MAX_SIZE=32768
 
 SRCS=$(wildcard source/*.c)
+ASMS=$(wildcard source/*.s)
 OBJ=$(SRCS:.c=.o) source/ex.ao source/vector.ao source/debug.ao source/util.ao
 OBJ_GLITCH=$(SRCS:.c=.o) source/ex.ao source/glitch_vector.ao source/debug.ao source/util.ao
 

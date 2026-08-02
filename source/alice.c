@@ -20,9 +20,7 @@ volatile alice_vector_s* alice_vectors = NULL;
 volatile alice_xcfg_s* alice_xcfg = NULL;
 volatile alice_core_task_s* (* volatile alice_tasks)[4] = NULL;
 volatile int(*alice_core_status)[4] = NULL;
-
-// temp, TODO: not this lol
-#define ALICE_BOB_TASKS_SHBUF 0x1f85ff80 
+volatile uint32_t alice_b2a_shmem = ALICE_B2A_SHBUF;
 
 // temp
 int alice_get_task_status(int core, bool ret, bool actual_core_task) {
@@ -31,7 +29,7 @@ int alice_get_task_status(int core, bool ret, bool actual_core_task) {
         if (!alice_tasks || (task = (*alice_tasks)[core], !task))
             return -1;
     } else
-        task = (alice_core_task_s*)(ALICE_BOB_TASKS_SHBUF + (core * sizeof(alice_core_task_s)));
+        task = (alice_core_task_s*)(alice_b2a_shmem + (core * sizeof(alice_core_task_s)));
 
     if (ret)
         return task->ret;
@@ -40,7 +38,7 @@ int alice_get_task_status(int core, bool ret, bool actual_core_task) {
 
 // temp wrapper for alice_schedule_task with static buf per alice core
 int alice_schedule_bob_task(int core, int task_id, bool wait_core_done, bool wait_task_done, int a0, int a1, int a2, int a3) {
-    volatile alice_core_task_s* task = (volatile alice_core_task_s*)(ALICE_BOB_TASKS_SHBUF + (core * sizeof(alice_core_task_s)));
+    volatile alice_core_task_s* task = (volatile alice_core_task_s*)(alice_b2a_shmem + (core * sizeof(alice_core_task_s)));
     memset((void*)task, 0, sizeof(alice_core_task_s));
     task->task_id = task_id;
     task->args[0] = a0;
@@ -57,7 +55,7 @@ int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool en
     if (src != dst) {
         printf("[BOB] copy alice to %X[%X]\n", (uint32_t)dst, sz);
         memset32(dst, 0, sz);
-        if (vp dst) {
+        if (vp(dst)) {
             printf("[BOB] failed to clear dst area\n");
             return -1;
         }
@@ -76,7 +74,17 @@ int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool en
     }
 
     if (set_ints) {
-        setup_ints();
+        // cleanup
+        maika_s* maika = (maika_s*)MAIKA_OFFSET;
+        maika->mailbox.arm2cry[0] = -1;
+        maika->mailbox.arm2cry[1] = -1;
+        maika->mailbox.arm2cry[2] = -1;
+        maika->mailbox.arm2cry[3] = -1;
+        maika->mailbox.cry2arm_inv[0] = -1;
+        maika->mailbox.cry2arm_inv[1] = -1;
+        maika->mailbox.cry2arm_inv[2] = -1;
+        maika->mailbox.cry2arm_inv[3] = -1;
+        setup_ints(); // actually enable mailbox ifs & irqs - on soc v<3.2 this can retrigger irqs
         _MEP_INTR_ENABLE_
     }
 
@@ -89,12 +97,15 @@ int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool en
 }
 
 // TODO: flag setup ints
-int alice_stopReloadAlice(uint32_t reload_config) {
+int alice_stopReloadAlice(uint32_t reload_config, uint8_t *cefw_status) {
     if (!reload_config)
         reload_config = (((vp PERV2_ARM_BOOT_ALIAS_DRAM) ? ALICE_DRAM_ADDR : ALICE_SPAD32K_ADDR) << 1) | ((vp PERV2_ARM_BOOT_ALIAS_DRAM) ? ALICE_RELOAD_USE_DRAM : 0);
 
     printf("[BOB] killing arm...\n");
     compat_killArm(false);
+
+    if (cefw_status)
+        *cefw_status = 0xA2;
 
     return alice_loadAlice((void *)((reload_config & ALICE_RELOAD_SOURCE) >> 1), true, vp(PERV_GET_REG(PERV_CTRL_BASECLK, 0)) & 0xf, true,
                            !!(reload_config & ALICE_RELOAD_ENABLE_CS), !!(reload_config & ALICE_RELOAD_USE_DRAM), !!(reload_config & ALICE_RELOAD_SET_UART));
@@ -129,110 +140,105 @@ int alice_schedule_task(int target_core, volatile alice_core_task_s* task, bool 
     return task->ret;
 }
 
-int alice_handleCmd(uint32_t cmd, uint32_t arg1, uint32_t arg2, uint32_t arg3) {
-    void* exec_paddr = 0;
-    maika_s* maika = (maika_s*)MAIKA_OFFSET;
-
-    printf("[BOB] got alice cmd %X (%X, %X, %X)\n", cmd, arg1, arg2, arg3);
-
-    if (cmd & 0x80000000 && cmd != ALICE_RELINQUISH_CMD) {
-        if (cmd & 1)
-            exec_paddr = (void*)(cmd & 0xFFFFFFFE);
-        else
-            exec_paddr = (void*)(cmd & 0x7FFFFFFE);
-        uint32_t (*exec_func)(uint32_t a, uint32_t b, uint32_t c) = (void*)exec_paddr;
-        maika->mailbox.cry2arm[1] = exec_func(arg1, arg2, arg3);
-        maika->mailbox.arm2cry[0] = -1;
-        return -1;
+uint32_t alice_handleCmd(uint32_t cmdep) {
+    volatile struct _alice_a2b_cmd_s* cmds = (volatile struct _alice_a2b_cmd_s*)(cmdep & 0x7FFFFFFC);
+    if (cmdep & 1) // in second half
+        cmds = (volatile struct _alice_a2b_cmd_s*)((uint32_t)cmds | 0x80000000);
+    
+    uint32_t cmd = cmds->cmd;
+    if (cmd & 0x80000000) { // actually its a func addr
+        uint32_t (*exec_func)(uint32_t a, uint32_t b, uint32_t c) = (void*)(cmd & 0xFFFFFFFE);
+        if (!(cmd & 1))
+            exec_func = (void*)((uint32_t)exec_func & 0x7FFFFFFE);
+        printf("[BOB] exec %X(%X, %X, %X)\n", exec_func, cmds->arg[0], cmds->arg[1], cmds->arg[2]);
+        cmds->ret = exec_func(cmds->arg[0], cmds->arg[1], cmds->arg[2]);
+        return (uint32_t)cmdep;
     }
 
-    uint32_t cret = 0;
+    printf("[BOB] got alice cmd %X (%X, %X, %X)\n", cmd, cmds->arg[0], cmds->arg[1], cmds->arg[2]);
     switch (cmd) {
-    case ALICE_RELINQUISH_CMD:
-        if (arg3 == cmd) {
-            printf("[BOB] alice service terminated\n");
-            maika->mailbox.arm2cry[3] = -1;
-            maika->mailbox.arm2cry[2] = -1;
-            maika->mailbox.arm2cry[1] = -1;
-            return 0;
-        } else
-            printf("[BOB] invalid arg for compat acquire\n");
-        break;
     case ALICE_A2B_GET_RPC_STATUS:
-        maika->mailbox.cry2arm[1] = g_rpc_status;
+        cmds->ret = g_rpc_status;
         break;
     case ALICE_A2B_SET_RPC_STATUS:
-        g_rpc_status = arg1;
+        g_rpc_status = cmds->arg[0];
         break;
     case ALICE_A2B_MASK_RPC_STATUS:
-        if (maika->mailbox.arm2cry[2])
-            g_rpc_status |= (arg1);
+        if (cmds->arg[1])
+            g_rpc_status |= (cmds->arg[0]);
         else
-            g_rpc_status &= ~(arg1);
-        cret = g_rpc_status;
+            g_rpc_status &= ~(cmds->arg[0]);
+        cmds->ret = g_rpc_status;
         break;
     case ALICE_A2B_REBOOT:
-        compat_armReBoot(arg1, arg2, arg3);
+        compat_armReBoot(cmds->arg[0], cmds->arg[1], cmds->arg[2]);
         break;
     case ALICE_A2B_MEMCPY:
-        memcpy((void*)arg1, (void*)arg2, arg3);
+        cmds->ret = (int)memcpy((void*)cmds->arg[0], (void*)cmds->arg[1], cmds->arg[2]);
         break;
     case ALICE_A2B_MEMSET:
-        memset((void*)arg1, (arg2 & 0xFF), arg3);
+        cmds->ret = (int)memset((void*)cmds->arg[0], (cmds->arg[1] & 0xFF), cmds->arg[2]);
         break;
     case ALICE_A2B_MEMSET32:
-        memset32((void*)arg1, arg2, arg3);
+        cmds->ret = (int)memset32((void*)cmds->arg[0], cmds->arg[1], cmds->arg[2]);
         break;
     case ALICE_A2B_READ32:
-        if ((int)arg3 < 0)
-            cret = readAs(arg1, arg3 & 0x7fffffff);
+        if ((int)cmds->arg[2] < 0)
+            cmds->ret = (int)readAs(cmds->arg[0], cmds->arg[2] & 0x7fffffff);
         else
-            cret = vp arg1;
+            cmds->ret = (int)vp cmds->arg[0];
         break;
     case ALICE_A2B_WRITE32:
-        if ((int)arg3 < 0)
-            writeAs(arg1, arg2, arg3 & 0x7fffffff);
+        if ((int)cmds->arg[2] < 0)
+            writeAs(cmds->arg[0], cmds->arg[1], cmds->arg[2] & 0x7fffffff);
         else
-            vp arg1 = arg2;
+            vp cmds->arg[0] = cmds->arg[1];
         break;
     case ALICE_A2B_STOP_RELOAD_ALICE:
-        alice_stopReloadAlice(arg1);
+        alice_stopReloadAlice(cmds->arg[0], NULL);
         break;
     case ALICE_A2B_INIT_STORAGE:
-        if (arg1)
-            cret = stor_init_emmc(arg2, arg3);
+        if (cmds->arg[0])
+            cmds->ret = stor_init_emmc(cmds->arg[1], cmds->arg[2]);
         else
-            cret = stor_init_sd(arg2);
+            cmds->ret = stor_init_sd(cmds->arg[1]);
         break;
     case ALICE_A2B_READ_SD:
-        cret = stor_read_sd(arg1, (void*)arg2, arg3);
+        cmds->ret = stor_read_sd(cmds->arg[0], (void*)cmds->arg[1], cmds->arg[2]);
         break;
     case ALICE_A2B_WRITE_SD:
-        cret = stor_write_sd(arg1, (void*)arg2, arg3);
+        cmds->ret = stor_write_sd(cmds->arg[0], (void*)cmds->arg[1], cmds->arg[2]);
         break;
     case ALICE_A2B_READ_EMMC:
-        cret = stor_read_emmc(arg1, (void*)arg2, arg3);
+        cmds->ret = stor_read_emmc(cmds->arg[0], (void*)cmds->arg[1], cmds->arg[2]);
         break;
     case ALICE_A2B_WRITE_EMMC:
-        cret = stor_write_emmc(arg1, (void*)arg2, arg3);
+        cmds->ret = stor_write_emmc(cmds->arg[0], (void*)cmds->arg[1], cmds->arg[2]);
         break;
     case ALICE_A2B_EXPORT_SDIF_CTX:
-        cret = stor_export_ctx(arg1, (unk2_sdif_gigactx*)arg2, (unk_sdif_ctx_init*)arg3);
+        cmds->ret = stor_export_ctx(cmds->arg[0], (unk2_sdif_gigactx*)cmds->arg[1], (unk_sdif_ctx_init*)cmds->arg[2]);
         break;
     case ALICE_A2B_IMPORT_SDIF_CTX:
-        cret = stor_import_ctx(arg1, (unk2_sdif_gigactx*)arg2, (unk_sdif_ctx_init*)arg3);
+        cmds->ret = stor_import_ctx(cmds->arg[0], (unk2_sdif_gigactx*)cmds->arg[1], (unk_sdif_ctx_init*)cmds->arg[2]);
+        break;
+    case ALICE_A2B_SET_B2A_SHBUF:
+        if (cmds->arg[0] < ALICE_B2A_SHBUF_MINSIZE) {
+            printf("[BOB] alice cmd set_b2a_shbuf: invalid size %X\n", cmds->arg[0]);
+            cmds->ret = -1;
+            break;
+        }
+        cmds->arg[1] = alice_b2a_shmem;
+        alice_b2a_shmem = cmds->arg[0];
+        cmds->ret = 0;
         break;
     default:
-        cret = stub();
+        cmds->ret = stub();
         break;
     }
 
-    maika->mailbox.arm2cry[3] = -1;
-    maika->mailbox.arm2cry[2] = -1;
-    maika->mailbox.arm2cry[1] = -1;
-    maika->mailbox.cry2arm[1] = cret;
+    printf("[BOB] alice cmd %X done, ret %X\n", cmd, cmds->ret);
 
-    return -1;
+    return (uint32_t)cmdep;
 }
 
 #else

@@ -19,8 +19,7 @@
 #include "include/uart.h"
 #include "include/utils.h"
 #include "include/test.h"
-
-static bob_fm_nfo_s main_test_params = {0, 0, 0, 0, 0};
+#include "include/config.h"
 
 #ifndef MAIN_NOCCX
 bool ce_framework(bool bg, bob_fm_nfo_s* params) {
@@ -70,11 +69,9 @@ void init(bob_config_s* arg_config) {
     _MEP_INTR_DISABLE_  // disable interrupts
 
     // init config
-    if (!CONFIG_GFLAGK(_ISLATEST)) {
+    if (!CONFIG_GFLAGK(_CFG_USEINT)) {
         statusled(STATUS_INIT_CFG);
-        memset(&main_test_params, 0, sizeof(bob_fm_nfo_s));
-        //memset((void*)&g_config, 0, sizeof(bob_config_s));
-        int ret = config_parse(arg_config, (bob_config_s*)&g_config, &main_test_params);
+        int ret = config_parse(arg_config);
         if (ret)
             PANIC("CFGP", ret);
     }

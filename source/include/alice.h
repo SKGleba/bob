@@ -6,6 +6,14 @@
 #include "utils.h"
 #include "compat.h"
 
+struct _alice_a2b_cmd_s {
+    union {
+        int cmd;
+        int ret;
+    };
+    uint32_t arg[3];
+};
+
 struct _alice_xcfg_s {
     void* sp_per_core[4];
     int uart_bus;
@@ -43,8 +51,9 @@ struct _alice_vector_s {
 };
 typedef struct _alice_vector_s alice_vector_s;
 
+#define ALICE_A2B_MAGIC 0xA2B0
 enum ALICE2BOB_COMMANDS {
-    ALICE_A2B_GET_RPC_STATUS = 0xA20,
+    ALICE_A2B_GET_RPC_STATUS,
     ALICE_A2B_SET_RPC_STATUS,
     ALICE_A2B_MASK_RPC_STATUS,
     ALICE_A2B_REBOOT,
@@ -61,11 +70,11 @@ enum ALICE2BOB_COMMANDS {
     ALICE_A2B_WRITE_EMMC,
     ALICE_A2B_EXPORT_SDIF_CTX,
     ALICE_A2B_IMPORT_SDIF_CTX,
+    ALICE_A2B_SET_B2A_SHBUF,
+
+    ALICE_A2B__MAX,
     ALICE_A2B_EXEC = 0x80000000 // OR it with paddr for bob to exec
 };
-
-#define ALICE_ACQUIRE_CMD 0x5E7A21CE
-#define ALICE_RELINQUISH_CMD 0xA21CEDED
 
 enum ALICE_RELOAD_CONFIG_FLAGS {
     ALICE_RELOAD_ENABLE_CS = 0b1,
@@ -108,10 +117,13 @@ enum ALICE_THREE_TASKS {
 #define ALICE_CORE_STATUS_WAITING 0b10 // core is waiting
 #define ALICE_CORE_STATUS_TASKING 0b100 // core is running a task (chain)
 
+#define ALICE_B2A_SHBUF 0x1f85ff80 // default shared buffer for bob -> alice comms
+#define ALICE_B2A_SHBUF_MINSIZE 0x80
+
 #ifndef ALICE_UNUSE
-    int alice_handleCmd(uint32_t cmd, uint32_t arg1, uint32_t arg2, uint32_t arg3);
+    uint32_t alice_handleCmd(uint32_t cmdep);
     int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool enable_cs, bool dram, bool set_uart);
-    int alice_stopReloadAlice(uint32_t reload_config);
+    int alice_stopReloadAlice(uint32_t reload_config, uint8_t *cefw_status);
     int alice_schedule_task(int target_core, volatile alice_core_task_s* task, bool wait_core_done, bool wait_task_done);
     int alice_get_task_status(int core, bool ret, bool actual_core_task);
     int alice_schedule_bob_task(int core, int task_id, bool wait_core_done, bool wait_task_done, int a0, int a1, int a2, int a3);
@@ -120,10 +132,11 @@ enum ALICE_THREE_TASKS {
     extern volatile alice_xcfg_s* alice_xcfg;
     extern volatile alice_core_task_s* (* volatile alice_tasks)[4];
     extern volatile int(*alice_core_status)[4];
+    extern volatile uint32_t alice_b2a_shmem;
 #else
-    #define alice_handleCmd(a, b, c, d) stub()
+    #define alice_handleCmd(a) stub()
     #define alice_loadAlice(a, b, c, d, e, f, g) stub()
-    int alice_stopReloadAlice(uint32_t reload_config); // its hard exported in vectors
+    int alice_stopReloadAlice(uint32_t reload_config, uint8_t *cefw_status); // its hard exported in vectors
     #define alice_schedule_task(a, b, c, d) stub()
     #define alice_get_task_status(a, b, c) stub()
     #define alice_schedule_bob_task(a, b, c, d, e, f, g, h) stub()
