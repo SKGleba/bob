@@ -6,16 +6,41 @@
 #include "utils.h"
 #include "uart.h"
 
-// codes 0x1-0x2f are reserved for bob use
-#ifdef NO_STATUS_LED
-#define statusled(x)
+#ifdef DEBUG_UNUSE
+#define DEBUG_STATUSLED_UNUSE
+#define DEBUG_PRINTS_UNUSE
+#define DEBUG_REGDUMP_UNUSE
+#define DEBUG_ROUTER_UNUSE
+#define DEBUG_NOLEVELS // dont need to set it but eh
+#endif
+#ifdef DEBUG_PRINTS_UNUSE
+#define DEBUG_REGDUMP_UNUSE
+#endif
+
+enum DEBUG_ROUTES {
+    DEBUG_ROUTE_UART = 0,
+    DEBUG_ROUTE_NONE
+};
+#define DBGR_UART_BUS UART_BUS_COUNT // default bus for uart debug route
+extern int g_debug_route;
+
+enum DEBUG_LEVELS {
+    DEBUG_LEVEL_NONE = 0,
+    DEBUG_LEVEL_ERROR,
+    DEBUG_LEVEL_WARN,
+    DEBUG_LEVEL_INFO
+};
+extern int g_debug_level;
+#ifndef DEBUG_NOLEVELS
+#define DBG_GATE(_l, ...) if (g_debug_level >= _l) { __VA_ARGS__; }
 #else
-#define statusled(x) debug_setGpoCode(x)
+#define DBG_GATE(_l, ...) { __VA_ARGS__; }
 #endif
 
 enum STATUSLED_CODES {  // inits, exceptions, command handlers
     STATUS_INIT_CFG = 1,
     STATUS_INIT_UART,
+    STATUS_INIT_HEAP,
     STATUS_INIT_ICACHE,
     STATUS_INIT_RESET,
     STATUS_GLINIT_GPIO,
@@ -60,7 +85,7 @@ enum STATUSLED_CODES {  // inits, exceptions, command handlers
 #ifdef SILENT
 
 #define print(str)
-#define printf
+#define printf(...)
 #define printn(str, n)
 #define printx(x)
 #define printp(x)
@@ -68,44 +93,91 @@ enum STATUSLED_CODES {  // inits, exceptions, command handlers
 #define _hexdump_addr(addr, length, show_addr)
 #define _hexdump_full(addr, length, show_addr, delim)
 
+#define ERRORFL(...)
+#define ERRORF(...)
+#define ERROR(...)
+#define WARNFL(...)
+#define WARNF(...)
+#define WARN(...)
+#define INFOFL(...)
+#define INFOF(...)
+#define INFO(...)
+
 #else
 
-#define print(str) uart_print(UART_BUS_COUNT, (char *)(str))
+#define print(_str) dbgr_print(_str, 0)
+#define printn(_str, _n) dbgr_print(_str, _n)
 #define printf debug_printFormat
-#define printn(str, n) uart_printn(UART_BUS_COUNT, (char *)(str), n)
-#define printx(x) debug_printU32((uint32_t)(x), true)
-#define printp(x) printf("%X: %X\n", (uint32_t)(x), vp (x))
+#define printfl(_str, ...) printf("%s:%X: " _str, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define printx(_x) printf("0x%08X\n", (uint32_t)(_x))
+#define printp(_x) printf("0x%08X: %08X\n", (uint32_t)(_x), vp (_x))
 #define _hexdump(addr, length) debug_printRange((uint32_t)addr, length, 1, ' ')
 #define _hexdump_addr(addr, length, show_addr) debug_printRange((uint32_t)addr, length, show_addr, ' ')
 #define _hexdump_full(addr, length, show_addr, delim) debug_printRange((uint32_t)addr, length, show_addr, delim)
+
+#define ERROR(_s) DBG_GATE(DEBUG_LEVEL_ERROR, print(_s))
+#define ERRORF(...) DBG_GATE(DEBUG_LEVEL_ERROR, printf(__VA_ARGS__))
+#define ERRORFL(_s, ...) DBG_GATE(DEBUG_LEVEL_ERROR, printfl(_s, __VA_ARGS__))
+
+#ifndef DEBUG_ONLYERR
+#define WARN(_s) DBG_GATE(DEBUG_LEVEL_WARN, print(_s))
+#define WARNF(...) DBG_GATE(DEBUG_LEVEL_WARN, printf(__VA_ARGS__))
+#define WARNFL(_s, ...) DBG_GATE(DEBUG_LEVEL_WARN, printfl(_s, __VA_ARGS__))
+#define INFO(_s) DBG_GATE(DEBUG_LEVEL_INFO, print(_s))
+#define INFOF(...) DBG_GATE(DEBUG_LEVEL_INFO, printf(__VA_ARGS__))
+#define INFOFL(_s, ...) DBG_GATE(DEBUG_LEVEL_INFO, printfl(_s, __VA_ARGS__))
+#else
+#define WARN(_s)
+#define WARNF(...)
+#define WARNFL(_s, ...)
+#define INFO(_s)
+#define INFOF(...)
+#define INFOFL(_s, ...)
+#endif
 
 #endif
 
 #define hexdump(...) FUN_VAR4(__VA_ARGS__, _hexdump_full, _hexdump_addr, _hexdump)(__VA_ARGS__)
 
 // get a "\r\n" terminated string from debug uart
-#define scans(string_buf, max_len) uart_scanns(UART_BUS_COUNT, (char *)string_buf, max_len, 0)
-#define scans_timeout(string_buf, max_len, timeout) uart_scanns(UART_BUS_COUNT, (char *)string_buf, max_len, timeout)
+#define scans(string_buf, max_len) dbgr_scan((char *)string_buf, max_len, true, 0)
+#define scans_timeout(string_buf, max_len, timeout) dbgr_scan((char *)string_buf, max_len, true, timeout)
 
 // get [count] bytes from debug uart
-#define scanb(bytes_buf, count) uart_scann(UART_BUS_COUNT, (uint8_t *)bytes_buf, count, 0)
-#define scanb_timeout(bytes_buf, count, timeout) uart_scann(UART_BUS_COUNT, (uint8_t *)bytes_buf, count, timeout)
+#define scanb(bytes_buf, count) dbgr_scan((uint8_t *)bytes_buf, count, false, 0)
+#define scanb_timeout(bytes_buf, count, timeout) dbgr_scan((uint8_t *)bytes_buf, count, false, timeout)
 
-#define rxflush() uart_rxfifo_flush(UART_BUS_COUNT)
+#define rxflush() dbgr_flush(false)
 
-#ifndef DEBUG_UNUSE
-void debug_printU32(uint32_t value, int add_nl);
+// NO STUBBING - if disabled but used, enforce a compile error
+#ifndef DEBUG_ROUTER_UNUSE
+void dbgr_print(char *str, int len);
+int dbgr_scan(void *out, int n, bool str, unsigned int timeout);
+void dbgr_flush(bool tx);
+#endif
+
+#ifndef DEBUG_PRINTS_UNUSE
+void debug_printHU64(uint64_t value, unsigned int nob, bool upper);
+void debug_printDI32(int value, unsigned int nob);
 void debug_printRange(uint32_t addr, uint32_t size, int show_addr, char delim);
-void debug_setGpoCode(uint8_t code);
 #else
-#define debug_printU32(value, add_nl) stub()
+#define debug_printHU64(value, nob, upper) stub()
+#define debug_printDI32(value, nob) stub()
 #define debug_printRange(addr, size, show_addr, delim) stub()
+#endif
+
+// codes 0x1-0x2f are reserved for bob use
+#ifdef DEBUG_STATUSLED_UNUSE
+#define statusled(x)
 #define debug_setGpoCode(code) stub()
+#else
+void debug_setGpoCode(uint8_t code);
+#define statusled(x) debug_setGpoCode(x)
 #endif
 
 void debug_printFormat(char *base, ...);
 
-#ifdef ENABLE_REGDUMP
+#ifndef DEBUG_REGDUMP_UNUSE
 extern void debug_s_regdump(void);
 #define regdump debug_s_regdump
 #endif

@@ -5,9 +5,16 @@
 
 #include "types.h"
 
+enum MAGIC_NUMBERS {
+    KEY_ERNIE_3AUTH_B_KEY1 = 0,
+    KEY_ERNIE_3AUTH_B_DATA1,
+};
+
 int crypto_bigmacDefaultCmd(bool second_channel, uint32_t src, uint32_t dst, uint32_t sz, uint32_t cmd, uint32_t work_ks, uint32_t iv, uint32_t unk_status);
 void crypto_waitStopBigmacOps(bool disable_future_ops);
 uint32_t crypto_memset(bool second_channel, uint32_t addr, uint32_t len, uint32_t fill_value32);
 #define crypto_memcpy(second_channel, dst, src, sz) crypto_bigmacDefaultCmd(second_channel, src, dst, sz, CRYPTO_BIGMAC_FUNC_MEMCPY, 0, 0, 0)
+const uint8_t *crypto_keygx(enum MAGIC_NUMBERS key);
+#define KEYGX(_m, _n) crypto_keygx(KEY_##_m##_##_n)
 
 #endif

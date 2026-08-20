@@ -65,37 +65,37 @@ int stor_init_emmc(bool init_ctrl, bool no_keys) {
 
 int stor_read_sd(uint32_t sector_off, void* dst, uint32_t sector_count) {
     int ret = 0;
-    printf("[BOB] read_sd(%X, %X, %X)\n", sector_off, (uint32_t)dst, sector_count);
+    INFOF("[BOB] read_sd(%X, %X, %X)\n", sector_off, (uint32_t)dst, sector_count);
     ret = sdif_read_sector_sd(&stor_gctx[SDIF_DEV_SD], sector_off, (uint32_t)dst, sector_count);
     if (ret < 0)
-        printf("[BOB] read_sd: read failed: %X\n", ret);
+        ERRORF("[BOB] read_sd: read failed: %X\n", ret);
     return ret;
 }
 
 int stor_write_sd(uint32_t sector_off, void* dst, uint32_t sector_count) {
     int ret = 0;
-    printf("[BOB] write_sd(%X, %X, %X)\n", sector_off, (uint32_t)dst, sector_count);
+    INFOF("[BOB] write_sd(%X, %X, %X)\n", sector_off, (uint32_t)dst, sector_count);
     ret = sdif_write_sector_sd(&stor_gctx[SDIF_DEV_SD], sector_off, (uint32_t)dst, sector_count);
     if (ret < 0)
-        printf("[BOB] write_sd: write failed: %X\n", ret);
+        ERRORF("[BOB] write_sd: write failed: %X\n", ret);
     return ret;
 }
 
 int stor_read_emmc(uint32_t sector_off, void* dst, uint32_t sector_count) {
     int ret = 0;
-    printf("[BOB] read_emmc(%X, %X, %X)\n", sector_off, (uint32_t)dst, sector_count);
+    INFOF("[BOB] read_emmc(%X, %X, %X)\n", sector_off, (uint32_t)dst, sector_count);
     ret = sdif_read_sector_mmc(&stor_gctx[SDIF_DEV_EMMC], sector_off, (uint32_t)dst, sector_count);
     if (ret < 0)
-        printf("[BOB] read_emmc: read failed: %X\n", ret);
+        ERRORF("[BOB] read_emmc: read failed: %X\n", ret);
     return ret;
 }
 
 int stor_write_emmc(uint32_t sector_off, void* dst, uint32_t sector_count) {
     int ret = 0;
-    printf("[BOB] write_emmc(%X, %X, %X)\n", sector_off, (uint32_t)dst, sector_count);
+    INFOF("[BOB] write_emmc(%X, %X, %X)\n", sector_off, (uint32_t)dst, sector_count);
     ret = sdif_write_sector_mmc(&stor_gctx[SDIF_DEV_EMMC], sector_off, (uint32_t)dst, sector_count);
     if (ret < 0)
-        printf("[BOB] write_emmc: write failed: %X\n", ret);
+        ERRORF("[BOB] write_emmc: write failed: %X\n", ret);
     return ret;
 }
 

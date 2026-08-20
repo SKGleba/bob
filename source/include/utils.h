@@ -51,11 +51,19 @@ extern bool enable_icache(bool cache);
 
 extern volatile uint32_t g_state;
 
+extern uint32_t cfg_PROG_load_off;
+extern uint32_t cfg_PROG_uses_end;
+extern uint32_t cfg_PROG_load_end;
+extern uint32_t cfg_PROG_max_size;
+extern uint32_t PROG_heap_start;
+extern uint32_t PROG_act_size;
+
 // get compile timestamp
 __attribute__((noinline)) uint32_t get_build_timestamp(void);
 
-// enable default interrupts
+// intr stuff
 void setup_ints(void);
+bool intr_mask(uint32_t num, bool change, bool set);
 
 // stub func for disabled features
 int stub();

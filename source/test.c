@@ -20,26 +20,26 @@
 
 // default init test function
 void dfl_test(int arg) {
-    printf("[BOB] test test test\n");
+    INFO("[BOB] test test test\n");
 
     if (arg & 1)
         set_dbg_mode(true);
 
     _MEP_SYNC_BUS_;
 
-    printf("[BOB] killing arm...\n");
+    INFO("[BOB] killing arm...\n");
     compat_killArm(false);
 
-    printf("[BOB] arm is dead, disable the OLED screen...\n");
+    INFO("[BOB] arm is dead, disable the OLED screen...\n");
     gpio_port_clear(0, GPIO_PORT_OLED);
 
-    printf("[BOB] set max clock\n");
+    INFO("[BOB] set max clock\n");
     vp 0xe3103040 = 0x10007;
 
-    printf("[BOB] test test stuff\n");
+    INFO("[BOB] test test stuff\n");
     rpc_loop();
 
-    printf("[BOB] all tests done\n");
+    INFO("[BOB] all tests done\n");
 }
 
 

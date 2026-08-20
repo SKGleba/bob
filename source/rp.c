@@ -23,7 +23,7 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
     uint8_t xsize = 0;
     uint32_t (*ccode)() = NULL;
 
-    printf("[BOB] RPC CMD %X\n", cmd_id);
+    INFOF("[BOB] RPC CMD %X\n", cmd_id);
 
     g_rpc_status |= RPC_STATUS_INCMD;
 
@@ -141,6 +141,9 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
             compat_pspemuColdInit((bool)args[0], (bool)args[1]);
             cret = 0;
             break;
+        case RPC_CMD_INTR_MGR:
+            cret = intr_mask(args[0], (bool)args[1], (bool)args[2]);
+            break;
 
         case RPC_CMD_COPYTO:
             cret = (uint32_t)memcpy((void *)args[0], extra_data, args[1]);
@@ -151,12 +154,12 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
             break;
         case RPC_CMD_EXEC:
             ccode = (void *)args[0];
-            printf("[BOB] RPC EXEC %X\n", ccode);
+            INFOF("[BOB] RPC EXEC %X\n", ccode);
             cret = ccode(args[1], args[2], extra_data);
             break;
         case RPC_CMD_EXEC_EXTENDED:
             ccode = (void *)args[0];
-            printf("[BOB] RPC EXECE %X\n", ccode);
+            INFOF("[BOB] RPC EXECE %X\n", ccode);
             cret = ccode(args[1], args[2], extra_data[0], extra_data[1], extra_data[2], extra_data[3], extra_data[4], extra_data[5]);
             break;
         case RPC_CMD_SCHEDULE_ALICE_TASK:
@@ -179,7 +182,7 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
 
     g_rpc_status &= ~RPC_STATUS_INCMD;
 
-    printf("[BOB] RPC RET %X\n", cret);
+    INFOF("[BOB] RPC RET %X\n", cret);
 
     args[0] = (uint32_t)cret;
     return xsize;
@@ -242,8 +245,8 @@ static bool rpc_rxw_cmd_uart(rpc_params_s *params) {
     memset(data, 0, sizeof(data));
 
     statusled(STATUS_RPC_READ);
-    print(RPC_UART_WATERMARK "G0\n");
-    if (scanb_timeout(&cmd, sizeof(rpc_uart_cmd_s), params->uart_scan_timeout) < 0)
+    uart_print(UART_BUS_COUNT, RPC_UART_WATERMARK "G0\n");
+    if (uart_scann(UART_BUS_COUNT, (uint8_t*)&cmd, sizeof(rpc_uart_cmd_s), params->uart_scan_timeout) < 0)
         return false;
 
     statusled(STATUS_RPC_CHECK);
@@ -251,8 +254,8 @@ static bool rpc_rxw_cmd_uart(rpc_params_s *params) {
         statusled(STATUS_RPC_WAIT);
         delay_nx(params->delay_rval, 200);
         statusled(STATUS_RPC_WRITE);
-        print(RPC_UART_WATERMARK "E1\n");
-        rxflush();
+        uart_print(UART_BUS_COUNT, RPC_UART_WATERMARK "E1\n");
+        uart_rxfifo_flush(UART_BUS_COUNT);
         return false;
     }
 
@@ -260,9 +263,9 @@ static bool rpc_rxw_cmd_uart(rpc_params_s *params) {
         statusled(STATUS_RPC_WAIT);
         delay_nx(params->delay_rval, 200);
         statusled(STATUS_RPC_READ);
-        rxflush();
-        print(RPC_UART_WATERMARK "G1\n");
-        if (scanb_timeout(data, cmd.data_size, params->uart_scan_timeout) < 0)
+        uart_rxfifo_flush(UART_BUS_COUNT);
+        uart_print(UART_BUS_COUNT, RPC_UART_WATERMARK "G1\n");
+        if (uart_scann(UART_BUS_COUNT, (uint8_t*)data, cmd.data_size, params->uart_scan_timeout) < 0)
             return false;
     }
 
@@ -273,9 +276,11 @@ static bool rpc_rxw_cmd_uart(rpc_params_s *params) {
     delay_nx(params->delay_rval, 200);
 
     statusled(STATUS_RPC_WRITE);
-    printf(RPC_UART_WATERMARK "%X\n", data[0]);
+    uart_print(UART_BUS_COUNT, RPC_UART_WATERMARK "RS\n");
+    uart_printr(UART_BUS_COUNT, (uint8_t *)data, sizeof(data));
+    uart_print(UART_BUS_COUNT, RPC_UART_WATERMARK "RE\n");
 
-    rxflush();
+    uart_rxfifo_flush(UART_BUS_COUNT);
 
     if (cmd.id == RPC_CMD_STOP_RPC)
         return true;
@@ -291,14 +296,14 @@ void rpc_loop(void) {
     params.uart_mode = RPC_UART_MODE;     // use kermit uart
     params.uart_scan_timeout = 0;         // timeout for uart data check
     if (g_rpc_status < 0) {
-        printf("[BOB] RPC mode disabled, status: %X\n", g_rpc_status);
+        WARNF("[BOB] RPC mode disabled, status: %X\n", g_rpc_status);
         return;
     }
-    printf("[BOB] entering RPC mode, delay %X\n", params.delay_cval);
+    INFOF("[BOB] entering RPC mode, delay %X\n", params.delay_cval);
     g_rpc_status |= RPC_STATUS_RUNNING;
 
     if (params.uart_mode)
-        rxflush();
+        uart_rxfifo_flush(UART_BUS_COUNT);
 
     while (true) {
         statusled(STATUS_RPC_WAIT);
@@ -307,14 +312,14 @@ void rpc_loop(void) {
         if (g_rpc_status & RPC_STATUS_REQUEST_BLOCK) {
             g_rpc_status |= RPC_STATUS_BLOCKED;
             statusled(STATUS_RPC_BLOCKED);
-            printf("[BOB] RPC blocked\n");
+            INFO("[BOB] RPC blocked\n");
             do {
                 statusled(STATUS_RPC_BLOCKED);
                 delay_nx(RPC_BLOCKED_DELAY, 200);
                 statusled(STATUS_RPC_BLOCKED2);
                 delay_nx(RPC_BLOCKED_DELAY, 200);
             } while (g_rpc_status & RPC_STATUS_REQUEST_BLOCK);
-            printf("[BOB] RPC unblocked\n");
+            INFO("[BOB] RPC unblocked\n");
             g_rpc_status &= ~RPC_STATUS_BLOCKED;
         }
 
@@ -329,14 +334,14 @@ void rpc_loop(void) {
 
     g_rpc_status &= 0xFFFFFF00;  // clear status, keep requests
 
-    printf("[BOB] exiting RPC mode\n");
+    INFO("[BOB] exiting RPC mode\n");
     statusled(STATUS_RPC_EXIT);
 }
 
 #else
 
 void rpc_loop(void) {
-    printf("[BOB] RPC disabled!\n");
+    WARN("[BOB] RPC disabled!\n");
 }
 
 #endif

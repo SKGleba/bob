@@ -31,7 +31,7 @@ enum AGX_CMD {
 };
 
 #ifndef COMPAT_UNUSE
-    void compat_IRQ7_handleCmd(uint32_t cmd);
+    void compat_Arm2Cry0_handleCmd(uint32_t cmd);
     int compat_f00dState(uint32_t state, bool set);
     uint32_t compat_Cry2Arm0(uint32_t msg, bool full);
     void compat_pListCopy(void* io, compat_paddr_list* paddr_list, uint32_t list_entries_count, bool copy_to_list);
@@ -39,15 +39,17 @@ enum AGX_CMD {
     void compat_killArm(bool prehang);
     void compat_pspemuColdInit(bool dram, bool regbus);
     int compat_handleAllegrex(int cmd, int arg1, int arg2);
+    void compat_Arm2Cry0123(int num);
 #else
-    #define compat_IRQ7_handleCmd(a, b, c, d) stub()
+    #define compat_Arm2Cry0_handleCmd(a) stub()
     #define compat_f00dState(a, b) stub()
-    #define compat_Cry2Arm0(a) stub()
+    #define compat_Cry2Arm0(a, b) stub()
     #define compat_pListCopy(a, b, c, d) stub()
     #define compat_armReBoot(a, b, c) stub()
     #define compat_killArm(a) stub()
     #define compat_pspemuColdInit(a, b) stub()
     #define compat_handleAllegrex(a, b, c) stub()
+    #define compat_Arm2Cry0123(a) stub()
     #define ALICE_UNUSE
     #define REGINA_UNUSE
 #endif

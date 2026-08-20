@@ -22,7 +22,7 @@
 #include "include/test.h"
 
 __attribute__((noreturn)) void glitch_init(void) {
-#ifndef NO_STATUS_LED
+#ifndef DEBUG_STATUSLED_UNUSE
     gpio_set_port_mode(0, GPIO_PORT_GAMECARD_LED, GPIO_PORT_MODE_OUTPUT);
     gpio_port_set(0, GPIO_PORT_GAMECARD_LED);
     statusled(STATUS_GLINIT_GPIO);
@@ -35,23 +35,23 @@ __attribute__((noreturn)) void glitch_init(void) {
     statusled(STATUS_GLINIT_UART);
     uart_init(UART_BUS, UART_RATE);
     for (int i = 0; i < 0x100; i++)
-        print("ping pong ding dong "); // spam uart for the glitcher watchdog
-    printf("[BOB] glitch_init bob [%X], me @ %X\n", get_build_timestamp(), glitch_init);
+        ERROR("ping pong ding dong "); // spam uart for the glitcher watchdog
+    WARNF("[BOB] glitch_init bob [%X], me @ %X\n", get_build_timestamp(), glitch_init);
 #endif
 
     statusled(STATUS_GLINIT_ERNIE);
-    printf("[BOB] ernie init\n");
+    INFO("[BOB] ernie init\n");
     ernie_init(true, true);
 
     statusled(STATUS_GLINIT_JIG);
-    printf("[BOB] jig init\n");
+    INFO("[BOB] jig init\n");
     uint32_t msg = 0xCAFEBABE;
     jig_update_shared_buffer((uint8_t*)&msg, 0, 0x10, true);
 
     // test test stuff
 #ifndef GLITCH_SKIP_TEST
     statusled(STATUS_TEST_STARTING);
-    printf("[BOB] test test test\n");
+    INFO("[BOB] test test test\n");
     glitch_test();
 #endif
 
@@ -59,14 +59,11 @@ __attribute__((noreturn)) void glitch_init(void) {
 
     // start the rpc server
     statusled(STATUS_GLINIT_RPC);
-    printf("[BOB] icache off, cleanup, move stack & exit to rpc\n");
+    INFO("[BOB] icache off, move stack & exit to rpc\n");
     enable_icache(false);
-    memset32((void*)0x48000, 0x0, 0x2000);
     asm(
-        "movu $1, 0x4fcb8\n"
-        "mov $gp, $1\n"
-        "movu $0, 0x49ff0\n"
-        "mov $sp, $0\n"
+        "movh $sp, %hi(cfg_sp_addr)\n"
+        "or3  $sp, $sp, %lo(cfg_sp_addr)\n"
         "bsr rpc_loop\n"
         "mov $0, $0\n"
         "jmp vectors_exceptions\n"

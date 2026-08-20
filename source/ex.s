@@ -80,6 +80,8 @@ add3 $sp, $sp, -0x60
 sw $0, 0x0($sp)
 ldc $0, $lp
 bsr ex_save_ctx
+movh $gp, %hi(cfg_PROG_load_end)
+add3 $gp, $gp, %lo(cfg_PROG_load_end)
 bsr c_SWI
 bsr ex_restore_ctx
 ldc $0, $tmp
@@ -98,25 +100,9 @@ add3 $sp, $sp, -0x60
 sw $0, 0x0($sp)
 ldc $0, $lp
 bsr ex_save_ctx
+movh $gp, %hi(cfg_PROG_load_end)
+add3 $gp, $gp, %lo(cfg_PROG_load_end)
 bsr c_IRQ
-bsr ex_restore_ctx
-ldc $0, $tmp
-stc $0, $lp
-lw $0, 0x0($sp)
-add3 $sp, $sp, 0x60
-ei
-reti
-
-.global s_ARM_REQ
-.type	s_ARM_REQ, @function
-s_ARM_REQ:
-di
-stc $sp, $tmp
-add3 $sp, $sp, -0x60
-sw $0, 0x0($sp)
-ldc $0, $lp
-bsr ex_save_ctx
-bsr c_ARM_REQ
 bsr ex_restore_ctx
 ldc $0, $tmp
 stc $0, $lp
@@ -134,6 +120,8 @@ add3 $sp, $sp, -0x60
 sw $0, 0x0($sp)
 ldc $0, $lp
 bsr ex_save_ctx
+movh $gp, %hi(cfg_PROG_load_end)
+add3 $gp, $gp, %lo(cfg_PROG_load_end)
 bsr c_DBG
 bsr ex_restore_ctx
 ldc $0, $tmp
@@ -147,6 +135,8 @@ jmp $0
 .type	s_GLITCH, @function
 s_GLITCH:
 di
+movh $gp, %hi(cfg_gp_addr)
+add3  $gp, $gp, %lo(cfg_gp_addr)
 movh $sp, 0x5
 or3	$sp, $sp, 0xfff0
 .LGLITCH:
@@ -157,22 +147,10 @@ bra .LGLITCH
 .type	s_RESET, @function
 s_RESET:
 di
-mov $gp, $0
-ldc $0, $pc
-movh $sp, 0x4
-or3	$sp, $sp, 0x9ff0
-sltu3 $0, $sp, $0
-beqz $0, .LNG
-movh $sp, 0x80
-or3	$sp, $sp, 0x9ff0
-mov $0, $gp
-movh $gp, 0x80
-or3	$gp, $gp, 0xfcb8
-bra .LJMP
-.LNG:
-mov $0, $gp
-movh $gp, 0x4
-or3	$gp, $gp, 0xfcb8
+movh $gp, %hi(cfg_gp_addr)
+add3  $gp, $gp, %lo(cfg_gp_addr)
+movh $sp, %hi(cfg_sp_addr)
+add3  $sp, $sp, %lo(cfg_sp_addr)
 .LJMP:
 jmp c_RESET
 

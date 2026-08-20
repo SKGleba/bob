@@ -20,8 +20,9 @@
 #include "include/utils.h"
 #include "include/test.h"
 #include "include/config.h"
+#include "include/heap.h"
 
-#ifndef MAIN_NOCCX
+#ifndef CCX_UNUSE
 bool ce_framework(bool bg, bob_fm_nfo_s* params) {
     if (!params)
         params = g_config.ce_framework_parms[bg];
@@ -68,10 +69,17 @@ bool ce_framework(bool bg, bob_fm_nfo_s* params) {
 void init(bob_config_s* arg_config) {
     _MEP_INTR_DISABLE_  // disable interrupts
 
+    asm(
+        "movh $gp, %hi(cfg_gp_addr)\n"
+        "or3  $gp, $gp, %lo(cfg_gp_addr)\n"
+    );
+
+    int ret = 0;
+
     // init config
     if (!CONFIG_GFLAGK(_CFG_USEINT)) {
         statusled(STATUS_INIT_CFG);
-        int ret = config_parse(arg_config);
+        ret = config_parse(arg_config);
         if (ret)
             PANIC("CFGP", ret);
     }
@@ -83,7 +91,15 @@ void init(bob_config_s* arg_config) {
         g_uart_bus = CONFIG_GVAL(_UART_BUS);
         uart_init(g_uart_bus, 0x10000 | CONFIG_GVAL(_UART_CLK));
     }
-    printf("[BOB] init bob [%X], me @ %X\n", get_build_timestamp(), init);
+    ERRORF("[BOB] init bob [%X], me @ %X\n", get_build_timestamp(), init);
+#endif
+
+#ifdef HEAP_ONINIT
+    statusled(STATUS_INIT_HEAP);
+    ret = heap_start(NULL, 0, HEAP_ONINIT);
+    INFOF("[BOB] init heap %X\n", ret);
+    if (ret < 0)
+        PANIC("HEAP", ret);
 #endif
 
     // test test stuff

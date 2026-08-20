@@ -17,6 +17,7 @@ LOAD source/ernie.o
 LOAD source/ex.o
 LOAD source/glitch.o
 LOAD source/gpio.o
+LOAD source/heap.o
 LOAD source/i2.o
 LOAD source/jig.o
 LOAD source/maika.o
@@ -35,11 +36,391 @@ LOAD source/ex.ao
 LOAD source/glitch_vector.ao
 LOAD source/debug.ao
 LOAD source/util.ao
-                0x0000000000040000                . = 0x40000
 
-.text           0x0000000000040000     0x53fc
+.as             0x0000000000000000        0x0
+                0x0000000000000000                _as_ARM_BOOT = 0x0
+                0x0000000000008000                _as_ARM_BOOT_size = 0x8000
+                0x0000000000008000                _as_ARM_BOOT_end = 0x8000
+                0x0000000000040000                _as_F00D_SRAM = 0x40000
+                0x0000000000020000                _as_F00D_SRAM_size = 0x20000
+                0x0000000000060000                _as_F00D_SRAM_end = 0x60000
+                0x0000000000300000                _as_F00D_ICACHE = 0x300000
+                0x0000000000010000                _as_F00D_ICACHE_size = 0x10000
+                0x0000000000310000                _as_F00D_ICACHE_end = 0x310000
+                0x0000000000310000                _as_F00D_ICACHE_TAG = 0x310000
+                0x0000000000010000                _as_F00D_ICACHE_TAG_size = 0x10000
+                0x0000000000320000                _as_F00D_ICACHE_TAG_end = 0x320000
+                0x0000000000320000                _as_F00D_DCACHE = 0x320000
+                0x0000000000010000                _as_F00D_DCACHE_size = 0x10000
+                0x0000000000330000                _as_F00D_DCACHE_end = 0x330000
+                0x0000000000330000                _as_F00D_DCACHE_TAG = 0x330000
+                0x0000000000010000                _as_F00D_DCACHE_TAG_size = 0x10000
+                0x0000000000340000                _as_F00D_DCACHE_TAG_end = 0x340000
+                0x0000000000800000                _as_F00D_CACHED_SRAM = 0x800000
+                0x0000000000020000                _as_F00D_CACHED_SRAM_size = 0x20000
+                0x0000000000820000                _as_F00D_CACHED_SRAM_end = 0x820000
+                0x000000001a000000                _as_ARM_CTRL = 0x1a000000
+                0x0000000000003000                _as_ARM_CTRL_size = 0x3000
+                0x000000001a003000                _as_ARM_CTRL_end = 0x1a003000
+                0x000000001c000000                _as_TACHYON_EDRAM = 0x1c000000
+                0x0000000000200000                _as_TACHYON_EDRAM_size = 0x200000
+                0x000000001c200000                _as_TACHYON_EDRAM_end = 0x1c200000
+                0x000000001d000000                _as_DEVNULL = 0x1d000000
+                0x0000000000001000                _as_DEVNULL_size = 0x1000
+                0x000000001d001000                _as_DEVNULL_end = 0x1d001000
+                0x000000001d001000                _as_EDEVNULL = 0x1d001000
+                0x0000000000001000                _as_EDEVNULL_size = 0x1000
+                0x000000001d002000                _as_EDEVNULL_end = 0x1d002000
+                0x000000001f000000                _as_SPAD32K = 0x1f000000
+                0x0000000000008000                _as_SPAD32K_size = 0x8000
+                0x000000001f008000                _as_SPAD32K_end = 0x1f008000
+                0x000000001f840000                _as_SPAD128K = 0x1f840000
+                0x0000000000020000                _as_SPAD128K_size = 0x20000
+                0x000000001f860000                _as_SPAD128K_end = 0x1f860000
+                0x0000000020000000                _as_VRAM = 0x20000000
+                0x0000000008000000                _as_VRAM_size = 0x8000000
+                0x0000000028000000                _as_VRAM_end = 0x28000000
+                0x0000000040000000                _as_MAIN_DRAM = 0x40000000
+                0x0000000040000000                _as_MAIN_DRAM_size = 0x40000000
+                0x0000000080000000                _as_MAIN_DRAM_end = 0x80000000
+                0x0000000080000000                _as_SUB_DRAM = 0x80000000
+                0x0000000040000000                _as_SUB_DRAM_size = 0x40000000
+                0x00000000c0000000                _as_SUB_DRAM_end = 0xc0000000
+                0x00000000e0000000                _as_MAIKA = 0xe0000000
+                0x0000000000100000                _as_MAIKA_size = 0x100000
+                0x00000000e0100000                _as_MAIKA_end = 0xe0100000
+                0x00000000e0100000                _as_GPIO1 = 0xe0100000
+                0x0000000000010000                _as_GPIO1_size = 0x10000
+                0x00000000e0110000                _as_GPIO1_end = 0xe0110000
+                0x00000000e0400000                _as_DMAC4 = 0xe0400000
+                0x0000000000010000                _as_DMAC4_size = 0x10000
+                0x00000000e0410000                _as_DMAC4_end = 0xe0410000
+                0x00000000e0410000                _as_DMAC5 = 0xe0410000
+                0x0000000000010000                _as_DMAC5_size = 0x10000
+                0x00000000e0420000                _as_DMAC5_end = 0xe0420000
+                0x00000000e0420000                _as_I2S0 = 0xe0420000
+                0x0000000000010000                _as_I2S0_size = 0x10000
+                0x00000000e0430000                _as_I2S0_end = 0xe0430000
+                0x00000000e0430000                _as_I2S1 = 0xe0430000
+                0x0000000000010000                _as_I2S1_size = 0x10000
+                0x00000000e0440000                _as_I2S1_end = 0xe0440000
+                0x00000000e0440000                _as_I2S2 = 0xe0440000
+                0x0000000000010000                _as_I2S2_size = 0x10000
+                0x00000000e0450000                _as_I2S2_end = 0xe0450000
+                0x00000000e0450000                _as_I2S3 = 0xe0450000
+                0x0000000000010000                _as_I2S3_size = 0x10000
+                0x00000000e0460000                _as_I2S3_end = 0xe0460000
+                0x00000000e0460000                _as_I2S5 = 0xe0460000
+                0x0000000000010000                _as_I2S5_size = 0x10000
+                0x00000000e0470000                _as_I2S5_end = 0xe0470000
+                0x00000000e0470000                _as_I2S4 = 0xe0470000
+                0x0000000000010000                _as_I2S4_size = 0x10000
+                0x00000000e0480000                _as_I2S4_end = 0xe0480000
+                0x00000000e0480000                _as_I2S6 = 0xe0480000
+                0x0000000000010000                _as_I2S6_size = 0x10000
+                0x00000000e0490000                _as_I2S6_end = 0xe0490000
+                0x00000000e0490000                _as_I2S7 = 0xe0490000
+                0x0000000000010000                _as_I2S7_size = 0x10000
+                0x00000000e04a0000                _as_I2S7_end = 0xe04a0000
+                0x00000000e04a0000                _as_SRC0 = 0xe04a0000
+                0x0000000000010000                _as_SRC0_size = 0x10000
+                0x00000000e04b0000                _as_SRC0_end = 0xe04b0000
+                0x00000000e04b0000                _as_SRC1 = 0xe04b0000
+                0x0000000000010000                _as_SRC1_size = 0x10000
+                0x00000000e04c0000                _as_SRC1_end = 0xe04c0000
+                0x00000000e04c0000                _as_SRC2 = 0xe04c0000
+                0x0000000000010000                _as_SRC2_size = 0x10000
+                0x00000000e04d0000                _as_SRC2_end = 0xe04d0000
+                0x00000000e04d0000                _as_SPDIF = 0xe04d0000
+                0x000000000000c000                _as_SPDIF_size = 0xc000
+                0x00000000e04dc000                _as_SPDIF_end = 0xe04dc000
+                0x00000000e04dc000                _as_ACLKGEN = 0xe04dc000
+                0x0000000000004000                _as_ACLKGEN_size = 0x4000
+                0x00000000e04e0000                _as_ACLKGEN_end = 0xe04e0000
+                0x00000000e04e0000                _as_DMAC5_KEYRING = 0xe04e0000
+                0x0000000000010000                _as_DMAC5_KEYRING_size = 0x10000
+                0x00000000e04f0000                _as_DMAC5_KEYRING_end = 0xe04f0000
+                0x00000000e0500000                _as_I2C0 = 0xe0500000
+                0x0000000000010000                _as_I2C0_size = 0x10000
+                0x00000000e0510000                _as_I2C0_end = 0xe0510000
+                0x00000000e0510000                _as_I2C1 = 0xe0510000
+                0x0000000000010000                _as_I2C1_size = 0x10000
+                0x00000000e0520000                _as_I2C1_end = 0xe0520000
+                0x00000000e0800000                _as_SUBLCD = 0xe0800000
+                0x0000000000010000                _as_SUBLCD_size = 0x10000
+                0x00000000e0810000                _as_SUBLCD_end = 0xe0810000
+                0x00000000e0900000                _as_SMSHC = 0xe0900000
+                0x0000000000010000                _as_SMSHC_size = 0x10000
+                0x00000000e0910000                _as_SMSHC_end = 0xe0910000
+                0x00000000e0a00000                _as_SPI0 = 0xe0a00000
+                0x0000000000010000                _as_SPI0_size = 0x10000
+                0x00000000e0a10000                _as_SPI0_end = 0xe0a10000
+                0x00000000e0a10000                _as_SPI1 = 0xe0a10000
+                0x0000000000010000                _as_SPI1_size = 0x10000
+                0x00000000e0a20000                _as_SPI1_end = 0xe0a20000
+                0x00000000e0a20000                _as_SPI2 = 0xe0a20000
+                0x0000000000010000                _as_SPI2_size = 0x10000
+                0x00000000e0a30000                _as_SPI2_end = 0xe0a30000
+                0x00000000e0b00000                _as_SDIF0 = 0xe0b00000
+                0x0000000000010000                _as_SDIF0_size = 0x10000
+                0x00000000e0b10000                _as_SDIF0_end = 0xe0b10000
+                0x00000000e0c00000                _as_SDIF1 = 0xe0c00000
+                0x0000000000010000                _as_SDIF1_size = 0x10000
+                0x00000000e0c10000                _as_SDIF1_end = 0xe0c10000
+                0x00000000e0c10000                _as_SDIF2 = 0xe0c10000
+                0x0000000000010000                _as_SDIF2_size = 0x10000
+                0x00000000e0c20000                _as_SDIF2_end = 0xe0c20000
+                0x00000000e0c20000                _as_SDIF3 = 0xe0c20000
+                0x0000000000010000                _as_SDIF3_size = 0x10000
+                0x00000000e0c30000                _as_SDIF3_end = 0xe0c30000
+                0x00000000e2030000                _as_UART0 = 0xe2030000
+                0x0000000000010000                _as_UART0_size = 0x10000
+                0x00000000e2040000                _as_UART0_end = 0xe2040000
+                0x00000000e2040000                _as_UART1 = 0xe2040000
+                0x0000000000010000                _as_UART1_size = 0x10000
+                0x00000000e2050000                _as_UART1_end = 0xe2050000
+                0x00000000e2050000                _as_UART2 = 0xe2050000
+                0x0000000000010000                _as_UART2_size = 0x10000
+                0x00000000e2060000                _as_UART2_end = 0xe2060000
+                0x00000000e2060000                _as_UART3 = 0xe2060000
+                0x0000000000010000                _as_UART3_size = 0x10000
+                0x00000000e2070000                _as_UART3_end = 0xe2070000
+                0x00000000e2070000                _as_UART4 = 0xe2070000
+                0x0000000000010000                _as_UART4_size = 0x10000
+                0x00000000e2080000                _as_UART4_end = 0xe2080000
+                0x00000000e2080000                _as_UART5 = 0xe2080000
+                0x0000000000010000                _as_UART5_size = 0x10000
+                0x00000000e2090000                _as_UART5_end = 0xe2090000
+                0x00000000e2090000                _as_UART6 = 0xe2090000
+                0x0000000000010000                _as_UART6_size = 0x10000
+                0x00000000e20a0000                _as_UART6_end = 0xe20a0000
+                0x00000000e20a0000                _as_GPIO0 = 0xe20a0000
+                0x0000000000010000                _as_GPIO0_size = 0x10000
+                0x00000000e20b0000                _as_GPIO0_end = 0xe20b0000
+                0x00000000e20b0000                _as_TIMERS = 0xe20b0000
+                0x0000000000010000                _as_TIMERS_size = 0x10000
+                0x00000000e20c0000                _as_TIMERS_end = 0xe20c0000
+                0x00000000e20c0000                _as_PWM = 0xe20c0000
+                0x0000000000010000                _as_PWM_size = 0x10000
+                0x00000000e20d0000                _as_PWM_end = 0xe20d0000
+                0x00000000e3000000                _as_DMAC0 = 0xe3000000
+                0x0000000000010000                _as_DMAC0_size = 0x10000
+                0x00000000e3010000                _as_DMAC0_end = 0xe3010000
+                0x00000000e3010000                _as_DMAC1 = 0xe3010000
+                0x0000000000010000                _as_DMAC1_size = 0x10000
+                0x00000000e3020000                _as_DMAC1_end = 0xe3020000
+                0x00000000e3020000                _as_CIF0 = 0xe3020000
+                0x0000000000010000                _as_CIF0_size = 0x10000
+                0x00000000e3030000                _as_CIF0_end = 0xe3030000
+                0x00000000e3030000                _as_CIF1 = 0xe3030000
+                0x0000000000010000                _as_CIF1_size = 0x10000
+                0x00000000e3040000                _as_CIF1_end = 0xe3040000
+                0x00000000e3040000                _as_CIF2 = 0xe3040000
+                0x0000000000010000                _as_CIF2_size = 0x10000
+                0x00000000e3050000                _as_CIF2_end = 0xe3050000
+                0x00000000e3050000                _as_CSI0 = 0xe3050000
+                0x0000000000010000                _as_CSI0_size = 0x10000
+                0x00000000e3060000                _as_CSI0_end = 0xe3060000
+                0x00000000e3060000                _as_CSI1 = 0xe3060000
+                0x0000000000010000                _as_CSI1_size = 0x10000
+                0x00000000e3070000                _as_CSI1_end = 0xe3070000
+                0x00000000e3070000                _as_CSI2 = 0xe3070000
+                0x0000000000010000                _as_CSI2_size = 0x10000
+                0x00000000e3080000                _as_CSI2_end = 0xe3080000
+                0x00000000e3100000                _as_PERVASIVE = 0xe3100000
+                0x0000000000010000                _as_PERVASIVE_size = 0x10000
+                0x00000000e3110000                _as_PERVASIVE_end = 0xe3110000
+                0x00000000e3110000                _as_PERVASIVE2 = 0xe3110000
+                0x0000000000010000                _as_PERVASIVE2_size = 0x10000
+                0x00000000e3120000                _as_PERVASIVE2_end = 0xe3120000
+                0x00000000e3200000                _as_ARM_DEBUG = 0xe3200000
+                0x0000000000120000                _as_ARM_DEBUG_size = 0x120000
+                0x00000000e3320000                _as_ARM_DEBUG_end = 0xe3320000
+                0x00000000e3320000                _as_ARM_VFP = 0xe3320000
+                0x0000000000010000                _as_ARM_VFP_size = 0x10000
+                0x00000000e3330000                _as_ARM_VFP_end = 0xe3330000
+                0x00000000e4000000                _as_USB0O = 0xe4000000
+                0x0000000000010000                _as_USB0O_size = 0x10000
+                0x00000000e4010000                _as_USB0O_end = 0xe4010000
+                0x00000000e4010000                _as_USB0_OHCI = 0xe4010000
+                0x0000000000010000                _as_USB0_OHCI_size = 0x10000
+                0x00000000e4020000                _as_USB0_OHCI_end = 0xe4020000
+                0x00000000e4020000                _as_USB2_OHCI = 0xe4020000
+                0x0000000000010000                _as_USB2_OHCI_size = 0x10000
+                0x00000000e4030000                _as_USB2_OHCI_end = 0xe4030000
+                0x00000000e40b0000                _as_USB1_OHCI = 0xe40b0000
+                0x0000000000010000                _as_USB1_OHCI_size = 0x10000
+                0x00000000e40c0000                _as_USB1_OHCI_end = 0xe40c0000
+                0x00000000e40c0000                _as_UDC1 = 0xe40c0000
+                0x0000000000010000                _as_UDC1_size = 0x10000
+                0x00000000e40d0000                _as_UDC1_end = 0xe40d0000
+                0x00000000e40d0000                _as_UDC2 = 0xe40d0000
+                0x0000000000010000                _as_UDC2_size = 0x10000
+                0x00000000e40e0000                _as_UDC2_end = 0xe40e0000
+                0x00000000e40e0000                _as_USBD_EHCI = 0xe40e0000
+                0x0000000000010000                _as_USBD_EHCI_size = 0x10000
+                0x00000000e40f0000                _as_USBD_EHCI_end = 0xe40f0000
+                0x00000000e5000000                _as_DMAC2 = 0xe5000000
+                0x0000000000010000                _as_DMAC2_size = 0x10000
+                0x00000000e5010000                _as_DMAC2_end = 0xe5010000
+                0x00000000e5010000                _as_DMAC3 = 0xe5010000
+                0x0000000000010000                _as_DMAC3_size = 0x10000
+                0x00000000e5020000                _as_DMAC3_end = 0xe5020000
+                0x00000000e5020000                _as_IFTU0 = 0xe5020000
+                0x0000000000010000                _as_IFTU0_size = 0x10000
+                0x00000000e5030000                _as_IFTU0_end = 0xe5030000
+                0x00000000e5030000                _as_IFTU1 = 0xe5030000
+                0x0000000000010000                _as_IFTU1_size = 0x10000
+                0x00000000e5040000                _as_IFTU1_end = 0xe5040000
+                0x00000000e5040000                _as_IFTU2 = 0xe5040000
+                0x0000000000010000                _as_IFTU2_size = 0x10000
+                0x00000000e5050000                _as_IFTU2_end = 0xe5050000
+                0x00000000e5050000                _as_DSI0 = 0xe5050000
+                0x0000000000010000                _as_DSI0_size = 0x10000
+                0x00000000e5060000                _as_DSI0_end = 0xe5060000
+                0x00000000e5060000                _as_DSI1 = 0xe5060000
+                0x0000000000010000                _as_DSI1_size = 0x10000
+                0x00000000e5070000                _as_DSI1_end = 0xe5070000
+                0x00000000e5070000                _as_COMPAT_MAILBOX = 0xe5070000
+                0x0000000000010000                _as_COMPAT_MAILBOX_size = 0x10000
+                0x00000000e5080000                _as_COMPAT_MAILBOX_end = 0xe5080000
+                0x00000000e5080000                _as_COMPAT_LCDDMAC = 0xe5080000
+                0x0000000000010000                _as_COMPAT_LCDDMAC_size = 0x10000
+                0x00000000e5090000                _as_COMPAT_LCDDMAC_end = 0xe5090000
+                0x00000000e50c0000                _as_DMAC6 = 0xe50c0000
+                0x0000000000010000                _as_DMAC6_size = 0x10000
+                0x00000000e50d0000                _as_DMAC6_end = 0xe50d0000
+                0x00000000e50d0000                _as_PFM = 0xe50d0000
+                0x0000000000010000                _as_PFM_size = 0x10000
+                0x00000000e50e0000                _as_PFM_end = 0xe50e0000
+                0x00000000e5800000                _as_SDIO0 = 0xe5800000
+                0x0000000000010000                _as_SDIO0_size = 0x10000
+                0x00000000e5810000                _as_SDIO0_end = 0xe5810000
+                0x00000000e5810000                _as_SDIO1 = 0xe5810000
+                0x0000000000010000                _as_SDIO1_size = 0x10000
+                0x00000000e5820000                _as_SDIO1_end = 0xe5820000
+                0x00000000e5880000                _as_LPDDR1_CFG = 0xe5880000
+                0x0000000000010000                _as_LPDDR1_CFG_size = 0x10000
+                0x00000000e5890000                _as_LPDDR1_CFG_end = 0xe5890000
+                0x00000000e6000000                _as_LPDDR0_CFG = 0xe6000000
+                0x0000000000010000                _as_LPDDR0_CFG_size = 0x10000
+                0x00000000e6010000                _as_LPDDR0_CFG_end = 0xe6010000
+                0x00000000e8000000                _as_REGBUS = 0xe8000000
+                0x0000000000010000                _as_REGBUS_size = 0x10000
+                0x00000000e8010000                _as_REGBUS_end = 0xe8010000
+                0x00000000e8100000                _as_COMPAT_SRAM = 0xe8100000
+                0x0000000000001000                _as_COMPAT_SRAM_size = 0x1000
+                0x00000000e8101000                _as_COMPAT_SRAM_end = 0xe8101000
+                0x00000000e8200000                _as_EMC_TOP = 0xe8200000
+                0x0000000000001000                _as_EMC_TOP_size = 0x1000
+                0x00000000e8201000                _as_EMC_TOP_end = 0xe8201000
+                0x00000000e8300000                _as_GRAB = 0xe8300000
+                0x0000000000010000                _as_GRAB_size = 0x10000
+                0x00000000e8310000                _as_GRAB_end = 0xe8310000
+                0x00000000e8400000                _as_SGX541ALL = 0xe8400000
+                0x0000000000004000                _as_SGX541ALL_size = 0x4000
+                0x00000000e8404000                _as_SGX541ALL_end = 0xe8404000
+                0x00000000e8404000                _as_SGX541CORE0 = 0xe8404000
+                0x0000000000004000                _as_SGX541CORE0_size = 0x4000
+                0x00000000e8408000                _as_SGX541CORE0_end = 0xe8408000
+                0x00000000e8408000                _as_SGX541CORE1 = 0xe8408000
+                0x0000000000004000                _as_SGX541CORE1_size = 0x4000
+                0x00000000e840c000                _as_SGX541CORE1_end = 0xe840c000
+                0x00000000e840c000                _as_SGX541CORE2 = 0xe840c000
+                0x0000000000004000                _as_SGX541CORE2_size = 0x4000
+                0x00000000e8410000                _as_SGX541CORE2_end = 0xe8410000
+                0x00000000e8410000                _as_SGX541CORE3 = 0xe8410000
+                0x0000000000004000                _as_SGX541CORE3_size = 0x4000
+                0x00000000e8414000                _as_SGX541CORE3_end = 0xe8414000
+                0x00000000e8414000                _as_SGX541MP4P = 0xe8414000
+                0x0000000000004000                _as_SGX541MP4P_size = 0x4000
+                0x00000000e8418000                _as_SGX541MP4P_end = 0xe8418000
+                0x00000000ec000000                _as_MAIN_XBAR = 0xec000000
+                0x0000000000100000                _as_MAIN_XBAR_size = 0x100000
+                0x00000000ec100000                _as_MAIN_XBAR_end = 0xec100000
+                0x00000000ec100000                _as_CENTER_XBAR = 0xec100000
+                0x0000000000100000                _as_CENTER_XBAR_size = 0x100000
+                0x00000000ec200000                _as_CENTER_XBAR_end = 0xec200000
+                0x00000000ec200000                _as_VIDEO_XBAR = 0xec200000
+                0x0000000000100000                _as_VIDEO_XBAR_size = 0x100000
+                0x00000000ec300000                _as_VIDEO_XBAR_end = 0xec300000
+                0x00000000ec300000                _as_IFTU_XBAR = 0xec300000
+                0x0000000000100000                _as_IFTU_XBAR_size = 0x100000
+                0x00000000ec400000                _as_IFTU_XBAR_end = 0xec400000
+                0x00000000ec400000                _as_VIP_XBAR = 0xec400000
+                0x0000000000100000                _as_VIP_XBAR_size = 0x100000
+                0x00000000ec500000                _as_VIP_XBAR_end = 0xec500000
+                0x00000000ec500000                _as_DEBUG_BUS = 0xec500000
+                0x0000000000100000                _as_DEBUG_BUS_size = 0x100000
+                0x00000000ec600000                _as_DEBUG_BUS_end = 0xec600000
+                0x00000000ec600000                _as_DMAC_XBAR = 0xec600000
+                0x0000000000100000                _as_DMAC_XBAR_size = 0x100000
+                0x00000000ec700000                _as_DMAC_XBAR_end = 0xec700000
+                0x00000000ed000000                _as_IO_SLAVE_BUS = 0xed000000
+                0x0000000000100000                _as_IO_SLAVE_BUS_size = 0x100000
+                0x00000000ed100000                _as_IO_SLAVE_BUS_end = 0xed100000
+                0x00000000ed100000                _as_IO_MASTER_BUS = 0xed100000
+                0x0000000000100000                _as_IO_MASTER_BUS_size = 0x100000
+                0x00000000ed200000                _as_IO_MASTER_BUS_end = 0xed200000
+                0x00000000ed200000                _as_PERVASIVE_BUS = 0xed200000
+                0x0000000000100000                _as_PERVASIVE_BUS_size = 0x100000
+                0x00000000ed300000                _as_PERVASIVE_BUS_end = 0xed300000
+                0x00000000ed300000                _as_MISC_IO_BUS = 0xed300000
+                0x0000000000100000                _as_MISC_IO_BUS_size = 0x100000
+                0x00000000ed400000                _as_MISC_IO_BUS_end = 0xed400000
+                0x00000000ed400000                _as_NIO_MASTER_BUS = 0xed400000
+                0x0000000000100000                _as_NIO_MASTER_BUS_size = 0x100000
+                0x00000000ed500000                _as_NIO_MASTER_BUS_end = 0xed500000
+                0x00000000ed500000                _as_AUDIO_BUS = 0xed500000
+                0x0000000000100000                _as_AUDIO_BUS_size = 0x100000
+                0x00000000ed600000                _as_AUDIO_BUS_end = 0xed600000
+                0x00000000ed600000                _as_NIO_SLAVE_BUS = 0xed600000
+                0x0000000000100000                _as_NIO_SLAVE_BUS_size = 0x100000
+                0x00000000ed700000                _as_NIO_SLAVE_BUS_end = 0xed700000
+                0x00000000ed700000                _as_SRC_BUS = 0xed700000
+                0x0000000000100000                _as_SRC_BUS_size = 0x100000
+                0x00000000ed800000                _as_SRC_BUS_end = 0xed800000
+                0x00000000ed800000                _as_GPU_REG_BUS = 0xed800000
+                0x0000000000100000                _as_GPU_REG_BUS_size = 0x100000
+                0x00000000ed900000                _as_GPU_REG_BUS_end = 0xed900000
+                0x00000000ed900000                _as_IFTU_REG_BUS = 0xed900000
+                0x0000000000100000                _as_IFTU_REG_BUS_size = 0x100000
+                0x00000000eda00000                _as_IFTU_REG_BUS_end = 0xeda00000
+                0x00000000ee000000                _as_CAM_SLAVE_BUS = 0xee000000
+                0x0000000000100000                _as_CAM_SLAVE_BUS_size = 0x100000
+                0x00000000ee100000                _as_CAM_SLAVE_BUS_end = 0xee100000
+                0x00000000ee100000                _as_CAM_MASTER_BUS = 0xee100000
+                0x0000000000100000                _as_CAM_MASTER_BUS_size = 0x100000
+                0x00000000ee200000                _as_CAM_MASTER_BUS_end = 0xee200000
+                0x00000000ee200000                _as_USB_SLAVE_BUS = 0xee200000
+                0x0000000000100000                _as_USB_SLAVE_BUS_size = 0x100000
+                0x00000000ee300000                _as_USB_SLAVE_BUS_end = 0xee300000
+                0x00000000ee300000                _as_USB_MASTER_BUS = 0xee300000
+                0x0000000000100000                _as_USB_MASTER_BUS_size = 0x100000
+                0x00000000ee400000                _as_USB_MASTER_BUS_end = 0xee400000
+                0x00000000ee400000                _as_SLCD_SLAVE_BUS = 0xee400000
+                0x0000000000100000                _as_SLCD_SLAVE_BUS_size = 0x100000
+                0x00000000ee500000                _as_SLCD_SLAVE_BUS_end = 0xee500000
+                0x00000000ee500000                _as_SLCD_MASTER_BUS = 0xee500000
+                0x0000000000100000                _as_SLCD_MASTER_BUS_size = 0x100000
+                0x00000000ee600000                _as_SLCD_MASTER_BUS_end = 0xee600000
+                0x00000000ee600000                _as_CAM_REG_BUS = 0xee600000
+                0x0000000000100000                _as_CAM_REG_BUS_size = 0x100000
+                0x00000000ee700000                _as_CAM_REG_BUS_end = 0xee700000
+
+.cfg            0x0000000000000000        0x0
+                0x0000000000040000                cfg_PROG_load_off = 0x40000
+                0x000000000004a000                cfg_PROG_uses_end = 0x4a000
+                0x000000000004a000                cfg_sp_addr = cfg_PROG_uses_end
+                0x0000000000002000                cfg_sp_size = 0x2000
+                0x0000000000048000                cfg_PROG_load_end = (cfg_sp_addr - cfg_sp_size)
+                0x0000000000008000                cfg_PROG_max_size = 0x8000
+                0xfffffffffffe4000                cfg_gp_addr = (cfg_PROG_load_off + (cfg_PROG_max_size / 0x2))
+                0x0000000000040000                . = cfg_PROG_load_off
+
+.text           0x0000000000040000     0x55e2
  *(.text.vectors)
- .text.vectors  0x0000000000040000      0x130 source/glitch_vector.ao
+ .text.vectors  0x0000000000040000      0x14c source/glitch_vector.ao
                 0x0000000000040000                vectors_exceptions
                 0x0000000000040034                vectors_interrupts
                 0x00000000000400b0                s_init
@@ -52,274 +433,298 @@ LOAD source/util.ao
                 0x00000000000400cc                g_state
                 0x00000000000400d0                g_config
                 0x00000000000400e0                g_iceparams
+                0x0000000000040130                g_bobcprm
+                0x0000000000040140                g_debug_route
+                0x0000000000040144                g_debug_level
+                0x0000000000040148                s_keygx
  *(.text.exs)
- .text.exs      0x0000000000040130       0xe4 source/glitch.o
-                0x0000000000040130                glitch_init
- .text.exs      0x0000000000040214      0x156 source/ex.ao
-                0x0000000000040214                ex_save_ctx
-                0x0000000000040254                ex_restore_ctx
-                0x0000000000040292                s_SWI
-                0x00000000000402b2                s_IRQ
-                0x00000000000402d2                s_ARM_REQ
+ .text.exs      0x000000000004014c       0xd8 source/glitch.o
+                0x000000000004014c                glitch_init
+ .text.exs      0x0000000000040224      0x138 source/ex.ao
+                0x0000000000040224                ex_save_ctx
+                0x0000000000040264                ex_restore_ctx
+                0x00000000000402a2                s_SWI
+                0x00000000000402ca                s_IRQ
                 0x00000000000402f2                s_DBG
-                0x0000000000040312                s_GLITCH
-                0x0000000000040322                s_RESET
-                0x0000000000040356                ex_cxctable
+                0x000000000004031a                s_GLITCH
+                0x0000000000040332                s_RESET
+                0x0000000000040348                ex_cxctable
  *(.text .text.* .gnu.linkonce.t.*)
- *fill*         0x000000000004036a        0x2 
- .text          0x000000000004036c      0x5cc source/alice.o
-                0x000000000004036c                alice_get_task_status
-                0x00000000000403a4                alice_loadAlice
-                0x00000000000404ba                alice_stopReloadAlice
-                0x0000000000040548                alice_schedule_task
-                0x0000000000040614                alice_schedule_bob_task
-                0x000000000004068a                alice_handleCmd
- .text          0x0000000000040938      0x104 source/clib.o
-                0x0000000000040938                memset8
-                0x000000000004095e                memset32
-                0x0000000000040980                memset
-                0x00000000000409ac                memcpy
-                0x00000000000409ea                memcmp
-                0x0000000000040a2e                strlen
- .text          0x0000000000040a3c      0x790 source/compat.o
-                0x0000000000040a3c                compat_Cry2Arm0
-                0x0000000000040cce                compat_IRQ7_handleCmd
-                0x0000000000040db8                compat_pListCopy
-                0x0000000000040e02                compat_armReBoot
-                0x0000000000040f50                compat_killArm
-                0x0000000000040fee                compat_pspemuColdInit
-                0x0000000000041126                compat_handleAllegrex
- .text          0x00000000000411cc      0x21c source/config.o
-                0x00000000000411cc                config_set_dfl_test
-                0x00000000000412bc                config_parse
- .text          0x00000000000413e8      0x18a source/crypto.o
-                0x00000000000413e8                crypto_bigmacDefaultCmd
-                0x00000000000414ac                crypto_waitStopBigmacOps
-                0x0000000000041536                crypto_memset
- .text          0x0000000000041572      0x414 source/debug.o
-                0x0000000000041572                debug_printU32
-                0x00000000000415e0                debug_printFormat
-                0x000000000004191c                debug_printRange
-                0x0000000000041944                debug_setGpoCode
-                0x000000000004196e                debug_c_regdump
- .text          0x0000000000041986      0x27e source/dram.o
-                0x0000000000041b02                dram_init
- .text          0x0000000000041c04      0x3d4 source/ernie.o
-                0x0000000000041c04                ernie_write
-                0x0000000000041c5c                ernie_read
-                0x0000000000041cd6                ernie_exec
-                0x0000000000041d72                ernie_exec_cmd
-                0x0000000000041e04                ernie_exec_cmd_short
-                0x0000000000041e20                ernie_3auth_single
-                0x0000000000041f56                ernie_init
- .text          0x0000000000041fd8      0x32e source/ex.o
-                0x0000000000041fd8                c_RESET
-                0x000000000004206c                c_SWI
-                0x00000000000420e0                c_IRQ
-                0x0000000000042142                c_ARM_REQ
-                0x00000000000421c8                c_OTHER_INT
-                0x00000000000421fa                c_OTHER_EXC
-                0x000000000004222c                PANIC
-                0x0000000000042262                c_DBG
-                0x00000000000422a6                set_exception_table
- .text          0x0000000000042306        0x0 source/glitch.o
- .text          0x0000000000042306      0x21a source/gpio.o
-                0x0000000000042306                gpio_set_port_mode
-                0x0000000000042324                gpio_port_read
-                0x000000000004233a                gpio_port_set
-                0x000000000004235a                gpio_port_clear
-                0x000000000004237a                gpio_set_intr_mode
-                0x00000000000423c2                gpio_query_intr
-                0x000000000004242e                gpio_acquire_intr
-                0x00000000000424b2                gpio_enable_port
-                0x00000000000424ce                gpio_init
- .text          0x0000000000042520      0x1f0 source/i2.o
-                0x000000000004252e                i2c_init_bus
-                0x00000000000425a0                i2c_transfer_write
-                0x00000000000425fc                i2c_transfer_write_short
-                0x000000000004260e                i2c_transfer_read
-                0x0000000000042678                i2c_transfer_write_read
- .text          0x0000000000042710      0x1de source/jig.o
-                0x0000000000042710                jig_update_shared_buffer
-                0x0000000000042810                jig_read_shared_buffer
- .text          0x00000000000428ee       0xee source/maika.o
-                0x00000000000428ee                readAs
-                0x0000000000042924                writeAs
-                0x0000000000042948                keyring_slot_data
-                0x00000000000429b6                keyring_slot_prot
- .text          0x00000000000429dc      0x1c8 source/main.o
-                0x00000000000429dc                ce_framework
-                0x0000000000042aac                init
- .text          0x0000000000042ba4       0xe0 source/perv.o
-                0x0000000000042ba4                pervasive_control_reset
-                0x0000000000042bec                pervasive_control_gate
-                0x0000000000042c34                pervasive_control_clock
-                0x0000000000042c5e                pervasive_control_misc
- .text          0x0000000000042c84      0x24a source/regina.o
-                0x0000000000042c84                regina_loadRegina
-                0x0000000000042d6c                regina_sendCmd
- *fill*         0x0000000000042ece        0x2 
- .text          0x0000000000042ed0      0x860 source/rp.o
-                0x0000000000043612                rpc_loop
- .text          0x0000000000043730     0x1308 source/sdif.o
-                0x000000000004431e                sdif_read_sector_sd
-                0x000000000004439a                sdif_write_sector_sd
-                0x0000000000044416                sdif_read_sector_mmc
-                0x00000000000444c2                sdif_write_sector_mmc
-                0x000000000004456e                sdif_init_ctx
-                0x00000000000445f8                sdif_init_sd
-                0x000000000004485a                sdif_init_mmc
- .text          0x0000000000044a38        0x4 source/sm.o
-                0x0000000000044a38                sm_loadstart
- .text          0x0000000000044a3c       0xdc source/spi.o
-                0x0000000000044a3c                spi_init
-                0x0000000000044a9e                spi_write_start
-                0x0000000000044abe                spi_write_end
-                0x0000000000044ada                spi_write
-                0x0000000000044ae8                spi_read_available
-                0x0000000000044af6                spi_read
-                0x0000000000044b02                spi_read_end
- .text          0x0000000000044b18      0x396 source/stor.o
-                0x0000000000044bda                stor_init_sd
-                0x0000000000044c58                stor_init_emmc
-                0x0000000000044cd4                stor_read_sd
-                0x0000000000044d24                stor_write_sd
-                0x0000000000044d74                stor_read_emmc
-                0x0000000000044dc4                stor_write_emmc
-                0x0000000000044e14                stor_export_ctx
-                0x0000000000044e5a                stor_import_ctx
- .text          0x0000000000044eae       0xcc source/test.o
-                0x0000000000044eae                dfl_test
-                0x0000000000044f1e                glitch_test
- .text          0x0000000000044f7a      0x25e source/uart.o
-                0x0000000000044f7a                uart_init
-                0x000000000004500a                uart_write
-                0x0000000000045026                uart_read
-                0x000000000004505a                uart_rxfifo_flush
-                0x0000000000045086                uart_print
-                0x00000000000450c4                uart_printn
-                0x000000000004510c                uart_scann
-                0x000000000004516a                uart_scanns
- .text          0x00000000000451d8       0xa2 source/utils.o
-                0x00000000000451d8                delay_nx
-                0x0000000000045202                get_build_timestamp
-                0x000000000004520c                setup_ints
-                0x0000000000045270                stub
- .text          0x000000000004527a        0x0 source/ex.ao
- .text          0x000000000004527a        0x0 source/glitch_vector.ao
- .text          0x000000000004527a      0x102 source/debug.ao
-                0x000000000004527a                debug_s_regdump
- .text          0x000000000004537c       0x80 source/util.ao
-                0x000000000004537c                delay
-                0x0000000000045384                cbus_read
-                0x000000000004539a                _cb_r_ins
-                0x00000000000453a4                cbus_write
-                0x00000000000453ba                _cb_w_ins
-                0x00000000000453c4                set_dbg_mode
-                0x00000000000453d8                enable_icache
+ .text          0x000000000004035c      0x5b4 source/alice.o
+                0x000000000004035c                alice_get_task_status
+                0x000000000004038a                alice_loadAlice
+                0x000000000004048e                alice_stopReloadAlice
+                0x000000000004051e                alice_schedule_task
+                0x00000000000405d0                alice_schedule_bob_task
+                0x0000000000040640                alice_handleCmd
+ .text          0x0000000000040910      0x104 source/clib.o
+                0x0000000000040910                memset8
+                0x0000000000040936                memset32
+                0x0000000000040958                memset
+                0x0000000000040984                memcpy
+                0x00000000000409c2                memcmp
+                0x0000000000040a06                strlen
+ .text          0x0000000000040a14      0x82a source/compat.o
+                0x0000000000040a14                compat_Cry2Arm0
+                0x0000000000040c9e                compat_Arm2Cry0_handleCmd
+                0x0000000000040d88                compat_Arm2Cry0123
+                0x0000000000040e2a                compat_pListCopy
+                0x0000000000040e74                compat_armReBoot
+                0x0000000000040fc2                compat_killArm
+                0x0000000000041060                compat_pspemuColdInit
+                0x0000000000041198                compat_handleAllegrex
+ .text          0x000000000004123e      0x1da source/config.o
+                0x000000000004123e                config_set_dfl_test
+                0x0000000000041310                config_parse
+ .text          0x0000000000041418      0x1a8 source/crypto.o
+                0x0000000000041418                crypto_bigmacDefaultCmd
+                0x00000000000414dc                crypto_waitStopBigmacOps
+                0x0000000000041566                crypto_memset
+                0x00000000000415a2                crypto_keygx
+ .text          0x00000000000415c0      0x5a6 source/debug.o
+                0x00000000000415c0                dbgr_print
+                0x00000000000415e0                dbgr_scan
+                0x0000000000041608                dbgr_flush
+                0x000000000004161e                debug_printHU64
+                0x00000000000416c2                debug_printDI32
+                0x000000000004175c                debug_printFormat
+                0x0000000000041acc                debug_printRange
+                0x0000000000041af4                debug_setGpoCode
+                0x0000000000041b1e                debug_c_regdump
+ .text          0x0000000000041b66      0x27e source/dram.o
+                0x0000000000041ce2                dram_init
+ .text          0x0000000000041de4      0x3d6 source/ernie.o
+                0x0000000000041de4                ernie_write
+                0x0000000000041e3c                ernie_read
+                0x0000000000041eb6                ernie_exec
+                0x0000000000041f52                ernie_exec_cmd
+                0x0000000000041fe4                ernie_exec_cmd_short
+                0x0000000000042000                ernie_3auth_single
+                0x0000000000042136                ernie_init
+ .text          0x00000000000421ba      0x2b0 source/ex.o
+                0x00000000000421ba                c_RESET
+                0x0000000000042242                c_SWI
+                0x00000000000422b6                c_IRQ
+                0x000000000004232c                c_OTHER_INT
+                0x000000000004235e                c_OTHER_EXC
+                0x0000000000042390                PANIC
+                0x00000000000423c6                c_DBG
+                0x000000000004240a                set_exception_table
+ .text          0x000000000004246a        0x0 source/glitch.o
+ .text          0x000000000004246a      0x21a source/gpio.o
+                0x000000000004246a                gpio_set_port_mode
+                0x0000000000042488                gpio_port_read
+                0x000000000004249e                gpio_port_set
+                0x00000000000424be                gpio_port_clear
+                0x00000000000424de                gpio_set_intr_mode
+                0x0000000000042526                gpio_query_intr
+                0x0000000000042592                gpio_acquire_intr
+                0x0000000000042616                gpio_enable_port
+                0x0000000000042632                gpio_init
+ .text          0x0000000000042684        0x0 source/heap.o
+ .text          0x0000000000042684      0x1f0 source/i2.o
+                0x0000000000042692                i2c_init_bus
+                0x0000000000042704                i2c_transfer_write
+                0x0000000000042760                i2c_transfer_write_short
+                0x0000000000042772                i2c_transfer_read
+                0x00000000000427dc                i2c_transfer_write_read
+ .text          0x0000000000042874      0x1de source/jig.o
+                0x0000000000042874                jig_update_shared_buffer
+                0x0000000000042974                jig_read_shared_buffer
+ .text          0x0000000000042a52       0xee source/maika.o
+                0x0000000000042a52                readAs
+                0x0000000000042a88                writeAs
+                0x0000000000042aac                keyring_slot_data
+                0x0000000000042b1a                keyring_slot_prot
+ .text          0x0000000000042b40      0x1ae source/main.o
+                0x0000000000042b40                ce_framework
+                0x0000000000042c0c                init
+ .text          0x0000000000042cee       0xe0 source/perv.o
+                0x0000000000042cee                pervasive_control_reset
+                0x0000000000042d36                pervasive_control_gate
+                0x0000000000042d7e                pervasive_control_clock
+                0x0000000000042da8                pervasive_control_misc
+ .text          0x0000000000042dce      0x25c source/regina.o
+                0x0000000000042dce                regina_loadRegina
+                0x0000000000042ec2                regina_sendCmd
+ *fill*         0x000000000004302a        0x2 
+ .text          0x000000000004302c      0x858 source/rp.o
+                0x0000000000043774                rpc_loop
+ .text          0x0000000000043884     0x1308 source/sdif.o
+                0x0000000000044472                sdif_read_sector_sd
+                0x00000000000444ee                sdif_write_sector_sd
+                0x000000000004456a                sdif_read_sector_mmc
+                0x0000000000044616                sdif_write_sector_mmc
+                0x00000000000446c2                sdif_init_ctx
+                0x000000000004474c                sdif_init_sd
+                0x00000000000449ae                sdif_init_mmc
+ .text          0x0000000000044b8c        0x4 source/sm.o
+                0x0000000000044b8c                sm_loadstart
+ .text          0x0000000000044b90       0xdc source/spi.o
+                0x0000000000044b90                spi_init
+                0x0000000000044bf2                spi_write_start
+                0x0000000000044c12                spi_write_end
+                0x0000000000044c2e                spi_write
+                0x0000000000044c3c                spi_read_available
+                0x0000000000044c4a                spi_read
+                0x0000000000044c56                spi_read_end
+ .text          0x0000000000044c6c      0x396 source/stor.o
+                0x0000000000044d2e                stor_init_sd
+                0x0000000000044dac                stor_init_emmc
+                0x0000000000044e28                stor_read_sd
+                0x0000000000044e78                stor_write_sd
+                0x0000000000044ec8                stor_read_emmc
+                0x0000000000044f18                stor_write_emmc
+                0x0000000000044f68                stor_export_ctx
+                0x0000000000044fae                stor_import_ctx
+ .text          0x0000000000045002       0xd8 source/test.o
+                0x0000000000045002                dfl_test
+                0x000000000004507e                glitch_test
+ .text          0x00000000000450da      0x288 source/uart.o
+                0x00000000000450da                uart_init
+                0x000000000004516a                uart_write
+                0x0000000000045186                uart_read
+                0x00000000000451ba                uart_rxfifo_flush
+                0x00000000000451e2                uart_print
+                0x000000000004521c                uart_printn
+                0x0000000000045260                uart_printr
+                0x000000000004529e                uart_scann
+                0x00000000000452f8                uart_scanns
+ .text          0x0000000000045362       0xec source/utils.o
+                0x0000000000045362                delay_nx
+                0x000000000004538c                get_build_timestamp
+                0x0000000000045396                setup_ints
+                0x00000000000453fa                intr_mask
+                0x0000000000045444                stub
+ .text          0x000000000004544e        0x0 source/ex.ao
+ .text          0x000000000004544e        0x0 source/glitch_vector.ao
+ .text          0x000000000004544e      0x114 source/debug.ao
+                0x000000000004544e                debug_s_regdump
+ .text          0x0000000000045562       0x80 source/util.ao
+                0x0000000000045562                delay
+                0x000000000004556a                cbus_read
+                0x0000000000045580                _cb_r_ins
+                0x000000000004558a                cbus_write
+                0x00000000000455a0                _cb_w_ins
+                0x00000000000455aa                set_dbg_mode
+                0x00000000000455be                enable_icache
 
-.rodata         0x00000000000453fc      0x770
+.rodata         0x00000000000455e4      0x7e0
  *(.rodata .rodata.* .gnu.linkonce.r.*)
- .rodata        0x00000000000453fc      0x120 source/alice.o
- .rodata        0x000000000004551c        0xc source/compat.o
- .rodata        0x0000000000045528        0x4 source/crypto.o
- .rodata        0x000000000004552c       0x30 source/debug.o
- .rodata        0x000000000004555c      0x124 source/ex.o
- .rodata        0x0000000000045680       0xa4 source/glitch.o
- .rodata        0x0000000000045724       0x28 source/main.o
- .rodata        0x000000000004574c      0x174 source/regina.o
- .rodata        0x00000000000458c0      0x100 source/rp.o
- .rodata        0x00000000000459c0      0x104 source/stor.o
- .rodata        0x0000000000045ac4       0xa8 source/test.o
+ .rodata        0x00000000000455e4      0x120 source/alice.o
+ .rodata        0x0000000000045704       0xa0 source/compat.o
+ .rodata        0x00000000000457a4        0x4 source/crypto.o
+ .rodata        0x00000000000457a8       0x4c source/debug.o
+ .rodata        0x00000000000457f4       0xe0 source/ex.o
+ .rodata        0x00000000000458d4       0x98 source/glitch.o
+ .rodata        0x000000000004596c       0x28 source/main.o
+ .rodata        0x0000000000045994      0x17c source/regina.o
+ .rodata        0x0000000000045b10      0x108 source/rp.o
+ .rodata        0x0000000000045c18      0x104 source/stor.o
+ .rodata        0x0000000000045d1c       0xa8 source/test.o
+                0x0000000000045dc4                PROG_sdastart = .
+ *(.srodata .srodata.*)
 
-.frodata        0x0000000000045b6c       0x64
- .frodata       0x0000000000045b6c       0x10 source/compat.o
- .frodata       0x0000000000045b7c       0x14 source/debug.o
- .frodata       0x0000000000045b90       0x20 source/ernie.o
- .frodata       0x0000000000045bb0       0x20 source/sdif.o
+.frodata        0x0000000000045dc4       0x64
+ .frodata       0x0000000000045dc4       0x10 source/compat.o
+ .frodata       0x0000000000045dd4       0x20 source/crypto.o
+ .frodata       0x0000000000045df4       0x14 source/debug.o
+ .frodata       0x0000000000045e08       0x20 source/sdif.o
 
-.data           0x0000000000045bd0      0x28c
+.data           0x0000000000045e28      0x28c
  *(.data .data.* .gnu.linkonce.d.*)
- .data          0x0000000000045bd0        0x0 source/alice.o
- .data          0x0000000000045bd0        0x0 source/clib.o
- .data          0x0000000000045bd0        0x0 source/compat.o
- .data          0x0000000000045bd0        0x0 source/config.o
- .data          0x0000000000045bd0        0x0 source/crypto.o
- .data          0x0000000000045bd0        0x0 source/debug.o
- .data          0x0000000000045bd0        0x0 source/dram.o
- .data          0x0000000000045bd0        0x0 source/ernie.o
- .data          0x0000000000045bd0        0x0 source/ex.o
- .data          0x0000000000045bd0        0x0 source/glitch.o
- .data          0x0000000000045bd0        0x0 source/gpio.o
- .data          0x0000000000045bd0        0x0 source/i2.o
- .data          0x0000000000045bd0        0x0 source/jig.o
- .data          0x0000000000045bd0        0x0 source/maika.o
- .data          0x0000000000045bd0        0x0 source/main.o
- .data          0x0000000000045bd0        0x0 source/perv.o
- .data          0x0000000000045bd0        0x0 source/regina.o
- .data          0x0000000000045bd0        0x0 source/rp.o
- .data          0x0000000000045bd0        0x0 source/sdif.o
- .data          0x0000000000045bd0        0x0 source/sm.o
- .data          0x0000000000045bd0        0x0 source/spi.o
- .data          0x0000000000045bd0        0x0 source/stor.o
- .data          0x0000000000045bd0        0x0 source/test.o
- .data          0x0000000000045bd0        0x0 source/uart.o
- .data          0x0000000000045bd0        0x0 source/utils.o
- .data          0x0000000000045bd0        0x0 source/ex.ao
- .data          0x0000000000045bd0        0x0 source/glitch_vector.ao
- .data          0x0000000000045bd0        0x0 source/debug.ao
- .data          0x0000000000045bd0        0x0 source/util.ao
+ .data          0x0000000000045e28        0x0 source/alice.o
+ .data          0x0000000000045e28        0x0 source/clib.o
+ .data          0x0000000000045e28        0x0 source/compat.o
+ .data          0x0000000000045e28        0x0 source/config.o
+ .data          0x0000000000045e28        0x0 source/crypto.o
+ .data          0x0000000000045e28        0x0 source/debug.o
+ .data          0x0000000000045e28        0x0 source/dram.o
+ .data          0x0000000000045e28        0x0 source/ernie.o
+ .data          0x0000000000045e28        0x0 source/ex.o
+ .data          0x0000000000045e28        0x0 source/glitch.o
+ .data          0x0000000000045e28        0x0 source/gpio.o
+ .data          0x0000000000045e28        0x0 source/heap.o
+ .data          0x0000000000045e28        0x0 source/i2.o
+ .data          0x0000000000045e28        0x0 source/jig.o
+ .data          0x0000000000045e28        0x0 source/maika.o
+ .data          0x0000000000045e28        0x0 source/main.o
+ .data          0x0000000000045e28        0x0 source/perv.o
+ .data          0x0000000000045e28        0x0 source/regina.o
+ .data          0x0000000000045e28        0x0 source/rp.o
+ .data          0x0000000000045e28        0x0 source/sdif.o
+ .data          0x0000000000045e28        0x0 source/sm.o
+ .data          0x0000000000045e28        0x0 source/spi.o
+ .data          0x0000000000045e28        0x0 source/stor.o
+ .data          0x0000000000045e28        0x0 source/test.o
+ .data          0x0000000000045e28        0x0 source/uart.o
+ .data          0x0000000000045e28        0x0 source/utils.o
+ .data          0x0000000000045e28        0x0 source/ex.ao
+ .data          0x0000000000045e28        0x0 source/glitch_vector.ao
+ .data          0x0000000000045e28        0x0 source/debug.ao
+ .data          0x0000000000045e28        0x0 source/util.ao
+ *(.sdata .sdata.*)
+ .sdata         0x0000000000045e28       0x14 source/alice.o
+                0x0000000000045e28                alice_b2a_shmem
+                0x0000000000045e2c                alice_core_status
+                0x0000000000045e30                alice_tasks
+                0x0000000000045e34                alice_xcfg
+                0x0000000000045e38                alice_vectors
+ .sdata         0x0000000000045e3c        0x4 source/rp.o
+                0x0000000000045e3c                g_rpc_status
+ .sdata         0x0000000000045e40        0x4 source/uart.o
+                0x0000000000045e40                g_uart_bus
  *(.far .far.*)
- .far           0x0000000000045bd0       0x14 source/alice.o
-                0x0000000000045bd0                alice_b2a_shmem
-                0x0000000000045bd4                alice_core_status
-                0x0000000000045bd8                alice_tasks
-                0x0000000000045bdc                alice_xcfg
-                0x0000000000045be0                alice_vectors
- .far           0x0000000000045be4      0x250 source/dram.o
- .far           0x0000000000045e34        0x4 source/rp.o
-                0x0000000000045e34                g_rpc_status
- .far           0x0000000000045e38       0x20 source/sdif.o
- .far           0x0000000000045e58        0x4 source/uart.o
-                0x0000000000045e58                g_uart_bus
+ .far           0x0000000000045e44      0x250 source/dram.o
+ .far           0x0000000000046094       0x20 source/sdif.o
 
-.bss            0x0000000000045e5c       0xbc
+.bss            0x00000000000460b4       0xbc
+                0x00000000000460b4                PROG_bss_addr = .
  *(.bss .bss.* .gnu.linkonce.b.*)
- .bss           0x0000000000045e5c        0x0 source/alice.o
- .bss           0x0000000000045e5c        0x0 source/clib.o
- .bss           0x0000000000045e5c        0x0 source/compat.o
- .bss           0x0000000000045e5c        0x0 source/config.o
- .bss           0x0000000000045e5c        0x0 source/crypto.o
- .bss           0x0000000000045e5c        0x0 source/debug.o
- .bss           0x0000000000045e5c        0x0 source/dram.o
- .bss           0x0000000000045e5c        0x0 source/ernie.o
- .bss           0x0000000000045e5c        0x0 source/ex.o
- .bss           0x0000000000045e5c        0x0 source/glitch.o
- .bss           0x0000000000045e5c        0x0 source/gpio.o
- .bss           0x0000000000045e5c        0x0 source/i2.o
- .bss           0x0000000000045e5c        0x0 source/jig.o
- .bss           0x0000000000045e5c        0x0 source/maika.o
- .bss           0x0000000000045e5c        0x0 source/main.o
- .bss           0x0000000000045e5c        0x0 source/perv.o
- .bss           0x0000000000045e5c        0x0 source/regina.o
- .bss           0x0000000000045e5c        0x0 source/rp.o
- .bss           0x0000000000045e5c        0x0 source/sdif.o
- .bss           0x0000000000045e5c        0x0 source/sm.o
- .bss           0x0000000000045e5c        0x0 source/spi.o
- .bss           0x0000000000045e5c        0x0 source/stor.o
- .bss           0x0000000000045e5c        0x0 source/test.o
- .bss           0x0000000000045e5c        0x0 source/uart.o
- .bss           0x0000000000045e5c        0x0 source/utils.o
- .bss           0x0000000000045e5c        0x0 source/ex.ao
- .bss           0x0000000000045e5c        0x0 source/glitch_vector.ao
- .bss           0x0000000000045e5c        0x0 source/debug.ao
- .bss           0x0000000000045e5c        0x0 source/util.ao
+ .bss           0x00000000000460b4        0x0 source/alice.o
+ .bss           0x00000000000460b4        0x0 source/clib.o
+ .bss           0x00000000000460b4        0x0 source/compat.o
+ .bss           0x00000000000460b4        0x0 source/config.o
+ .bss           0x00000000000460b4        0x0 source/crypto.o
+ .bss           0x00000000000460b4        0x0 source/debug.o
+ .bss           0x00000000000460b4        0x0 source/dram.o
+ .bss           0x00000000000460b4        0x0 source/ernie.o
+ .bss           0x00000000000460b4        0x0 source/ex.o
+ .bss           0x00000000000460b4        0x0 source/glitch.o
+ .bss           0x00000000000460b4        0x0 source/gpio.o
+ .bss           0x00000000000460b4        0x0 source/heap.o
+ .bss           0x00000000000460b4        0x0 source/i2.o
+ .bss           0x00000000000460b4        0x0 source/jig.o
+ .bss           0x00000000000460b4        0x0 source/maika.o
+ .bss           0x00000000000460b4        0x0 source/main.o
+ .bss           0x00000000000460b4        0x0 source/perv.o
+ .bss           0x00000000000460b4        0x0 source/regina.o
+ .bss           0x00000000000460b4        0x0 source/rp.o
+ .bss           0x00000000000460b4        0x0 source/sdif.o
+ .bss           0x00000000000460b4        0x0 source/sm.o
+ .bss           0x00000000000460b4        0x0 source/spi.o
+ .bss           0x00000000000460b4        0x0 source/stor.o
+ .bss           0x00000000000460b4        0x0 source/test.o
+ .bss           0x00000000000460b4        0x0 source/uart.o
+ .bss           0x00000000000460b4        0x0 source/utils.o
+ .bss           0x00000000000460b4        0x0 source/ex.ao
+ .bss           0x00000000000460b4        0x0 source/glitch_vector.ao
+ .bss           0x00000000000460b4        0x0 source/debug.ao
+ .bss           0x00000000000460b4        0x0 source/util.ao
+ *(.sbss .sbss.*)
+ .sbss          0x00000000000460b4        0x4 source/compat.o
  *(.farbss .farbss.*)
- .farbss        0x0000000000045e5c        0x4 source/compat.o
- .farbss        0x0000000000045e60       0x40 source/ernie.o
-                0x0000000000045e60                g_ernie_comms
- .farbss        0x0000000000045ea0       0x78 source/stor.o
+ .farbss        0x00000000000460b8       0x40 source/ernie.o
+                0x00000000000460b8                g_ernie_comms
+ .farbss        0x00000000000460f8       0x78 source/stor.o
+ *(.scommon)
  *(COMMON)
+                0x0000000000046170                . = ALIGN (0x4)
+                0x0000000000046170                PROG_bss_end = .
+                0x0000000000046170                PROG_heap_start = .
+                0x0000000000006170                PROG_act_size = (PROG_heap_start - cfg_PROG_load_off)
+                0x0000000000044000                __sdabase = cfg_gp_addr
+                0x0000000000000001                ASSERT (! ((PROG_act_size > cfg_PROG_max_size)), cfg_PROG_max_size)
 OUTPUT(bob_glitch.elf elf32-mep-little)
 
 .comment        0x0000000000000000       0x30
@@ -335,6 +740,7 @@ OUTPUT(bob_glitch.elf elf32-mep-little)
  .comment       0x0000000000000030       0x31 source/ex.o
  .comment       0x0000000000000030       0x31 source/glitch.o
  .comment       0x0000000000000030       0x31 source/gpio.o
+ .comment       0x0000000000000030       0x31 source/heap.o
  .comment       0x0000000000000030       0x31 source/i2.o
  .comment       0x0000000000000030       0x31 source/jig.o
  .comment       0x0000000000000030       0x31 source/maika.o

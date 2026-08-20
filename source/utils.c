@@ -36,6 +36,19 @@ void setup_ints(void) {
         (MAIKA_AIO_CONTROL0_ARM2CRY0 | MAIKA_AIO_CONTROL0_ARM2CRY1 | MAIKA_AIO_CONTROL0_ARM2CRY2 | MAIKA_AIO_CONTROL0_ARM2CRY3);
 }
 
+bool intr_mask(uint32_t num, bool change, bool set) {
+    uint32_t mask = 1 << (num & 0x1f);
+    uint32_t reg = cbus_read(0x2);
+    if (change) {
+        if (set)
+            reg |= mask;
+        else
+            reg &= ~mask;
+        cbus_write(0x2, reg);
+    }
+    return !!(reg & mask);
+}
+
 int stub() {
     return 0xD15AB2ED;
 }

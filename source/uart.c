@@ -5,8 +5,7 @@
 
 int g_uart_bus = UART_BUS;
 
-#ifndef UART_UNUSE
-
+#ifndef UART_NOINIT
 void uart_init(int bus, unsigned int clk) {
     volatile unsigned int* uart_regs = UART_REGS(bus);
     volatile unsigned int* uart_clkgen = (volatile unsigned int* )PERV_GET_REG(PERV_CTRL_UARTCLKGEN, bus);
@@ -31,6 +30,9 @@ void uart_init(int bus, unsigned int clk) {
     while (!(uart_regs[0xA] & 0x200))
         asm("syncm\n");
 }
+#endif
+
+#ifndef UART_UNUSE
 
 void uart_write(int bus, unsigned int data) {
     volatile unsigned int* uart_regs = UART_REGS(bus);
@@ -88,6 +90,14 @@ void uart_printn(int bus, char* str, int n) {
         uart_write(bus, *z++);
         
         n--;
+    }
+}
+
+void uart_printr(int bus, uint8_t *data, int n) {
+    if (bus >= UART_BUS_COUNT)
+        bus = g_uart_bus;
+    for (int i = 0; i < n; i++) {
+        uart_write(bus, data[i]);
     }
 }
 

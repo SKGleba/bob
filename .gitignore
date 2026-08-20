@@ -1,2 +1,3 @@
-.vscode/
-psp2ref
+/.vscode/
+/psp2ref
+/output/asm

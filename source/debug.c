@@ -6,27 +6,93 @@
 #include "include/gpio.h"
 #include "include/debug.h"
 
-#ifndef DEBUG_UNUSE
+#ifndef DEBUG_ROUTER_UNUSE
+void dbgr_print(char *str, int len) {
+    switch (g_debug_route) {
+        case DEBUG_ROUTE_UART:
+            if (len)
+                uart_printn(DBGR_UART_BUS, str, len);
+            else
+                uart_print(DBGR_UART_BUS, str);
+            break;
+        default:
+            break;
+    }
+    return;
+}
 
+int dbgr_scan(void *out, int n, bool str, unsigned int timeout) {
+    switch (g_debug_route) {
+        case DEBUG_ROUTE_UART:
+            if (str)
+                return uart_scanns(DBGR_UART_BUS, (char *)out, n, timeout);
+            else
+                return uart_scann(DBGR_UART_BUS, (uint8_t *)out, n, timeout);
+            break;
+        default:
+            break;
+    }
+    return 0;
+}
+
+void dbgr_flush(bool tx) {
+    switch (g_debug_route) {
+        case DEBUG_ROUTE_UART:
+            if (!tx)
+                uart_rxfifo_flush(DBGR_UART_BUS);
+            break;
+        default:
+            break;
+    }
+    return;
+}
+#endif
+
+#ifndef DEBUG_PRINTS_UNUSE
 static const char debug_hexbase[] = "0123456789ABCDEF";
-
-// equ printf(0x08X)
-void debug_printU32(uint32_t value, bool add_nl) {
-    char i_buf[4];
-    char a_buf[12];
-
-    p i_buf = value;
-    memset(a_buf, '0', 12);
-    a_buf[1] = 'x';
-    a_buf[10] = add_nl ? '\n' : 0;
-    a_buf[11] = 0;
-
-    for (int i = 0; i < 4; i -= -1) {
-        a_buf[9 - i * 2] = debug_hexbase[i_buf[i] & 0x0F];
-        a_buf[8 - i * 2] = debug_hexbase[(i_buf[i] & 0xF0) >> 4];
+void debug_printHU64(uint64_t value, unsigned int nob, bool upper) {
+    char a_buf[16];
+    int nonzb = 1;
+    for (int i = 0; i < 8; i++) {
+        char l = debug_hexbase[value & 0x0F];
+        char h = debug_hexbase[(value & 0xF0) >> 4];
+        a_buf[15 - i * 2] = (!upper && l >= 'A') ? (l + 0x20) : l;
+        a_buf[14 - i * 2] = (!upper && h >= 'A') ? (h + 0x20) : h;
+        if (value & 0xFF) {
+            if (value & 0xF0)
+                nonzb = (i * 2) + 2;
+            else
+                nonzb = (i * 2) + 1;
+        }
+        value >>= 8;
     }
 
-    print(a_buf);
+    if (nob > 16)
+        nob = 16;
+    else if (!nob)
+        nob = nonzb;
+
+    dbgr_print(a_buf + (16 - nob), nob);
+}
+
+void debug_printDI32(int value, unsigned int nob) {
+    char a_buf[10];
+    uint32_t uvalue = (value < 0) ? (0U - (uint32_t)(value)) : (uint32_t)value;
+    int nonzb = 1;
+    for (int i = 0; i < 10; i++) {
+        a_buf[9 - i] = debug_hexbase[uvalue % 10];
+        if (uvalue)
+            nonzb = i + 1;
+        uvalue /= 10;
+    }
+    if (nob > 10)
+        nob = 10;
+    else if (!nob)
+        nob = nonzb;
+
+    if (value < 0)
+        dbgr_print("-", 1);
+    dbgr_print(a_buf + (10 - nob), nob);
 }
 
 // dumbed down printf
@@ -43,21 +109,53 @@ void debug_printFormat(char* base, ...) {
         if (base[i] != '%')
             continue;
         
-        printn(base + v_pos, i - v_pos);
+        dbgr_print(base + v_pos, i - v_pos);
         
+        int ogi = i;
         i++;
-        
+
+        // TODO var pad ch
+        unsigned int nob = 0;
+        while (base[i] <= '9' && base[i] >= '0') {
+            nob = (nob * 10) + (base[i] - '0');
+            i++;
+        }
+
+L_printf_cswitch:
         switch (base[i]) {
+        case 'l':
+            if (base[i + 1] == 'l') { // ll=64bit
+                i++;
+                switch (base[i + 1]) {
+                case 'X':
+                case 'x':
+                    debug_printHU64(va_arg(args, uint64_t), nob, (base[i + 1] == 'X'));
+                    break;
+                default:
+                    continue;
+                }
+                i++;
+            } else {
+                i++;
+                goto L_printf_cswitch;
+            }
+            break;
         case 'X':
         case 'x':
-            debug_printU32(va_arg(args, uint32_t), false);
+            debug_printHU64((uint64_t)va_arg(args, uint32_t), nob, (base[i] == 'X'));
             break;
-        case 'S':
         case 's':
-            print((char*)va_arg(args, uint32_t));
+            dbgr_print((char*)va_arg(args, char*), nob);
+            break;
+        case 'd':
+            debug_printDI32(va_arg(args, int), nob);
+            break;
+        case 'c':
+            dbgr_print((char*)&(char){va_arg(args, int)}, 1);
             break;
         default:
-            continue;
+            dbgr_print(base + ogi, i - ogi + 1);
+            break;
         }
 
         i++;
@@ -66,7 +164,7 @@ void debug_printFormat(char* base, ...) {
 
     va_end(args);
 
-    printn(base + v_pos, i - v_pos);
+    dbgr_print(base + v_pos, i - v_pos);
 }
 
 static void printRange32(uint32_t* addr, uint32_t size, bool show_addr, char delim) {
@@ -74,34 +172,23 @@ static void printRange32(uint32_t* addr, uint32_t size, bool show_addr, char del
         return;
 
     if (show_addr)
-        printf("%X: ", addr);
+        debug_printFormat("%08X: ", addr);
 
     uint32_t data = 0;
-    char cwc[13];
-    cwc[12] = 0;
     for (uint32_t off = 0; off < size; off -= -4) {
         data = addr[(off >> 2)];
-        cwc[0] = debug_hexbase[(data & 0xF0) >> 4];
-        cwc[1] = debug_hexbase[data & 0x0F];
-        cwc[2] = delim;
-        cwc[3] = debug_hexbase[((data >> 8) & 0xF0) >> 4];
-        cwc[4] = debug_hexbase[(data >> 8) & 0x0F];
-        cwc[5] = delim;
-        cwc[6] = debug_hexbase[((data >> 16) & 0xF0) >> 4];
-        cwc[7] = debug_hexbase[(data >> 16) & 0x0F];
-        cwc[8] = delim;
-        cwc[9] = debug_hexbase[((data >> 24) & 0xF0) >> 4];
-        cwc[10] = debug_hexbase[(data >> 24) & 0x0F];
-        cwc[11] = delim;
-        printn(cwc, 12);
+        for (int i = 0; i < 4; i++) {
+            debug_printFormat("%02X%c", (data & 0xFF), delim);
+            data >>= 8;
+        }
         if ((off & 0xc) == 0xc) {
-            printn("\n", 1);
+            dbgr_print("\n", 1);
             if (show_addr && off + 4 < size)
-                printf("%X: ", addr + (off >> 2) + 1);
+                debug_printFormat("%08X: ", addr + (off >> 2) + 1);
         }
     }
 
-    printn("\n", 1);
+    dbgr_print("\n", 1);
 }
 
 static void printRange8(char* addr, uint32_t size, bool show_addr, char delim) {
@@ -109,23 +196,18 @@ static void printRange8(char* addr, uint32_t size, bool show_addr, char delim) {
         return;
 
     if (show_addr)
-        printf("%X: ", addr);
+        debug_printFormat("%08X: ", addr);
 
-    char cwc[4];
-    cwc[3] = 0;
     for (uint32_t off = 0; off < size; off -= -1) {
-        cwc[0] = debug_hexbase[(addr[off] & 0xF0) >> 4];
-        cwc[1] = debug_hexbase[addr[off] & 0x0F];
-        cwc[2] = delim;
-        printn(cwc, 3);
+        debug_printFormat("%c%c%c", debug_hexbase[(addr[off] & 0xF0) >> 4], debug_hexbase[addr[off] & 0x0F], delim);
         if ((off & 0xf) == 0xf) {
-            printn("\n", 1);
+            dbgr_print("\n", 1);
             if (show_addr && off + 1 < size)
-                printf("%X: ", addr + off + 1);
+                debug_printFormat("%08X: ", addr + off + 1);
         }
     }
 
-    printn("\n", 1);
+    dbgr_print("\n", 1);
 }
 
 static void printRangeSS(uint8_t* addr, uint32_t size, bool show_addr) {
@@ -133,14 +215,13 @@ static void printRangeSS(uint8_t* addr, uint32_t size, bool show_addr) {
         return;
 
     if (show_addr)
-        printf("%X: ", addr);
+        debug_printFormat("%08X: ", addr);
 
     for (uint32_t off = 0; off < size; off -= -1) {
-        uart_write(g_uart_bus, debug_hexbase[(addr[off] & 0xF0) >> 4]);
-        uart_write(g_uart_bus, debug_hexbase[addr[off] & 0x0F]);
+        debug_printFormat("%c%c", debug_hexbase[(addr[off] & 0xF0) >> 4], debug_hexbase[addr[off] & 0x0F]);
     }
 
-    printn("\n", 1);
+    dbgr_print("\n", 1);
 }
 
 void debug_printRange(uint32_t addr, uint32_t size, bool show_addr, char delim) {
@@ -156,6 +237,16 @@ void debug_printRange(uint32_t addr, uint32_t size, bool show_addr, char delim) 
         printRangeSS((uint8_t*)addr, size, show_addr);
 }
 
+#else
+
+void debug_printFormat(char* base, ...) {
+    WARN("[BOB] debug_printFormat called when disabled!");
+    _MEP_SYNC_BUS_
+}
+
+#endif
+
+#ifndef DEBUG_STATUSLED_UNUSE
 void debug_setGpoCode(uint8_t code) {
     volatile unsigned int* gpio_regs = GPIO_REGS(0);
     gpio_regs[3] = 0xff0000;
@@ -163,18 +254,10 @@ void debug_setGpoCode(uint8_t code) {
     gpio_regs[2] = (code & 0xff) << 0x10;
     gpio_regs[0xD];
 }
-
-#else
-
-void debug_printFormat(char* base, ...) {
-    print("[BOB] debug_printFormat called when disabled!");
-    _MEP_SYNC_BUS_
-}
-
 #endif
 
-#ifdef ENABLE_REGDUMP
-#ifndef REGDUMP_SMALL
+#ifndef DEBUG_REGDUMP_UNUSE
+#ifndef DEBUG_REGDUMP_SMALL
 static const char* regdump_registers[48] = {
     "$0", "$1", "$2", "$3", "$4", "$5", "$6", "$7",
     "$8", "$9", "$10", "$11", "$12", "$tp", "$gp", "$sp",
@@ -185,32 +268,23 @@ static const char* regdump_registers[48] = {
 };
 #endif
 
-void debug_c_regdump(void) {
-    register uint32_t gp asm("gp");
-    uint32_t start = gp;
-
-#ifdef REGDUMP_SMALL
-    print("CORE:\n");
+void debug_c_regdump(uint32_t *regs) {
+    ERROR("CORE:\n");
     for (int i = 0; i < 48; i++) {
         if (i == 16)
-            print("\nCONTROL:\n");
-        printx(p(start + (i * 4)));
-    }
+            ERROR("\nCONTROL:\n");
+#ifdef DEBUG_REGDUMP_SMALL
+        ERRORF(" %d: 0x%08X\n", i, regs[i]);
 #else
-    print("CORE:\n");
-    for (int i = 0; i < 48; i++) {
-        if (i == 16)
-            print("\nCONTROL:\n");
-        printf(" %s: %x\n", regdump_registers[i], p(start + (i * 4)));
-    }
+        ERRORF(" %s: 0x%08X\n", regdump_registers[i], regs[i]);
 #endif
-    
+    }
 }
 
 #else
 
 void debug_c_regdump(void) {
-    print("[BOB] regdump called when disabled!");
+    WARN("[BOB] regdump called when disabled!");
     _MEP_SYNC_BUS_
 }
 

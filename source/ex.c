@@ -23,7 +23,7 @@ void c_RESET(void) {
     __attribute__((unused)) register volatile uint32_t exc asm("exc") = 0;
     __attribute__((unused)) register volatile uint32_t tmp asm("tmp") = 0;
 
-    print("[BOB] warning: did reset\n");
+    WARN("[BOB] warning: did reset\n");
 
     if (CONFIG_GFLAGK(_TEST_ONRESET)) {
         statusled(STATUS_TEST_STARTING);
@@ -41,58 +41,47 @@ void c_RESET(void) {
 
 void c_SWI(int a0, int a1, int a2, int a3) {
     statusled(STATUS_SWI_HIT);
-    printf("[BOB] entering SWI %X %X %X %X\n", a0, a1, a2, a3);
+    INFOF("[BOB] entering SWI %X %X %X %X\n", a0, a1, a2, a3);
 
     //TODO
 
     delay_nx(0x6000, 200);
 
-    print("[BOB] exiting SWI\n");
+    INFO("[BOB] exiting SWI\n");
     statusled(STATUS_SWI_QUIT);
 }
 
 void c_IRQ(void) {
     statusled(STATUS_IRQ_HIT);
-    print("[BOB] entering IRQ\n");
-
-    // TODO
-
-    delay_nx(0x6000, 200);
-
-    print("[BOB] exiting IRQ\n");
+    int irqn = (cbus_read(0) & 0xf8) >> 3;
+    switch (irqn) {
+        case IRQN_ARM2CRY0:
+        case IRQN_ARM2CRY1:
+        case IRQN_ARM2CRY2:
+        case IRQN_ARM2CRY3:
+            compat_Arm2Cry0123(irqn - IRQN_ARM2CRY0);
+            break;
+        default:
+            WARNF("[BOB] UNHANDLED IRQ: %X\n", irqn);
+            break;
+    }
     statusled(STATUS_IRQ_QUIT);
-}
-
-void c_ARM_REQ(void) {
-    statusled(STATUS_ARM_HIT);
-    maika_s* maika = (maika_s*)MAIKA_OFFSET;
-    uint32_t arm_req = maika->mailbox.arm2cry[0];
-    printf("[BOB] entering ARM req %X\n", arm_req);
-
-    if (ce_framework(false, NULL) != true)
-        compat_IRQ7_handleCmd(arm_req);
-    else
-        maika->mailbox.arm2cry[0] = -1; // ack
-
-    printf("[BOB] exiting ARM req %X\n", arm_req);
-
-    statusled(STATUS_ARM_QUIT);
 }
 
 __attribute__((optimize("O0"), noreturn))
 void c_OTHER_INT(void) {
+    _MEP_INTR_DISABLE_
 #ifdef ENABLE_REGDUMP
     regdump();
 #endif
     
     statusled(STATUS_OTHER_INT_HIT);
-    
-    _MEP_INTR_DISABLE_
 
+#if !defined(SILENT) && !defined(DEBUG_ONLYERR)
     register volatile uint32_t exc asm("exc");
     register volatile uint32_t epc asm("epc");
-    
-    printf("[BOB] UNK INTERRUPT: %X @ %X\n", exc, epc);
+    WARNF("[BOB] UNK INTERRUPT: %X @ %X\n", exc, epc);
+#endif
 
     _MEP_HALT_
 
@@ -101,18 +90,18 @@ void c_OTHER_INT(void) {
 
 __attribute__((optimize("O0"), noreturn))
 void c_OTHER_EXC(void) {
+    _MEP_INTR_DISABLE_
 #ifdef ENABLE_REGDUMP
     regdump();
 #endif
     
     statusled(STATUS_OTHER_EXC_HIT);
-    
-    _MEP_INTR_DISABLE_
 
+#if !defined(SILENT) && !defined(DEBUG_ONLYERR)
     register volatile uint32_t exc asm("exc");
     register volatile uint32_t epc asm("epc");
-
-    printf("[BOB] UNK EXCEPTION: %X @ %X\n", exc, epc);
+    WARNF("[BOB] UNK EXCEPTION: %X @ %X\n", exc, epc);
+#endif
 
     _MEP_HALT_
 
@@ -121,15 +110,14 @@ void c_OTHER_EXC(void) {
 
 __attribute__((optimize("O0"), noreturn))
 void PANIC(const char* panic_string, uint32_t panic_value) {
+    _MEP_INTR_DISABLE_
 #ifdef ENABLE_REGDUMP
     regdump();
 #endif
     
     statusled(STATUS_PANIC_HIT);
-    
-    _MEP_INTR_DISABLE_
 
-    printf("[BOB] PANIC: %s | %X\n", panic_string, panic_value);
+    ERRORF("[BOB] PANIC: %s | %X\n", panic_string, panic_value);
 
     _MEP_HALT_
 
@@ -139,7 +127,7 @@ void PANIC(const char* panic_string, uint32_t panic_value) {
 __attribute__((optimize("O0")))
 void c_DBG(void) {
     statusled(STATUS_DBG_HIT);
-    print("[BOB] GOT DBG INTERRUPT\n");
+    INFO("[BOB] GOT DBG INTERRUPT\n");
     statusled(STATUS_DBG_QUIT);
 }
 

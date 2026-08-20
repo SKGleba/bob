@@ -53,10 +53,10 @@ int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool en
     uint32_t sz = dram ? ALICE_DRAM_SIZE : ALICE_SPAD32K_SIZE;
     
     if (src != dst) {
-        printf("[BOB] copy alice to %X[%X]\n", (uint32_t)dst, sz);
+        INFOF("[BOB] copy alice to %X[%X]\n", (uint32_t)dst, sz);
         memset32(dst, 0, sz);
         if (vp(dst)) {
-            printf("[BOB] failed to clear dst area\n");
+            ERROR("[BOB] failed to clear dst area\n");
             return -1;
         }
         memcpy(dst, src, sz);
@@ -68,7 +68,7 @@ int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool en
     alice_tasks = (volatile alice_core_task_s * (* volatile)[4])((uint32_t)dst + (uint32_t)(alice_vectors->configs.core_tasks));
 
     if (set_uart) {
-        printf("[BOB] set alice uart to %X[%X]\n", g_uart_bus, UART_RATE);
+        INFOF("[BOB] set alice uart to %X[%X]\n", g_uart_bus, UART_RATE);
         alice_xcfg->uart_bus = g_uart_bus;
         alice_xcfg->uart_rate = UART_RATE;
     }
@@ -91,7 +91,7 @@ int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool en
     if (start)
         compat_armReBoot(arm_clock, enable_cs, dram);
 
-    printf("[BOB] alice loaded\n");
+    INFO("[BOB] alice loaded\n");
 
     return 0;
 }
@@ -101,7 +101,7 @@ int alice_stopReloadAlice(uint32_t reload_config, uint8_t *cefw_status) {
     if (!reload_config)
         reload_config = (((vp PERV2_ARM_BOOT_ALIAS_DRAM) ? ALICE_DRAM_ADDR : ALICE_SPAD32K_ADDR) << 1) | ((vp PERV2_ARM_BOOT_ALIAS_DRAM) ? ALICE_RELOAD_USE_DRAM : 0);
 
-    printf("[BOB] killing arm...\n");
+    INFO("[BOB] killing arm...\n");
     compat_killArm(false);
 
     if (cefw_status)
@@ -150,12 +150,12 @@ uint32_t alice_handleCmd(uint32_t cmdep) {
         uint32_t (*exec_func)(uint32_t a, uint32_t b, uint32_t c) = (void*)(cmd & 0xFFFFFFFE);
         if (!(cmd & 1))
             exec_func = (void*)((uint32_t)exec_func & 0x7FFFFFFE);
-        printf("[BOB] exec %X(%X, %X, %X)\n", exec_func, cmds->arg[0], cmds->arg[1], cmds->arg[2]);
+        INFOF("[BOB] exec %X(%X, %X, %X)\n", exec_func, cmds->arg[0], cmds->arg[1], cmds->arg[2]);
         cmds->ret = exec_func(cmds->arg[0], cmds->arg[1], cmds->arg[2]);
         return (uint32_t)cmdep;
     }
 
-    printf("[BOB] got alice cmd %X (%X, %X, %X)\n", cmd, cmds->arg[0], cmds->arg[1], cmds->arg[2]);
+    INFOF("[BOB] got alice cmd %X (%X, %X, %X)\n", cmd, cmds->arg[0], cmds->arg[1], cmds->arg[2]);
     switch (cmd) {
     case ALICE_A2B_GET_RPC_STATUS:
         cmds->ret = g_rpc_status;
@@ -222,8 +222,8 @@ uint32_t alice_handleCmd(uint32_t cmdep) {
         cmds->ret = stor_import_ctx(cmds->arg[0], (unk2_sdif_gigactx*)cmds->arg[1], (unk_sdif_ctx_init*)cmds->arg[2]);
         break;
     case ALICE_A2B_SET_B2A_SHBUF:
-        if (cmds->arg[0] < ALICE_B2A_SHBUF_MINSIZE) {
-            printf("[BOB] alice cmd set_b2a_shbuf: invalid size %X\n", cmds->arg[0]);
+        if (cmds->arg[1] < ALICE_B2A_SHBUF_MINSIZE) {
+            ERRORF("[BOB] alice cmd set_b2a_shbuf: invalid size %X\n", cmds->arg[1]);
             cmds->ret = -1;
             break;
         }
@@ -231,12 +231,23 @@ uint32_t alice_handleCmd(uint32_t cmdep) {
         alice_b2a_shmem = cmds->arg[0];
         cmds->ret = 0;
         break;
+    case ALICE_A2B_MGR_INTR:
+        cmds->ret = intr_mask(cmds->arg[0], (bool)cmds->arg[1], (bool)cmds->arg[2]);
+        break;
+    case ALICE_A2B_SET_LOGLEVEL:
+        cmds->ret = g_debug_level;
+        g_debug_level = cmds->arg[0];
+        break;
+    case ALICE_A2B_SET_LOGROUTE:
+        cmds->ret = g_debug_route;
+        g_debug_route = cmds->arg[0];
+        break;
     default:
         cmds->ret = stub();
         break;
     }
 
-    printf("[BOB] alice cmd %X done, ret %X\n", cmd, cmds->ret);
+    INFOF("[BOB] alice cmd %X done, ret %X\n", cmd, cmds->ret);
 
     return (uint32_t)cmdep;
 }
