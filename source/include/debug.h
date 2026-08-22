@@ -108,7 +108,7 @@ enum STATUSLED_CODES {  // inits, exceptions, command handlers
 #define print(_str) dbgr_print(_str, 0)
 #define printn(_str, _n) dbgr_print(_str, _n)
 #define printf debug_printFormat
-#define printfl(_str, ...) printf("%s:%X: " _str, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define printfl(_str, ...) printf("%s:%d: " _str, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define printx(_x) printf("0x%08X\n", (uint32_t)(_x))
 #define printp(_x) printf("0x%08X: %08X\n", (uint32_t)(_x), vp (_x))
 #define _hexdump(addr, length) debug_printRange((uint32_t)addr, length, 1, ' ')

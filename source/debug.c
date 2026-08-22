@@ -260,10 +260,10 @@ void debug_setGpoCode(uint8_t code) {
 #ifndef DEBUG_REGDUMP_SMALL
 static const char* regdump_registers[48] = {
     "$0", "$1", "$2", "$3", "$4", "$5", "$6", "$7",
-    "$8", "$9", "$10", "$11", "$12", "$tp", "$gp", "$sp",
+    "$fp", "$9", "$10", "$11", "$12", "$tp", "$gp", "$sp",
     "$pc", "$lp", "$sar", "3", "$rpb", "$rpe", "$rpc", "$hi",
     "$lo", "9", "10", "11", "$mb0", "$me0", "$mb1", "$me1",
-    "$psw", "$id", "$tmp", "$epc", "$exc", "$cfg", "22", "$npc",
+    "$psw", "$id", "$tmp", "$epc", "$exc", "$cfg", "$vid", "$npc",
     "$dbg", "$depc", "$opt", "$rcfg", "$ccfg", "29", "30", "31"
 };
 #endif

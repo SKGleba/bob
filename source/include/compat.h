@@ -32,7 +32,6 @@ enum AGX_CMD {
 
 #ifndef COMPAT_UNUSE
     void compat_Arm2Cry0_handleCmd(uint32_t cmd);
-    int compat_f00dState(uint32_t state, bool set);
     uint32_t compat_Cry2Arm0(uint32_t msg, bool full);
     void compat_pListCopy(void* io, compat_paddr_list* paddr_list, uint32_t list_entries_count, bool copy_to_list);
     void compat_armReBoot(int armClk, bool hasCS, bool remap_00);
@@ -42,7 +41,6 @@ enum AGX_CMD {
     void compat_Arm2Cry0123(int num);
 #else
     #define compat_Arm2Cry0_handleCmd(a) stub()
-    #define compat_f00dState(a, b) stub()
     #define compat_Cry2Arm0(a, b) stub()
     #define compat_pListCopy(a, b, c, d) stub()
     #define compat_armReBoot(a, b, c) stub()

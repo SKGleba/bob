@@ -23,20 +23,27 @@
 #include "include/heap.h"
 
 #ifndef CCX_UNUSE
-bool ce_framework(bool bg, bob_fm_nfo_s* params) {
+enum CEFW_PROGRESS g_cefw_progress[2] = { CEFW_PROGRESS_IDLE, CEFW_PROGRESS_IDLE };
+bool ce_framework(bool bg, bob_fm_nfo_s* params, bool nested) {
     if (!params)
         params = g_config.ce_framework_parms[bg];
 
     if (params) {
         if (CEFW_ISMAGIC(params->magic) && (params->status == CE_FRAMEWORK_STATUS_TORUN)) {
+            if (!nested)
+                g_cefw_progress[bg] = CEFW_PROGRESS_STARTING;
             params->status = CE_FRAMEWORK_STATUS_RUNNING;
 
             bool icache_stat = false;
             if (CEFW_FLAG(params->magic, _ICACHEOFF)) {
+                if (!nested)
+                    g_cefw_progress[bg] = CEFW_PROGRESS_OFF_ICACHE;
                 statusled(STATUS_CEFW_OFF_ICACHE);
                 icache_stat = enable_icache(false);
             }
 
+            if (!nested)
+                g_cefw_progress[bg] = CEFW_PROGRESS_CCODE;
             statusled(STATUS_CEFW_CCODE);
             params->resp = params->codepaddr(params->arg, &params->status);
 
@@ -46,22 +53,28 @@ bool ce_framework(bool bg, bob_fm_nfo_s* params) {
             }
 
             if (CEFW_FLAG(params->magic, _EXTENDED) && params->next) {
+                if (!nested)
+                    g_cefw_progress[bg] = CEFW_PROGRESS_NEXT;
                 statusled(STATUS_CEFW_NEXT);
-                ce_framework(bg, params->next); // watch the stack
+                ce_framework(bg, params->next, true); // watch the stack
             }
 
             params->status = params->exp_status;
 
+            if (!nested)
+                g_cefw_progress[bg] = CEFW_PROGRESS_DONE_WAIT;
             statusled(STATUS_CEFW_DONE_WAIT);
             return true;
         }
+        if (g_cefw_progress[bg] && !nested) // clean only on next it
+            g_cefw_progress[bg] = CEFW_PROGRESS_IDLE;
     } else if (bg)
         _MEP_SLEEP_
 
     return false;
 }
 #else
-bool ce_framework(bool bg, bob_fm_nfo_s* params) {
+bool ce_framework(bool bg, bob_fm_nfo_s* params, bool nested) {
     return false;
 }
 #endif
@@ -91,13 +104,13 @@ void init(bob_config_s* arg_config) {
         g_uart_bus = CONFIG_GVAL(_UART_BUS);
         uart_init(g_uart_bus, 0x10000 | CONFIG_GVAL(_UART_CLK));
     }
-    ERRORF("[BOB] init bob [%X], me @ %X\n", get_build_timestamp(), init);
+    ERRORF("[BOB] init bob [%X], me @ 0x%X\n", get_build_timestamp(), init);
 #endif
 
 #ifdef HEAP_ONINIT
     statusled(STATUS_INIT_HEAP);
     ret = heap_start(NULL, 0, HEAP_ONINIT);
-    INFOF("[BOB] init heap %X\n", ret);
+    INFOF("[BOB] init heap 0x%X\n", ret);
     if (ret < 0)
         PANIC("HEAP", ret);
 #endif
@@ -105,7 +118,7 @@ void init(bob_config_s* arg_config) {
     // test test stuff
     if (CONFIG_GFLAGK(_TEST_ONINIT)) {
         statusled(STATUS_TEST_STARTING);
-        ce_framework(false, g_config.test_params);
+        ce_framework(false, g_config.test_params, false);
     }
 
     // enable and clean icache

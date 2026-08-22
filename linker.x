@@ -1,8 +1,8 @@
+INCLUDE cfg.x /* configuration data */
+
 SECTIONS
 {
-	INCLUDE cfg.x /* configuration data */
-
-  . = cfg_PROG_load_off;
+  . = cfg_PROG_load_addr;
 
   .text   : { 
     *(.text.vectors) 
@@ -10,16 +10,23 @@ SECTIONS
     *(.text   .text.*   .gnu.linkonce.t.*) 
   }
 
+  PROG_sdastart = .; /* gcc treats everything !far as gprel */
+
   .rodata ALIGN(4) : SUBALIGN(4) { 
     *(.rodata .rodata.* .gnu.linkonce.r.*)
-    PROG_sdastart = .;
     *(.srodata .srodata.*)
   }
 
-  .data   ALIGN(4) : SUBALIGN(4) { 
+  .cfgdata ALIGN(4) : SUBALIGN(4) { 
+    PROG_cfg_addr = .;
+    *(.cfgdata .cfgdata.*)
+  }
+
+  .data   ALIGN(4) : SUBALIGN(4) {
     *(.data   .data.*   .gnu.linkonce.d.*) 
     *(.sdata   .sdata.*) 
     *(.far    .far.*)
+    *(.comment    .comment.*)
   }
 
   .bss    ALIGN(4) : SUBALIGN(4) {
@@ -34,9 +41,11 @@ SECTIONS
   }
 
   PROG_heap_start = .;
-  PROG_act_size = (PROG_heap_start - cfg_PROG_load_off);
 }
+
+PROG_act_size = (PROG_bss_end - cfg_PROG_load_addr);
+PROG_cfgoff = (PROG_cfg_addr - cfg_PROG_load_addr);
 
 __sdabase = cfg_gp_addr;
 
-ASSERT(!(PROG_act_size > cfg_PROG_max_size), "cfg_PROG_max_size");
+ASSERT(!(PROG_act_size > cfg_PROG_max_size), "ERROR: act_size > max_size");

@@ -36,8 +36,7 @@ LOAD source/ex.ao
 LOAD source/glitch_vector.ao
 LOAD source/debug.ao
 LOAD source/util.ao
-
-.as             0x0000000000000000        0x0
+LOAD source/glitch_config.ao
                 0x0000000000000000                _as_ARM_BOOT = 0x0
                 0x0000000000008000                _as_ARM_BOOT_size = 0x8000
                 0x0000000000008000                _as_ARM_BOOT_end = 0x8000
@@ -407,20 +406,19 @@ LOAD source/util.ao
                 0x00000000ee600000                _as_CAM_REG_BUS = 0xee600000
                 0x0000000000100000                _as_CAM_REG_BUS_size = 0x100000
                 0x00000000ee700000                _as_CAM_REG_BUS_end = 0xee700000
-
-.cfg            0x0000000000000000        0x0
-                0x0000000000040000                cfg_PROG_load_off = 0x40000
+                0x0000000000040000                cfg_PROG_load_addr = 0x40000
                 0x000000000004a000                cfg_PROG_uses_end = 0x4a000
                 0x000000000004a000                cfg_sp_addr = cfg_PROG_uses_end
                 0x0000000000002000                cfg_sp_size = 0x2000
                 0x0000000000048000                cfg_PROG_load_end = (cfg_sp_addr - cfg_sp_size)
                 0x0000000000008000                cfg_PROG_max_size = 0x8000
-                0xfffffffffffe4000                cfg_gp_addr = (cfg_PROG_load_off + (cfg_PROG_max_size / 0x2))
-                0x0000000000040000                . = cfg_PROG_load_off
+                0x000000000004d662                cfg_gp_addr = (PROG_sdastart + 0x8000)
+                0x0000000000048000                cfg_tp_addr = cfg_PROG_load_end
+                0x0000000000040000                . = cfg_PROG_load_addr
 
-.text           0x0000000000040000     0x55e2
+.text           0x0000000000040000     0x5662
  *(.text.vectors)
- .text.vectors  0x0000000000040000      0x14c source/glitch_vector.ao
+ .text.vectors  0x0000000000040000       0xe0 source/glitch_vector.ao
                 0x0000000000040000                vectors_exceptions
                 0x0000000000040034                vectors_interrupts
                 0x00000000000400b0                s_init
@@ -430,328 +428,337 @@ LOAD source/util.ao
                 0x00000000000400c0                s_alice_stopReloadAlice
                 0x00000000000400c4                s_rpc_loop
                 0x00000000000400c8                s_ce_framework
-                0x00000000000400cc                g_state
-                0x00000000000400d0                g_config
-                0x00000000000400e0                g_iceparams
-                0x0000000000040130                g_bobcprm
-                0x0000000000040140                g_debug_route
-                0x0000000000040144                g_debug_level
-                0x0000000000040148                s_keygx
+                0x00000000000400cc                s_keygx
+                0x00000000000400d0                g_bobcprm
  *(.text.exs)
- .text.exs      0x000000000004014c       0xd8 source/glitch.o
-                0x000000000004014c                glitch_init
- .text.exs      0x0000000000040224      0x138 source/ex.ao
-                0x0000000000040224                ex_save_ctx
-                0x0000000000040264                ex_restore_ctx
-                0x00000000000402a2                s_SWI
-                0x00000000000402ca                s_IRQ
-                0x00000000000402f2                s_DBG
-                0x000000000004031a                s_GLITCH
-                0x0000000000040332                s_RESET
-                0x0000000000040348                ex_cxctable
+ .text.exs      0x00000000000400e0       0xd8 source/glitch.o
+                0x00000000000400e0                glitch_init
+ .text.exs      0x00000000000401b8      0x138 source/ex.ao
+                0x00000000000401b8                ex_save_ctx
+                0x00000000000401f8                ex_restore_ctx
+                0x0000000000040236                s_SWI
+                0x000000000004025e                s_IRQ
+                0x0000000000040286                s_DBG
+                0x00000000000402ae                s_GLITCH
+                0x00000000000402c6                s_RESET
+                0x00000000000402dc                ex_cxctable
  *(.text .text.* .gnu.linkonce.t.*)
- .text          0x000000000004035c      0x5b4 source/alice.o
-                0x000000000004035c                alice_get_task_status
-                0x000000000004038a                alice_loadAlice
-                0x000000000004048e                alice_stopReloadAlice
-                0x000000000004051e                alice_schedule_task
-                0x00000000000405d0                alice_schedule_bob_task
-                0x0000000000040640                alice_handleCmd
- .text          0x0000000000040910      0x104 source/clib.o
-                0x0000000000040910                memset8
-                0x0000000000040936                memset32
-                0x0000000000040958                memset
-                0x0000000000040984                memcpy
-                0x00000000000409c2                memcmp
-                0x0000000000040a06                strlen
- .text          0x0000000000040a14      0x82a source/compat.o
-                0x0000000000040a14                compat_Cry2Arm0
-                0x0000000000040c9e                compat_Arm2Cry0_handleCmd
-                0x0000000000040d88                compat_Arm2Cry0123
-                0x0000000000040e2a                compat_pListCopy
-                0x0000000000040e74                compat_armReBoot
-                0x0000000000040fc2                compat_killArm
-                0x0000000000041060                compat_pspemuColdInit
-                0x0000000000041198                compat_handleAllegrex
- .text          0x000000000004123e      0x1da source/config.o
-                0x000000000004123e                config_set_dfl_test
-                0x0000000000041310                config_parse
- .text          0x0000000000041418      0x1a8 source/crypto.o
-                0x0000000000041418                crypto_bigmacDefaultCmd
-                0x00000000000414dc                crypto_waitStopBigmacOps
-                0x0000000000041566                crypto_memset
-                0x00000000000415a2                crypto_keygx
- .text          0x00000000000415c0      0x5a6 source/debug.o
-                0x00000000000415c0                dbgr_print
-                0x00000000000415e0                dbgr_scan
-                0x0000000000041608                dbgr_flush
-                0x000000000004161e                debug_printHU64
-                0x00000000000416c2                debug_printDI32
-                0x000000000004175c                debug_printFormat
-                0x0000000000041acc                debug_printRange
-                0x0000000000041af4                debug_setGpoCode
-                0x0000000000041b1e                debug_c_regdump
- .text          0x0000000000041b66      0x27e source/dram.o
-                0x0000000000041ce2                dram_init
- .text          0x0000000000041de4      0x3d6 source/ernie.o
-                0x0000000000041de4                ernie_write
-                0x0000000000041e3c                ernie_read
-                0x0000000000041eb6                ernie_exec
-                0x0000000000041f52                ernie_exec_cmd
-                0x0000000000041fe4                ernie_exec_cmd_short
-                0x0000000000042000                ernie_3auth_single
-                0x0000000000042136                ernie_init
- .text          0x00000000000421ba      0x2b0 source/ex.o
-                0x00000000000421ba                c_RESET
-                0x0000000000042242                c_SWI
-                0x00000000000422b6                c_IRQ
-                0x000000000004232c                c_OTHER_INT
-                0x000000000004235e                c_OTHER_EXC
-                0x0000000000042390                PANIC
-                0x00000000000423c6                c_DBG
-                0x000000000004240a                set_exception_table
- .text          0x000000000004246a        0x0 source/glitch.o
- .text          0x000000000004246a      0x21a source/gpio.o
-                0x000000000004246a                gpio_set_port_mode
-                0x0000000000042488                gpio_port_read
-                0x000000000004249e                gpio_port_set
-                0x00000000000424be                gpio_port_clear
-                0x00000000000424de                gpio_set_intr_mode
-                0x0000000000042526                gpio_query_intr
-                0x0000000000042592                gpio_acquire_intr
-                0x0000000000042616                gpio_enable_port
-                0x0000000000042632                gpio_init
- .text          0x0000000000042684        0x0 source/heap.o
- .text          0x0000000000042684      0x1f0 source/i2.o
-                0x0000000000042692                i2c_init_bus
-                0x0000000000042704                i2c_transfer_write
-                0x0000000000042760                i2c_transfer_write_short
-                0x0000000000042772                i2c_transfer_read
-                0x00000000000427dc                i2c_transfer_write_read
- .text          0x0000000000042874      0x1de source/jig.o
-                0x0000000000042874                jig_update_shared_buffer
-                0x0000000000042974                jig_read_shared_buffer
- .text          0x0000000000042a52       0xee source/maika.o
-                0x0000000000042a52                readAs
-                0x0000000000042a88                writeAs
-                0x0000000000042aac                keyring_slot_data
-                0x0000000000042b1a                keyring_slot_prot
- .text          0x0000000000042b40      0x1ae source/main.o
-                0x0000000000042b40                ce_framework
-                0x0000000000042c0c                init
- .text          0x0000000000042cee       0xe0 source/perv.o
-                0x0000000000042cee                pervasive_control_reset
-                0x0000000000042d36                pervasive_control_gate
-                0x0000000000042d7e                pervasive_control_clock
-                0x0000000000042da8                pervasive_control_misc
- .text          0x0000000000042dce      0x25c source/regina.o
-                0x0000000000042dce                regina_loadRegina
-                0x0000000000042ec2                regina_sendCmd
- *fill*         0x000000000004302a        0x2 
- .text          0x000000000004302c      0x858 source/rp.o
-                0x0000000000043774                rpc_loop
- .text          0x0000000000043884     0x1308 source/sdif.o
-                0x0000000000044472                sdif_read_sector_sd
-                0x00000000000444ee                sdif_write_sector_sd
-                0x000000000004456a                sdif_read_sector_mmc
-                0x0000000000044616                sdif_write_sector_mmc
-                0x00000000000446c2                sdif_init_ctx
-                0x000000000004474c                sdif_init_sd
-                0x00000000000449ae                sdif_init_mmc
- .text          0x0000000000044b8c        0x4 source/sm.o
-                0x0000000000044b8c                sm_loadstart
- .text          0x0000000000044b90       0xdc source/spi.o
-                0x0000000000044b90                spi_init
-                0x0000000000044bf2                spi_write_start
-                0x0000000000044c12                spi_write_end
-                0x0000000000044c2e                spi_write
-                0x0000000000044c3c                spi_read_available
-                0x0000000000044c4a                spi_read
-                0x0000000000044c56                spi_read_end
- .text          0x0000000000044c6c      0x396 source/stor.o
-                0x0000000000044d2e                stor_init_sd
-                0x0000000000044dac                stor_init_emmc
-                0x0000000000044e28                stor_read_sd
-                0x0000000000044e78                stor_write_sd
-                0x0000000000044ec8                stor_read_emmc
-                0x0000000000044f18                stor_write_emmc
-                0x0000000000044f68                stor_export_ctx
-                0x0000000000044fae                stor_import_ctx
- .text          0x0000000000045002       0xd8 source/test.o
-                0x0000000000045002                dfl_test
-                0x000000000004507e                glitch_test
- .text          0x00000000000450da      0x288 source/uart.o
-                0x00000000000450da                uart_init
-                0x000000000004516a                uart_write
-                0x0000000000045186                uart_read
-                0x00000000000451ba                uart_rxfifo_flush
-                0x00000000000451e2                uart_print
-                0x000000000004521c                uart_printn
-                0x0000000000045260                uart_printr
-                0x000000000004529e                uart_scann
-                0x00000000000452f8                uart_scanns
- .text          0x0000000000045362       0xec source/utils.o
-                0x0000000000045362                delay_nx
-                0x000000000004538c                get_build_timestamp
-                0x0000000000045396                setup_ints
-                0x00000000000453fa                intr_mask
-                0x0000000000045444                stub
- .text          0x000000000004544e        0x0 source/ex.ao
- .text          0x000000000004544e        0x0 source/glitch_vector.ao
- .text          0x000000000004544e      0x114 source/debug.ao
-                0x000000000004544e                debug_s_regdump
- .text          0x0000000000045562       0x80 source/util.ao
-                0x0000000000045562                delay
-                0x000000000004556a                cbus_read
-                0x0000000000045580                _cb_r_ins
-                0x000000000004558a                cbus_write
-                0x00000000000455a0                _cb_w_ins
-                0x00000000000455aa                set_dbg_mode
-                0x00000000000455be                enable_icache
+ .text          0x00000000000402f0      0x628 source/alice.o
+                0x00000000000402f0                alice_get_task_status
+                0x000000000004031e                alice_loadAlice
+                0x0000000000040422                alice_stopReloadAlice
+                0x00000000000404b2                alice_schedule_task
+                0x0000000000040564                alice_schedule_bob_task
+                0x00000000000405d4                alice_handleCmd
+ .text          0x0000000000040918      0x104 source/clib.o
+                0x0000000000040918                memset8
+                0x000000000004093e                memset32
+                0x0000000000040960                memset
+                0x000000000004098c                memcpy
+                0x00000000000409ca                memcmp
+                0x0000000000040a0e                strlen
+ .text          0x0000000000040a1c      0x82c source/compat.o
+                0x0000000000040a1c                compat_Cry2Arm0
+                0x0000000000040ca6                compat_Arm2Cry0_handleCmd
+                0x0000000000040d90                compat_Arm2Cry0123
+                0x0000000000040e34                compat_pListCopy
+                0x0000000000040e7e                compat_armReBoot
+                0x0000000000040fcc                compat_killArm
+                0x000000000004106a                compat_pspemuColdInit
+                0x00000000000411a2                compat_handleAllegrex
+ .text          0x0000000000041248      0x1da source/config.o
+                0x0000000000041248                config_set_dfl_test
+                0x000000000004131a                config_parse
+ .text          0x0000000000041422      0x1a8 source/crypto.o
+                0x0000000000041422                crypto_bigmacDefaultCmd
+                0x00000000000414e6                crypto_waitStopBigmacOps
+                0x0000000000041570                crypto_memset
+                0x00000000000415ac                crypto_keygx
+ .text          0x00000000000415ca      0x5a6 source/debug.o
+                0x00000000000415ca                dbgr_print
+                0x00000000000415ea                dbgr_scan
+                0x0000000000041612                dbgr_flush
+                0x0000000000041628                debug_printHU64
+                0x00000000000416cc                debug_printDI32
+                0x0000000000041766                debug_printFormat
+                0x0000000000041ad6                debug_printRange
+                0x0000000000041afe                debug_setGpoCode
+                0x0000000000041b28                debug_c_regdump
+ .text          0x0000000000041b70      0x27e source/dram.o
+                0x0000000000041cec                dram_init
+ .text          0x0000000000041dee      0x3d6 source/ernie.o
+                0x0000000000041dee                ernie_write
+                0x0000000000041e46                ernie_read
+                0x0000000000041ec0                ernie_exec
+                0x0000000000041f5c                ernie_exec_cmd
+                0x0000000000041fee                ernie_exec_cmd_short
+                0x000000000004200a                ernie_3auth_single
+                0x0000000000042140                ernie_init
+ .text          0x00000000000421c4      0x2d2 source/ex.o
+                0x00000000000421c4                c_RESET
+                0x0000000000042256                c_SWI
+                0x00000000000422ca                c_IRQ
+                0x0000000000042340                c_OTHER_INT
+                0x000000000004237a                c_OTHER_EXC
+                0x00000000000423b4                PANIC
+                0x00000000000423f2                c_DBG
+                0x0000000000042436                set_exception_table
+ .text          0x0000000000042496        0x0 source/glitch.o
+ .text          0x0000000000042496      0x21a source/gpio.o
+                0x0000000000042496                gpio_set_port_mode
+                0x00000000000424b4                gpio_port_read
+                0x00000000000424ca                gpio_port_set
+                0x00000000000424ea                gpio_port_clear
+                0x000000000004250a                gpio_set_intr_mode
+                0x0000000000042552                gpio_query_intr
+                0x00000000000425be                gpio_acquire_intr
+                0x0000000000042642                gpio_enable_port
+                0x000000000004265e                gpio_init
+ .text          0x00000000000426b0        0x0 source/heap.o
+ .text          0x00000000000426b0      0x1f0 source/i2.o
+                0x00000000000426be                i2c_init_bus
+                0x0000000000042730                i2c_transfer_write
+                0x000000000004278c                i2c_transfer_write_short
+                0x000000000004279e                i2c_transfer_read
+                0x0000000000042808                i2c_transfer_write_read
+ .text          0x00000000000428a0      0x1de source/jig.o
+                0x00000000000428a0                jig_update_shared_buffer
+                0x00000000000429a0                jig_read_shared_buffer
+ .text          0x0000000000042a7e       0xee source/maika.o
+                0x0000000000042a7e                readAs
+                0x0000000000042ab4                writeAs
+                0x0000000000042ad8                keyring_slot_data
+                0x0000000000042b46                keyring_slot_prot
+ .text          0x0000000000042b6c      0x238 source/main.o
+                0x0000000000042b6c                ce_framework
+                0x0000000000042cc0                init
+ .text          0x0000000000042da4       0xe0 source/perv.o
+                0x0000000000042da4                pervasive_control_reset
+                0x0000000000042dec                pervasive_control_gate
+                0x0000000000042e34                pervasive_control_clock
+                0x0000000000042e5e                pervasive_control_misc
+ .text          0x0000000000042e84      0x25c source/regina.o
+                0x0000000000042e84                regina_loadRegina
+                0x0000000000042f78                regina_sendCmd
+ .text          0x00000000000430e0      0x858 source/rp.o
+                0x0000000000043828                rpc_loop
+ .text          0x0000000000043938     0x1308 source/sdif.o
+                0x0000000000044526                sdif_read_sector_sd
+                0x00000000000445a2                sdif_write_sector_sd
+                0x000000000004461e                sdif_read_sector_mmc
+                0x00000000000446ca                sdif_write_sector_mmc
+                0x0000000000044776                sdif_init_ctx
+                0x0000000000044800                sdif_init_sd
+                0x0000000000044a62                sdif_init_mmc
+ .text          0x0000000000044c40        0x4 source/sm.o
+                0x0000000000044c40                sm_loadstart
+ .text          0x0000000000044c44       0xdc source/spi.o
+                0x0000000000044c44                spi_init
+                0x0000000000044ca6                spi_write_start
+                0x0000000000044cc6                spi_write_end
+                0x0000000000044ce2                spi_write
+                0x0000000000044cf0                spi_read_available
+                0x0000000000044cfe                spi_read
+                0x0000000000044d0a                spi_read_end
+ .text          0x0000000000044d20      0x396 source/stor.o
+                0x0000000000044de2                stor_init_sd
+                0x0000000000044e60                stor_init_emmc
+                0x0000000000044edc                stor_read_sd
+                0x0000000000044f2c                stor_write_sd
+                0x0000000000044f7c                stor_read_emmc
+                0x0000000000044fcc                stor_write_emmc
+                0x000000000004501c                stor_export_ctx
+                0x0000000000045062                stor_import_ctx
+ .text          0x00000000000450b6       0xd8 source/test.o
+                0x00000000000450b6                dfl_test
+                0x0000000000045132                glitch_test
+ .text          0x000000000004518e      0x288 source/uart.o
+                0x000000000004518e                uart_init
+                0x000000000004521e                uart_write
+                0x000000000004523a                uart_read
+                0x000000000004526e                uart_rxfifo_flush
+                0x0000000000045296                uart_print
+                0x00000000000452d0                uart_printn
+                0x0000000000045314                uart_printr
+                0x0000000000045352                uart_scann
+                0x00000000000453ac                uart_scanns
+ .text          0x0000000000045416       0xec source/utils.o
+                0x0000000000045416                delay_nx
+                0x0000000000045440                get_build_timestamp
+                0x000000000004544a                setup_ints
+                0x00000000000454ae                intr_mask
+                0x00000000000454f8                stub
+ .text          0x0000000000045502        0x0 source/ex.ao
+ .text          0x0000000000045502        0x0 source/glitch_vector.ao
+ .text          0x0000000000045502       0xe0 source/debug.ao
+                0x0000000000045502                debug_s_regdump
+ .text          0x00000000000455e2       0x80 source/util.ao
+                0x00000000000455e2                delay
+                0x00000000000455ea                cbus_read
+                0x0000000000045600                _cb_r_ins
+                0x000000000004560a                cbus_write
+                0x0000000000045620                _cb_w_ins
+                0x000000000004562a                set_dbg_mode
+                0x000000000004563e                enable_icache
+ .text          0x0000000000045662        0x0 source/glitch_config.ao
+                0x0000000000045662                PROG_sdastart = .
 
-.rodata         0x00000000000455e4      0x7e0
+.rodata         0x0000000000045664      0x83c
  *(.rodata .rodata.* .gnu.linkonce.r.*)
- .rodata        0x00000000000455e4      0x120 source/alice.o
- .rodata        0x0000000000045704       0xa0 source/compat.o
- .rodata        0x00000000000457a4        0x4 source/crypto.o
- .rodata        0x00000000000457a8       0x4c source/debug.o
- .rodata        0x00000000000457f4       0xe0 source/ex.o
- .rodata        0x00000000000458d4       0x98 source/glitch.o
- .rodata        0x000000000004596c       0x28 source/main.o
- .rodata        0x0000000000045994      0x17c source/regina.o
- .rodata        0x0000000000045b10      0x108 source/rp.o
- .rodata        0x0000000000045c18      0x104 source/stor.o
- .rodata        0x0000000000045d1c       0xa8 source/test.o
-                0x0000000000045dc4                PROG_sdastart = .
+ .rodata        0x0000000000045664      0x138 source/alice.o
+ .rodata        0x000000000004579c       0xa4 source/compat.o
+ .rodata        0x0000000000045840        0x4 source/crypto.o
+ .rodata        0x0000000000045844       0x4c source/debug.o
+ .rodata        0x0000000000045890       0xf0 source/ex.o
+ .rodata        0x0000000000045980       0x98 source/glitch.o
+ .rodata        0x0000000000045a18       0x28 source/main.o
+ .rodata        0x0000000000045a40      0x180 source/regina.o
+ .rodata        0x0000000000045bc0      0x114 source/rp.o
+ .rodata        0x0000000000045cd4      0x124 source/stor.o
+ .rodata        0x0000000000045df8       0xa8 source/test.o
  *(.srodata .srodata.*)
 
-.frodata        0x0000000000045dc4       0x64
- .frodata       0x0000000000045dc4       0x10 source/compat.o
- .frodata       0x0000000000045dd4       0x20 source/crypto.o
- .frodata       0x0000000000045df4       0x14 source/debug.o
- .frodata       0x0000000000045e08       0x20 source/sdif.o
+.frodata        0x0000000000045ea0       0x64
+ .frodata       0x0000000000045ea0       0x10 source/compat.o
+ .frodata       0x0000000000045eb0       0x20 source/crypto.o
+ .frodata       0x0000000000045ed0       0x14 source/debug.o
+ .frodata       0x0000000000045ee4       0x20 source/sdif.o
 
-.data           0x0000000000045e28      0x28c
+.cfgdata        0x0000000000045f04       0x6c
+                0x0000000000045f04                PROG_cfg_addr = .
+ *(.cfgdata .cfgdata.*)
+ .cfgdata       0x0000000000045f04       0x6c source/glitch_config.ao
+                0x0000000000045f04                g_config
+                0x0000000000045f14                g_iceparams
+                0x0000000000045f64                g_debug_route
+                0x0000000000045f68                g_debug_level
+                0x0000000000045f6c                g_state
+
+.data           0x0000000000045f70      0x2c4
  *(.data .data.* .gnu.linkonce.d.*)
- .data          0x0000000000045e28        0x0 source/alice.o
- .data          0x0000000000045e28        0x0 source/clib.o
- .data          0x0000000000045e28        0x0 source/compat.o
- .data          0x0000000000045e28        0x0 source/config.o
- .data          0x0000000000045e28        0x0 source/crypto.o
- .data          0x0000000000045e28        0x0 source/debug.o
- .data          0x0000000000045e28        0x0 source/dram.o
- .data          0x0000000000045e28        0x0 source/ernie.o
- .data          0x0000000000045e28        0x0 source/ex.o
- .data          0x0000000000045e28        0x0 source/glitch.o
- .data          0x0000000000045e28        0x0 source/gpio.o
- .data          0x0000000000045e28        0x0 source/heap.o
- .data          0x0000000000045e28        0x0 source/i2.o
- .data          0x0000000000045e28        0x0 source/jig.o
- .data          0x0000000000045e28        0x0 source/maika.o
- .data          0x0000000000045e28        0x0 source/main.o
- .data          0x0000000000045e28        0x0 source/perv.o
- .data          0x0000000000045e28        0x0 source/regina.o
- .data          0x0000000000045e28        0x0 source/rp.o
- .data          0x0000000000045e28        0x0 source/sdif.o
- .data          0x0000000000045e28        0x0 source/sm.o
- .data          0x0000000000045e28        0x0 source/spi.o
- .data          0x0000000000045e28        0x0 source/stor.o
- .data          0x0000000000045e28        0x0 source/test.o
- .data          0x0000000000045e28        0x0 source/uart.o
- .data          0x0000000000045e28        0x0 source/utils.o
- .data          0x0000000000045e28        0x0 source/ex.ao
- .data          0x0000000000045e28        0x0 source/glitch_vector.ao
- .data          0x0000000000045e28        0x0 source/debug.ao
- .data          0x0000000000045e28        0x0 source/util.ao
+ .data          0x0000000000045f70        0x0 source/alice.o
+ .data          0x0000000000045f70        0x0 source/clib.o
+ .data          0x0000000000045f70        0x0 source/compat.o
+ .data          0x0000000000045f70        0x0 source/config.o
+ .data          0x0000000000045f70        0x0 source/crypto.o
+ .data          0x0000000000045f70        0x0 source/debug.o
+ .data          0x0000000000045f70        0x0 source/dram.o
+ .data          0x0000000000045f70        0x0 source/ernie.o
+ .data          0x0000000000045f70        0x0 source/ex.o
+ .data          0x0000000000045f70        0x0 source/glitch.o
+ .data          0x0000000000045f70        0x0 source/gpio.o
+ .data          0x0000000000045f70        0x0 source/heap.o
+ .data          0x0000000000045f70        0x0 source/i2.o
+ .data          0x0000000000045f70        0x0 source/jig.o
+ .data          0x0000000000045f70        0x0 source/maika.o
+ .data          0x0000000000045f70        0x0 source/main.o
+ .data          0x0000000000045f70        0x0 source/perv.o
+ .data          0x0000000000045f70        0x0 source/regina.o
+ .data          0x0000000000045f70        0x0 source/rp.o
+ .data          0x0000000000045f70        0x0 source/sdif.o
+ .data          0x0000000000045f70        0x0 source/sm.o
+ .data          0x0000000000045f70        0x0 source/spi.o
+ .data          0x0000000000045f70        0x0 source/stor.o
+ .data          0x0000000000045f70        0x0 source/test.o
+ .data          0x0000000000045f70        0x0 source/uart.o
+ .data          0x0000000000045f70        0x0 source/utils.o
+ .data          0x0000000000045f70        0x0 source/ex.ao
+ .data          0x0000000000045f70        0x0 source/glitch_vector.ao
+ .data          0x0000000000045f70        0x0 source/debug.ao
+ .data          0x0000000000045f70        0x0 source/util.ao
+ .data          0x0000000000045f70        0x0 source/glitch_config.ao
  *(.sdata .sdata.*)
- .sdata         0x0000000000045e28       0x14 source/alice.o
-                0x0000000000045e28                alice_b2a_shmem
-                0x0000000000045e2c                alice_core_status
-                0x0000000000045e30                alice_tasks
-                0x0000000000045e34                alice_xcfg
-                0x0000000000045e38                alice_vectors
- .sdata         0x0000000000045e3c        0x4 source/rp.o
-                0x0000000000045e3c                g_rpc_status
- .sdata         0x0000000000045e40        0x4 source/uart.o
-                0x0000000000045e40                g_uart_bus
+ .sdata         0x0000000000045f70       0x14 source/alice.o
+                0x0000000000045f70                alice_b2a_shmem
+                0x0000000000045f74                alice_core_status
+                0x0000000000045f78                alice_tasks
+                0x0000000000045f7c                alice_xcfg
+                0x0000000000045f80                alice_vectors
+ .sdata         0x0000000000045f84        0x4 source/rp.o
+                0x0000000000045f84                g_rpc_status
+ .sdata         0x0000000000045f88        0x4 source/uart.o
+                0x0000000000045f88                g_uart_bus
  *(.far .far.*)
- .far           0x0000000000045e44      0x250 source/dram.o
- .far           0x0000000000046094       0x20 source/sdif.o
+ .far           0x0000000000045f8c      0x250 source/dram.o
+ .far           0x00000000000461dc        0x8 source/main.o
+                0x00000000000461dc                g_cefw_progress
+ .far           0x00000000000461e4       0x20 source/sdif.o
+ *(.comment .comment.*)
+ .comment       0x0000000000046204       0x30 source/alice.o
+                                         0x31 (size before relaxing)
+ .comment       0x0000000000046234       0x31 source/clib.o
+ .comment       0x0000000000046234       0x31 source/compat.o
+ .comment       0x0000000000046234       0x31 source/config.o
+ .comment       0x0000000000046234       0x31 source/crypto.o
+ .comment       0x0000000000046234       0x31 source/debug.o
+ .comment       0x0000000000046234       0x31 source/dram.o
+ .comment       0x0000000000046234       0x31 source/ernie.o
+ .comment       0x0000000000046234       0x31 source/ex.o
+ .comment       0x0000000000046234       0x31 source/glitch.o
+ .comment       0x0000000000046234       0x31 source/gpio.o
+ .comment       0x0000000000046234       0x31 source/heap.o
+ .comment       0x0000000000046234       0x31 source/i2.o
+ .comment       0x0000000000046234       0x31 source/jig.o
+ .comment       0x0000000000046234       0x31 source/maika.o
+ .comment       0x0000000000046234       0x31 source/main.o
+ .comment       0x0000000000046234       0x31 source/perv.o
+ .comment       0x0000000000046234       0x31 source/regina.o
+ .comment       0x0000000000046234       0x31 source/rp.o
+ .comment       0x0000000000046234       0x31 source/sdif.o
+ .comment       0x0000000000046234       0x31 source/sm.o
+ .comment       0x0000000000046234       0x31 source/spi.o
+ .comment       0x0000000000046234       0x31 source/stor.o
+ .comment       0x0000000000046234       0x31 source/test.o
+ .comment       0x0000000000046234       0x31 source/uart.o
+ .comment       0x0000000000046234       0x31 source/utils.o
 
-.bss            0x00000000000460b4       0xbc
-                0x00000000000460b4                PROG_bss_addr = .
+.bss            0x0000000000046234       0xbc
+                0x0000000000046234                PROG_bss_addr = .
  *(.bss .bss.* .gnu.linkonce.b.*)
- .bss           0x00000000000460b4        0x0 source/alice.o
- .bss           0x00000000000460b4        0x0 source/clib.o
- .bss           0x00000000000460b4        0x0 source/compat.o
- .bss           0x00000000000460b4        0x0 source/config.o
- .bss           0x00000000000460b4        0x0 source/crypto.o
- .bss           0x00000000000460b4        0x0 source/debug.o
- .bss           0x00000000000460b4        0x0 source/dram.o
- .bss           0x00000000000460b4        0x0 source/ernie.o
- .bss           0x00000000000460b4        0x0 source/ex.o
- .bss           0x00000000000460b4        0x0 source/glitch.o
- .bss           0x00000000000460b4        0x0 source/gpio.o
- .bss           0x00000000000460b4        0x0 source/heap.o
- .bss           0x00000000000460b4        0x0 source/i2.o
- .bss           0x00000000000460b4        0x0 source/jig.o
- .bss           0x00000000000460b4        0x0 source/maika.o
- .bss           0x00000000000460b4        0x0 source/main.o
- .bss           0x00000000000460b4        0x0 source/perv.o
- .bss           0x00000000000460b4        0x0 source/regina.o
- .bss           0x00000000000460b4        0x0 source/rp.o
- .bss           0x00000000000460b4        0x0 source/sdif.o
- .bss           0x00000000000460b4        0x0 source/sm.o
- .bss           0x00000000000460b4        0x0 source/spi.o
- .bss           0x00000000000460b4        0x0 source/stor.o
- .bss           0x00000000000460b4        0x0 source/test.o
- .bss           0x00000000000460b4        0x0 source/uart.o
- .bss           0x00000000000460b4        0x0 source/utils.o
- .bss           0x00000000000460b4        0x0 source/ex.ao
- .bss           0x00000000000460b4        0x0 source/glitch_vector.ao
- .bss           0x00000000000460b4        0x0 source/debug.ao
- .bss           0x00000000000460b4        0x0 source/util.ao
+ .bss           0x0000000000046234        0x0 source/alice.o
+ .bss           0x0000000000046234        0x0 source/clib.o
+ .bss           0x0000000000046234        0x0 source/compat.o
+ .bss           0x0000000000046234        0x0 source/config.o
+ .bss           0x0000000000046234        0x0 source/crypto.o
+ .bss           0x0000000000046234        0x0 source/debug.o
+ .bss           0x0000000000046234        0x0 source/dram.o
+ .bss           0x0000000000046234        0x0 source/ernie.o
+ .bss           0x0000000000046234        0x0 source/ex.o
+ .bss           0x0000000000046234        0x0 source/glitch.o
+ .bss           0x0000000000046234        0x0 source/gpio.o
+ .bss           0x0000000000046234        0x0 source/heap.o
+ .bss           0x0000000000046234        0x0 source/i2.o
+ .bss           0x0000000000046234        0x0 source/jig.o
+ .bss           0x0000000000046234        0x0 source/maika.o
+ .bss           0x0000000000046234        0x0 source/main.o
+ .bss           0x0000000000046234        0x0 source/perv.o
+ .bss           0x0000000000046234        0x0 source/regina.o
+ .bss           0x0000000000046234        0x0 source/rp.o
+ .bss           0x0000000000046234        0x0 source/sdif.o
+ .bss           0x0000000000046234        0x0 source/sm.o
+ .bss           0x0000000000046234        0x0 source/spi.o
+ .bss           0x0000000000046234        0x0 source/stor.o
+ .bss           0x0000000000046234        0x0 source/test.o
+ .bss           0x0000000000046234        0x0 source/uart.o
+ .bss           0x0000000000046234        0x0 source/utils.o
+ .bss           0x0000000000046234        0x0 source/ex.ao
+ .bss           0x0000000000046234        0x0 source/glitch_vector.ao
+ .bss           0x0000000000046234        0x0 source/debug.ao
+ .bss           0x0000000000046234        0x0 source/util.ao
+ .bss           0x0000000000046234        0x0 source/glitch_config.ao
  *(.sbss .sbss.*)
- .sbss          0x00000000000460b4        0x4 source/compat.o
+ .sbss          0x0000000000046234        0x4 source/compat.o
  *(.farbss .farbss.*)
- .farbss        0x00000000000460b8       0x40 source/ernie.o
-                0x00000000000460b8                g_ernie_comms
- .farbss        0x00000000000460f8       0x78 source/stor.o
+ .farbss        0x0000000000046238       0x40 source/ernie.o
+                0x0000000000046238                g_ernie_comms
+ .farbss        0x0000000000046278       0x78 source/stor.o
  *(.scommon)
  *(COMMON)
-                0x0000000000046170                . = ALIGN (0x4)
-                0x0000000000046170                PROG_bss_end = .
-                0x0000000000046170                PROG_heap_start = .
-                0x0000000000006170                PROG_act_size = (PROG_heap_start - cfg_PROG_load_off)
-                0x0000000000044000                __sdabase = cfg_gp_addr
-                0x0000000000000001                ASSERT (! ((PROG_act_size > cfg_PROG_max_size)), cfg_PROG_max_size)
+                0x00000000000462f0                . = ALIGN (0x4)
+                0x00000000000462f0                PROG_bss_end = .
+                0x00000000000462f0                PROG_heap_start = .
+                0x00000000000062f0                PROG_act_size = (PROG_bss_end - cfg_PROG_load_addr)
+                0x0000000000005f04                PROG_cfgoff = (PROG_cfg_addr - cfg_PROG_load_addr)
+                0x000000000004d662                __sdabase = cfg_gp_addr
+                0x0000000000000001                ASSERT (! ((PROG_act_size > cfg_PROG_max_size)), ERROR: act_size > max_size)
 OUTPUT(bob_glitch.elf elf32-mep-little)
-
-.comment        0x0000000000000000       0x30
- .comment       0x0000000000000000       0x30 source/alice.o
-                                         0x31 (size before relaxing)
- .comment       0x0000000000000030       0x31 source/clib.o
- .comment       0x0000000000000030       0x31 source/compat.o
- .comment       0x0000000000000030       0x31 source/config.o
- .comment       0x0000000000000030       0x31 source/crypto.o
- .comment       0x0000000000000030       0x31 source/debug.o
- .comment       0x0000000000000030       0x31 source/dram.o
- .comment       0x0000000000000030       0x31 source/ernie.o
- .comment       0x0000000000000030       0x31 source/ex.o
- .comment       0x0000000000000030       0x31 source/glitch.o
- .comment       0x0000000000000030       0x31 source/gpio.o
- .comment       0x0000000000000030       0x31 source/heap.o
- .comment       0x0000000000000030       0x31 source/i2.o
- .comment       0x0000000000000030       0x31 source/jig.o
- .comment       0x0000000000000030       0x31 source/maika.o
- .comment       0x0000000000000030       0x31 source/main.o
- .comment       0x0000000000000030       0x31 source/perv.o
- .comment       0x0000000000000030       0x31 source/regina.o
- .comment       0x0000000000000030       0x31 source/rp.o
- .comment       0x0000000000000030       0x31 source/sdif.o
- .comment       0x0000000000000030       0x31 source/sm.o
- .comment       0x0000000000000030       0x31 source/spi.o
- .comment       0x0000000000000030       0x31 source/stor.o
- .comment       0x0000000000000030       0x31 source/test.o
- .comment       0x0000000000000030       0x31 source/uart.o
- .comment       0x0000000000000030       0x31 source/utils.o

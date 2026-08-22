@@ -19,10 +19,6 @@
 
 #ifndef COMPAT_UNUSE
 
-/* bring your own keys
-static const uint8_t skso_iv[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-*/
-
 static const uint8_t skso_iv[16] = {
     0xa1, 0x32, 0x5a, 0xd8, 0xb9, 0x21, 0x2f, 0xef,
     0x72, 0x16, 0xef, 0xfb, 0x30, 0xcb, 0x4d, 0xfc
@@ -45,12 +41,12 @@ uint32_t compat_Cry2Arm0(uint32_t msg, bool full) {
     return maika->mailbox.cry2arm[0];
 }
 
-static void compat_Arm2Cry0_resetPervDevice(void) {
+static void compat_ArmSK_resetPervDevice(void) {
     pervasive_control_reset(PERV_CTRL_RESET_DEV_EMMC_CRYPTO, 1, true, false);
     pervasive_control_reset(PERV_CTRL_RESET_DEV_EMMC_CRYPTO, 1, false, true);
 }
 
-static void compat_Arm2Cry0_setEmmcKeyslots(bool disableEmmcCtrl) {
+static void compat_ArmSK_setEmmcKeyslots(bool disableEmmcCtrl) {
     maika_s* maika = (maika_s*)MAIKA_OFFSET;
     maika->keyring_ctrl.set_prot = 0x1FEF020F;
     maika->keyring_ctrl.set_prot = 0x1FEF020E;
@@ -61,7 +57,7 @@ static void compat_Arm2Cry0_setEmmcKeyslots(bool disableEmmcCtrl) {
         maika->emmc_crypto_ctrl.control_0 = 1;
 }
 
-static void compat_Arm2Cry0_setSomeEmmcDatax14(void) {
+static void compat_ArmSK_setSomeEmmcDatax14(void) {
     uint32_t somePervasiveValue = vp(PERV_GET_REG(PERV_CTRL_MISC, PERV_CTRL_MISC_REG_SOC_REV)) & 0x00FFFFFF;
     if (somePervasiveValue == 0x20 || somePervasiveValue == 0x30 || somePervasiveValue == 0x32)
         return;
@@ -69,7 +65,7 @@ static void compat_Arm2Cry0_setSomeEmmcDatax14(void) {
 }
 
 // TODO: fix?
-static void compat_Arm2Cry0_genSKSO(void) {
+static void compat_ArmSK_genSKSO(void) {
     maika_s* maika = (maika_s*)MAIKA_OFFSET;
     cmdF01_SKSO skso;
     skso.magic = 0xacb4acb1;
@@ -97,7 +93,7 @@ static void compat_Arm2Cry0_genSKSO(void) {
 }
 
 __attribute__((noreturn))
-static void compat_Arm2Cry0_armPanic(void) {
+static void compat_ArmSK_armPanic(void) {
     compat_state = 9;
     cbus_write(0, 0xF);
     asm("mov $0, $0\n");
@@ -107,7 +103,7 @@ static void compat_Arm2Cry0_armPanic(void) {
 }
 
 __attribute__((noreturn))
-static void compat_Arm2Cry0_forceExitSm(void) {
+static void compat_ArmSK_forceExitSm(void) {
     maika_s* maika = (maika_s*)MAIKA_OFFSET;
     crypto_waitStopBigmacOps(true);
     crypto_memset(false, SM_LOAD_ADDR, SM_MAX_SIZE, 0);
@@ -147,16 +143,16 @@ void compat_Arm2Cry0_handleCmd(uint32_t cmd) {
     case 0xE01:
         shortcmd = true;
         statusled(STATUS_COMPAT_RESET_PERV);
-        compat_Arm2Cry0_resetPervDevice();
-        compat_Arm2Cry0_setEmmcKeyslots(cmd != 0xC01);
+        compat_ArmSK_resetPervDevice();
+        compat_ArmSK_setEmmcKeyslots(cmd != 0xC01);
         if (cmd != 0xE01)
             break;
-        compat_Arm2Cry0_setSomeEmmcDatax14();
+        compat_ArmSK_setSomeEmmcDatax14();
         break;
     case 0xF01:
         shortcmd = true;
         statusled(STATUS_COMPAT_SKSO);
-        compat_Arm2Cry0_genSKSO();
+        compat_ArmSK_genSKSO();
         break;
     default:
         break;
@@ -173,11 +169,11 @@ void compat_Arm2Cry0_handleCmd(uint32_t cmd) {
         default:
         case 0x101:
             statusled(STATUS_COMPAT_ARMDED);
-            compat_Arm2Cry0_armPanic();
+            compat_ArmSK_armPanic();
             break;
         case 0x601:
             statusled(STATUS_COMPAT_FEXSM);
-            compat_Arm2Cry0_forceExitSm();
+            compat_ArmSK_forceExitSm();
             break;
         }
     }
@@ -194,21 +190,21 @@ void compat_Arm2Cry0123(int num) {
     uint32_t arm_req = maika->mailbox.arm2cry[num];
 #if !defined(SILENT) && !defined(DEBUG_ONLYERR)
     const char *reqs[4] = { "ARM2CRY0", "ARM2CRY1", "ARM2CRY2", "ARM2CRY3" };
-    INFOF("[BOB] entering %s req %X\n", reqs[num], arm_req);
+    INFOF("[BOB] entering %s req 0x%X\n", reqs[num], arm_req);
 #endif
     switch (num) {
         case 0:
-            if (ce_framework(false, NULL) != true)
+            if (ce_framework(false, NULL, false) != true)
                 compat_Arm2Cry0_handleCmd(arm_req);
             else
                 maika->mailbox.arm2cry[0] = -1; // ack
             break;
         default:
-            WARNF("[BOB] UNHANDLED %s REQ: %X\n", reqs[num], arm_req);
+            WARNF("[BOB] UNHANDLED %s REQ: 0x%X\n", reqs[num], arm_req);
             maika->mailbox.arm2cry[num] = -1; // ack
             break;
     }
-    INFOF("[BOB] exiting %s req %X\n", reqs[num], arm_req);
+    INFOF("[BOB] exiting %s req 0x%X\n", reqs[num], arm_req);
     statusled(STATUS_ARM_QUIT);
 }
 

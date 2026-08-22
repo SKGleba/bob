@@ -51,12 +51,14 @@ extern bool enable_icache(bool cache);
 
 extern volatile uint32_t g_state;
 
-extern uint32_t cfg_PROG_load_off;
-extern uint32_t cfg_PROG_uses_end;
-extern uint32_t cfg_PROG_load_end;
-extern uint32_t cfg_PROG_max_size;
-extern uint32_t PROG_heap_start;
-extern uint32_t PROG_act_size;
+// with gprel added, avoid gprel with linker symbols
+#define LINKERWORD(_w) extern uint32_t _w __attribute__((far))
+LINKERWORD(cfg_PROG_load_off);
+LINKERWORD(cfg_PROG_uses_end);
+LINKERWORD(cfg_PROG_load_end);
+LINKERWORD(cfg_PROG_max_size);
+LINKERWORD(PROG_heap_start);
+LINKERWORD(PROG_act_size);
 
 // get compile timestamp
 __attribute__((noinline)) uint32_t get_build_timestamp(void);

@@ -13,6 +13,7 @@
 #include "include/types.h"
 #include "include/utils.h"
 #include "include/stor.h"
+#include "include/main.h"
 
 #ifndef ALICE_UNUSE
 
@@ -53,7 +54,7 @@ int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool en
     uint32_t sz = dram ? ALICE_DRAM_SIZE : ALICE_SPAD32K_SIZE;
     
     if (src != dst) {
-        INFOF("[BOB] copy alice to %X[%X]\n", (uint32_t)dst, sz);
+        INFOF("[BOB] copy alice to 0x%X[0x%X]\n", (uint32_t)dst, sz);
         memset32(dst, 0, sz);
         if (vp(dst)) {
             ERROR("[BOB] failed to clear dst area\n");
@@ -68,7 +69,7 @@ int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool en
     alice_tasks = (volatile alice_core_task_s * (* volatile)[4])((uint32_t)dst + (uint32_t)(alice_vectors->configs.core_tasks));
 
     if (set_uart) {
-        INFOF("[BOB] set alice uart to %X[%X]\n", g_uart_bus, UART_RATE);
+        INFOF("[BOB] set alice uart to %d[0x%X]\n", g_uart_bus, UART_RATE);
         alice_xcfg->uart_bus = g_uart_bus;
         alice_xcfg->uart_rate = UART_RATE;
     }
@@ -150,12 +151,12 @@ uint32_t alice_handleCmd(uint32_t cmdep) {
         uint32_t (*exec_func)(uint32_t a, uint32_t b, uint32_t c) = (void*)(cmd & 0xFFFFFFFE);
         if (!(cmd & 1))
             exec_func = (void*)((uint32_t)exec_func & 0x7FFFFFFE);
-        INFOF("[BOB] exec %X(%X, %X, %X)\n", exec_func, cmds->arg[0], cmds->arg[1], cmds->arg[2]);
+        INFOF("[BOB] exec 0x%X(0x%X, 0x%X, 0x%X)\n", exec_func, cmds->arg[0], cmds->arg[1], cmds->arg[2]);
         cmds->ret = exec_func(cmds->arg[0], cmds->arg[1], cmds->arg[2]);
         return (uint32_t)cmdep;
     }
 
-    INFOF("[BOB] got alice cmd %X (%X, %X, %X)\n", cmd, cmds->arg[0], cmds->arg[1], cmds->arg[2]);
+    INFOF("[BOB] got alice cmd %d (0x%X, 0x%X, 0x%X)\n", cmd, cmds->arg[0], cmds->arg[1], cmds->arg[2]);
     switch (cmd) {
     case ALICE_A2B_GET_RPC_STATUS:
         cmds->ret = g_rpc_status;
@@ -223,7 +224,7 @@ uint32_t alice_handleCmd(uint32_t cmdep) {
         break;
     case ALICE_A2B_SET_B2A_SHBUF:
         if (cmds->arg[1] < ALICE_B2A_SHBUF_MINSIZE) {
-            ERRORF("[BOB] alice cmd set_b2a_shbuf: invalid size %X\n", cmds->arg[1]);
+            ERRORF("[BOB] alice cmd set_b2a_shbuf: invalid size 0x%X\n", cmds->arg[1]);
             cmds->ret = -1;
             break;
         }
@@ -242,12 +243,29 @@ uint32_t alice_handleCmd(uint32_t cmdep) {
         cmds->ret = g_debug_route;
         g_debug_route = cmds->arg[0];
         break;
+    case ALICE_A2B_MGR_CEFW:
+        cmds->ret = 0;
+        if (cmds->arg[0]) {
+            if (!g_cefw_progress[0] || g_cefw_progress[0] == CEFW_PROGRESS_DONE_WAIT)
+                g_config.ce_framework_parms[0] = (bob_fm_nfo_s*)cmds->arg[0];
+            else
+                cmds->ret |= 0b1; // busy
+        }
+        cmds->arg[0] = (uint32_t)g_config.ce_framework_parms[0];
+        if (cmds->arg[1]) {
+            if (!g_cefw_progress[1])
+                g_config.ce_framework_parms[1] = (bob_fm_nfo_s*)cmds->arg[1];
+            else
+                cmds->ret |= 0b10;
+        }
+        cmds->arg[1] = (uint32_t)g_config.ce_framework_parms[1];
+        cmds->arg[2] = (g_cefw_progress[0] << 0) | (g_cefw_progress[1] << 16);
     default:
         cmds->ret = stub();
         break;
     }
 
-    INFOF("[BOB] alice cmd %X done, ret %X\n", cmd, cmds->ret);
+    INFOF("[BOB] alice cmd %d done, ret 0x%X\n", cmd, cmds->ret);
 
     return (uint32_t)cmdep;
 }

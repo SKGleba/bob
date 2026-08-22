@@ -14,20 +14,20 @@ static heap_s *l_heap = NULL;
 
 #ifndef HEAP_NODEBUG
 int heap_debug(heap_s *heap) {
-    HEAP_DBGP("heap_debug: heap @ %X\n", heap);
+    HEAP_DBGP("heap_debug: heap @ 0x%X\n", heap);
     if (!heap)
         heap = l_heap;
     if (!heap || (heap->magic != HEAP_MB_MAGIC)) {
         HEAP_ERRP("heap_debug: sys heap not initialized\n");
         return -1;
     }
-    HEAP_DBGP(" magic: %X\n size: %X\n s.cfg: %X\n", heap->magic, heap->size, heap->s.cfg);
+    HEAP_DBGP(" magic: 0x%X\n size: %d\n s.cfg: 0x%X\n", heap->magic, heap->size, heap->s.cfg);
 #ifndef HEAP_NOSMALL
     if (heap->s.cfg) {
-        HEAP_DBGP(" s.end: %X\n", heap->s.end);
+        HEAP_DBGP(" s.end: 0x%X\n", heap->s.end);
         for (int i = 0; i < 4; i++) {
             if (HEAP_SCFG_GET_BC(heap->s.cfg, i)) {
-                HEAP_DBGP(" s.bfree[%X]: %X\n", i, heap->s.bfree[i]);
+                HEAP_DBGP(" s.bfree[%d]: 0x%08X\n", i, heap->s.bfree[i]);
             } else
                 break;
         }
@@ -38,15 +38,15 @@ int heap_debug(heap_s *heap) {
     uint32_t *hdr = (uint32_t *)((HEAP_CPU_PTRT)heap + (HEAP_CPU_PTRT)distance);
     do {
         if (!HEAP_HDR_ISVALID(*hdr)) {
-            HEAP_DBGP("heap_debug: reached invalid block header at %X after %X blocks\n", hdr, idx);
+            HEAP_DBGP("heap_debug: reached invalid block header at 0x%X after %d blocks\n", hdr, idx);
             return 0;
         }
-        HEAP_DBGP("heap_debug: block %X at %X, size %X, used %X, adhsz %X\n", idx, hdr, HEAP_HDR_GETNEXT(*hdr), HEAP_HDR_ISUSED(*hdr), HEAP_HDR_GET(*hdr, _ADHSZ));
+        HEAP_DBGP("heap_debug: block %d at 0x%X, size 0x%X, used %d, adhsz 0x%X\n", idx, hdr, HEAP_HDR_GETNEXT(*hdr), HEAP_HDR_ISUSED(*hdr), HEAP_HDR_GET(*hdr, _ADHSZ));
 #ifndef HEAP_NOSMALL
         if (heap->s.cfg && idx < 4) {
             int bc = HEAP_SCFG_GET_BC(heap->s.cfg, idx);
             if (bc) {
-                HEAP_DBGP("heap_debug: small block group %X, block count per entry %X, free slots %X\n", idx, bc, heap->s.bfree[idx]);
+                HEAP_DBGP("heap_debug: small block group %d, block count per entry %d, free slots 0x%08X\n", idx, bc, heap->s.bfree[idx]);
             }
         }
 #endif
@@ -54,25 +54,25 @@ int heap_debug(heap_s *heap) {
         hdr = (uint32_t *)((HEAP_CPU_PTRT)heap + (HEAP_CPU_PTRT)distance);
         idx++;
     } while (distance < heap->size);
-    HEAP_DBGP("heap_debug: reached end of heap at %X\n", hdr);
+    HEAP_DBGP("heap_debug: reached end of heap at 0x%X\n", hdr);
     return 0;
 }
 #endif
 
 int heap_free(heap_s *heap, void *ptr) {
-    HEAP_DBGP("heap_free: heap %X, ptr %X\n", heap, ptr);
+    HEAP_DBGP("heap_free: heap 0x%X, ptr 0x%X\n", heap, ptr);
     if (!ptr)
         return -1;
     if (!heap)
         heap = l_heap;
     if (!heap || (heap->magic != HEAP_MB_MAGIC)) {
-        HEAP_ERRP("heap_free: bad magic @%X\n", heap);
+        HEAP_ERRP("heap_free: bad magic @0x%X\n", heap);
         return -2;
     }
     int distance = sizeof(heap_s);
     uint32_t *hdr = (uint32_t *)((HEAP_CPU_PTRT)heap + (HEAP_CPU_PTRT)distance);
     if ((HEAP_CPU_PTRT)ptr < (HEAP_CPU_PTRT)heap || (HEAP_CPU_PTRT)ptr >= ((HEAP_CPU_PTRT)heap + (HEAP_CPU_PTRT)heap->size)) {
-        HEAP_ERRP("heap_free: %X oob %X/%X\n", ptr, heap, ((HEAP_CPU_PTRT)heap + (HEAP_CPU_PTRT)heap->size));
+        HEAP_ERRP("heap_free: 0x%X oob 0x%X/0x%X\n", ptr, heap, ((HEAP_CPU_PTRT)heap + (HEAP_CPU_PTRT)heap->size));
         return -4;
     }
 
@@ -87,7 +87,7 @@ int heap_free(heap_s *heap, void *ptr) {
     uint32_t *prev = (uint32_t *)((HEAP_CPU_PTRT)heap + (HEAP_CPU_PTRT)distance);
     do {
         if (!HEAP_HDR_ISVALID(*hdr)) {
-            HEAP_ERRP("heap_free: bad hdr @%X\n", hdr);
+            HEAP_ERRP("heap_free: bad hdr @0x%X\n", hdr);
             return -3;
         }
 #ifndef HEAP_NOSMALL
@@ -97,11 +97,11 @@ int heap_free(heap_s *heap, void *ptr) {
                 for (int i = 0; i < 32; i++) {
                     if ((HEAP_CPU_PTRT)ptr == ((HEAP_CPU_PTRT)hdr + HEAP_HDR_HSZ + (HEAP_CPU_PTRT)((sbc * HEAP_SB_BS) * i))) {
                         if (heap->s.bfree[(is_small - 1)] & (1U << i)) {
-                            HEAP_ERRP("heap_free: (WARN) small dfree for %X\n", ptr);
+                            HEAP_ERRP("heap_free: (WARN) small dfree for 0x%X\n", ptr);
                             return -6;
                         }
                         heap->s.bfree[(is_small - 1)] |= (1U << i);
-                        HEAP_DBGP("heap_free: freed small block at %X, group %X, slot %X\n", ptr, (is_small - 1), i);
+                        HEAP_DBGP("heap_free: freed small block at 0x%X, group %d, slot %d\n", ptr, (is_small - 1), i);
                         return 0;
                     }
                 }
@@ -111,13 +111,13 @@ int heap_free(heap_s *heap, void *ptr) {
 #endif
         if ((HEAP_CPU_PTRT)ptr == ((HEAP_CPU_PTRT)hdr + HEAP_HDR_HSZ)) {
             if (!HEAP_HDR_ISUSED(*hdr))
-                HEAP_ERRP("heap_free: (WARN) dfree for %X\n", hdr);
+                HEAP_ERRP("heap_free: (WARN) dfree for 0x%X\n", hdr);
             *hdr = HEAP_HDR_SET(*hdr, _USED, 0);
-            HEAP_DBGP("heap_free: freed block at %X\n", hdr);
+            HEAP_DBGP("heap_free: freed block at 0x%X\n", hdr);
             // merge with prev if free
             if ((prev != hdr) && (!HEAP_HDR_ISUSED(*prev))) {
                 uint32_t nsz = HEAP_HDR_GETNEXT(*prev) + HEAP_HDR_GETNEXT(*hdr);
-                HEAP_DBGP("heap_free: merging with prev block at %X : newsz %X\n", prev, nsz);
+                HEAP_DBGP("heap_free: merging with prev block at 0x%X : newsz %d\n", prev, nsz);
                 *prev = HEAP_HDR_CFG(HEAP_HDR_US2SYSC((nsz - HEAP_MIN_BS)), 0, !(nsz & (HEAP_MIN_BS - 1)));
                 hdr = prev;
             }
@@ -128,11 +128,11 @@ int heap_free(heap_s *heap, void *ptr) {
             hdr = (uint32_t *)((HEAP_CPU_PTRT)heap + (HEAP_CPU_PTRT)distance);
             if (distance < heap->size) {
                 if (!HEAP_HDR_ISVALID(*hdr)) {
-                    HEAP_DBGP("heap_free: was last block at %X, destroying\n", prev);
+                    HEAP_DBGP("heap_free: was last block at 0x%X, destroying\n", prev);
                     *prev = HEAP_HDR_SET(*prev, _MAGIC, 0);
                 } else if (!HEAP_HDR_ISUSED(*hdr)) {
                     uint32_t nsz = HEAP_HDR_GETNEXT(*prev) + HEAP_HDR_GETNEXT(*hdr);
-                    HEAP_DBGP("heap_free: merging with next block at %X : newsz %X\n", hdr, nsz);
+                    HEAP_DBGP("heap_free: merging with next block at 0x%X : newsz %d\n", hdr, nsz);
                     *prev = HEAP_HDR_CFG(HEAP_HDR_US2SYSC((nsz - HEAP_MIN_BS)), 0, !(nsz & (HEAP_MIN_BS - 1)));
                 }
             }
@@ -142,16 +142,16 @@ int heap_free(heap_s *heap, void *ptr) {
         distance += HEAP_HDR_GETNEXT(*hdr);
         hdr = (uint32_t *)((HEAP_CPU_PTRT)heap + (HEAP_CPU_PTRT)distance);
     } while (distance < heap->size);
-    HEAP_ERRP("heap_free: no %X, traveled %X/%X\n", ptr, distance, heap->size);
+    HEAP_ERRP("heap_free: no 0x%X, traveled 0x%X/0x%X\n", ptr, distance, heap->size);
     return -5;
 }
 
 void *heap_alloc(heap_s *heap, int size) {
-    HEAP_DBGP("heap_alloc: heap %X, size %X\n", heap, size);
+    HEAP_DBGP("heap_alloc: heap 0x%X, size %d\n", heap, size);
     if (!heap)
         heap = l_heap;
     if (!heap || (heap->magic != HEAP_MB_MAGIC)) {
-        HEAP_ERRP("heap_alloc: bad magic @%X\n", heap);
+        HEAP_ERRP("heap_alloc: bad magic @0x%X\n", heap);
         return NULL;
     }
     if (size <= 0)
@@ -177,17 +177,17 @@ void *heap_alloc(heap_s *heap, int size) {
                             distance += HEAP_HDR_GETNEXT(*hdr);
                             hdr = (uint32_t *)((HEAP_CPU_PTRT)heap + (HEAP_CPU_PTRT)distance);
                             if (!HEAP_HDR_ISVALID(*hdr)) {
-                                HEAP_ERRP("heap_alloc: no SBG %X found at %X\n", k, hdr);
+                                HEAP_ERRP("heap_alloc: no SBG %d found at 0x%X\n", k, hdr);
                                 return NULL;
                             }
                         }
                         void *ptr = (void *)((HEAP_CPU_PTRT)hdr + (HEAP_CPU_PTRT)((bc * HEAP_SB_BS) * j));
                         heap->s.bfree[i] &= ~(1U << j);
-                        HEAP_DBGP("heap_alloc: allocated small block at %X, size %X, group %X, slot %X\n", ptr, size, i, j);
+                        HEAP_DBGP("heap_alloc: allocated small block at 0x%X, size %d, group %d, slot %d\n", ptr, size, i, j);
                         return ptr;
                     }
                 }
-                HEAP_ERRP("heap_alloc: !BUG! NFS @%X:%X\n", i, heap->s.bfree[i]);
+                HEAP_ERRP("heap_alloc: !BUG! NFS @0x%X:%08X\n", i, heap->s.bfree[i]);
             } else
                 break;
         }
@@ -209,14 +209,14 @@ void *heap_alloc(heap_s *heap, int size) {
             break;
     } while (distance < heap->size);
     if ((distance >= heap->size) || (!bsize && ((distance + HEAP_HDR_US2SYSS(size)) > heap->size))) {
-        HEAP_ERRP("heap_alloc: NFB for sz %X:%X/%X\n", size, distance, heap->size);
+        HEAP_ERRP("heap_alloc: NFB for sz 0x%X:0x%X/0x%X\n", size, distance, heap->size);
         return NULL;
     }
 
     if (bsize) {
         if ((bsize - HEAP_HDR_US2SYSS(size)) >= (HEAP_MIN_SPLITC * HEAP_MIN_BS)) {
             uint32_t nsz = bsize - HEAP_HDR_US2SYSS(size);
-            HEAP_DBGP("heap_alloc: splitting block at %X : %X -> %X & %X\n", hdr, bsize, HEAP_HDR_US2SYSS(size), nsz);
+            HEAP_DBGP("heap_alloc: splitting block at 0x%X : %d -> %d & %d\n", hdr, bsize, HEAP_HDR_US2SYSS(size), nsz);
             *hdr = HEAP_HDR_CFG(HEAP_HDR_US2SYSC(size), 1, 0);
             distance = (uint32_t)((HEAP_CPU_PTRT)hdr - (HEAP_CPU_PTRT)heap);
             distance += HEAP_HDR_GETNEXT(*hdr);
@@ -231,18 +231,18 @@ void *heap_alloc(heap_s *heap, int size) {
 }
 
 int heap_start(void* start, int size, uint32_t smallcfg) {
-    HEAP_DBGP("heap_start: start %X, size %X, scfg %X\n", start, size, smallcfg);
+    HEAP_DBGP("heap_start: start 0x%X, size %d, scfg 0x%X\n", start, size, smallcfg);
     heap_s* heap = (heap_s*)start;
     if (!heap) {
         heap = l_heap;
         if (!heap) {
             heap = (heap_s*)HEAP_DEFAULT_ADDR;
             size = (int)HEAP_DEFAULT_SIZE;
-            HEAP_DBGP("heap_start: using default heap @ %X, size %X\n", heap, size);
+            HEAP_DBGP("heap_start: using default heap @ 0x%X, size %d\n", heap, size);
         }
     }
     if (heap->magic == HEAP_MB_MAGIC) {
-        HEAP_ERRP("heap_start: (FAILED) already @ %X\n", heap);
+        HEAP_ERRP("heap_start: (FAILED) already @ 0x%X\n", heap);
         return -3; // already initialized
     }
 
@@ -254,7 +254,7 @@ int heap_start(void* start, int size, uint32_t smallcfg) {
     }
 #endif
     if (size < minsz) {
-        HEAP_ERRP("heap_start: (FAILED) sz %X < minsz %X\n", size, minsz);
+        HEAP_ERRP("heap_start: (FAILED) sz 0x%X < minsz 0x%X\n", size, minsz);
         return -1;
     }
 
@@ -272,7 +272,7 @@ int heap_start(void* start, int size, uint32_t smallcfg) {
             if (bc) {
                 lasb = heap_alloc(heap, (bc * HEAP_SB_BS) * 32);
                 if (!lasb) {
-                    HEAP_ERRP("heap_start: (FAILED) SBG %X alloc failed\n", i);
+                    HEAP_ERRP("heap_start: (FAILED) SBG %d alloc failed\n", i);
                     return -4;
                 }
                 heap->s.bfree[i] = -1; // bit set = slot free

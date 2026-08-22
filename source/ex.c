@@ -14,7 +14,7 @@
 
 __attribute__((optimize("O0"), noreturn))
 void c_RESET(void) {
-#ifdef ENABLE_REGDUMP
+#ifdef DEBUG_REGDUMP_EXC
     regdump();
 #endif
     
@@ -27,7 +27,7 @@ void c_RESET(void) {
 
     if (CONFIG_GFLAGK(_TEST_ONRESET)) {
         statusled(STATUS_TEST_STARTING);
-        ce_framework(false, g_config.test_params);
+        ce_framework(false, g_config.test_params, false);
     }
 
     statusled(STATUS_CEFW_DONE_WAIT);
@@ -35,13 +35,13 @@ void c_RESET(void) {
     _MEP_INTR_ENABLE_
 
     while (1) {
-        ce_framework(true, NULL);
+        ce_framework(true, NULL, false);
     };
 }
 
 void c_SWI(int a0, int a1, int a2, int a3) {
     statusled(STATUS_SWI_HIT);
-    INFOF("[BOB] entering SWI %X %X %X %X\n", a0, a1, a2, a3);
+    INFOF("[BOB] entering SWI 0x%X 0x%X 0x%X 0x%X\n", a0, a1, a2, a3);
 
     //TODO
 
@@ -62,7 +62,7 @@ void c_IRQ(void) {
             compat_Arm2Cry0123(irqn - IRQN_ARM2CRY0);
             break;
         default:
-            WARNF("[BOB] UNHANDLED IRQ: %X\n", irqn);
+            WARNF("[BOB] UNHANDLED IRQ: %d\n", irqn);
             break;
     }
     statusled(STATUS_IRQ_QUIT);
@@ -71,7 +71,7 @@ void c_IRQ(void) {
 __attribute__((optimize("O0"), noreturn))
 void c_OTHER_INT(void) {
     _MEP_INTR_DISABLE_
-#ifdef ENABLE_REGDUMP
+#ifdef DEBUG_REGDUMP_EXC
     regdump();
 #endif
     
@@ -80,7 +80,7 @@ void c_OTHER_INT(void) {
 #if !defined(SILENT) && !defined(DEBUG_ONLYERR)
     register volatile uint32_t exc asm("exc");
     register volatile uint32_t epc asm("epc");
-    WARNF("[BOB] UNK INTERRUPT: %X @ %X\n", exc, epc);
+    WARNF("[BOB] UNK INTERRUPT: 0x%X @ 0x%X\n", exc, epc);
 #endif
 
     _MEP_HALT_
@@ -91,7 +91,7 @@ void c_OTHER_INT(void) {
 __attribute__((optimize("O0"), noreturn))
 void c_OTHER_EXC(void) {
     _MEP_INTR_DISABLE_
-#ifdef ENABLE_REGDUMP
+#ifdef DEBUG_REGDUMP_EXC
     regdump();
 #endif
     
@@ -100,7 +100,7 @@ void c_OTHER_EXC(void) {
 #if !defined(SILENT) && !defined(DEBUG_ONLYERR)
     register volatile uint32_t exc asm("exc");
     register volatile uint32_t epc asm("epc");
-    WARNF("[BOB] UNK EXCEPTION: %X @ %X\n", exc, epc);
+    WARNF("[BOB] UNK EXCEPTION: 0x%X @ 0x%X\n", exc, epc);
 #endif
 
     _MEP_HALT_
@@ -111,13 +111,13 @@ void c_OTHER_EXC(void) {
 __attribute__((optimize("O0"), noreturn))
 void PANIC(const char* panic_string, uint32_t panic_value) {
     _MEP_INTR_DISABLE_
-#ifdef ENABLE_REGDUMP
+#ifdef DEBUG_REGDUMP_EXC
     regdump();
 #endif
     
     statusled(STATUS_PANIC_HIT);
 
-    ERRORF("[BOB] PANIC: %s | %X\n", panic_string, panic_value);
+    ERRORF("[BOB] PANIC: %s | 0x%X\n", panic_string, panic_value);
 
     _MEP_HALT_
 

@@ -78,39 +78,11 @@ jmp rpc_loop
 s_ce_framework:
 jmp ce_framework
 
-.global g_state
-.type   g_state, @object
-g_state:
-.word 0x0
-
-.global g_config
-.type   g_config, @object
-g_config:
-.word 0x0, 0x0, 0x0, 0x0
-
-.global g_iceparams
-.type   g_iceparams, @object
-g_iceparams:
-.word 0x0, 0x0, 0x0, 0x0, 0x0
-.word 0x0, 0x0, 0x0, 0x0, 0x0
-.word 0x0, 0x0, 0x0, 0x0, 0x0
-.word 0x0, 0x0, 0x0, 0x0, 0x0
+.global s_keygx
+s_keygx:
+jmp crypto_keygx
 
 .global g_bobcprm
 .type   g_bobcprm, @object
 g_bobcprm:
-.word cfg_PROG_load_off, PROG_act_size, cfg_sp_addr, cfg_sp_size
-
-.global g_debug_route
-.type   g_debug_route, @object
-g_debug_route:
-.word 0x0
-
-.global g_debug_level
-.type   g_debug_level, @object
-g_debug_level:
-.word 0x3
-
-.global s_keygx
-s_keygx:
-jmp crypto_keygx
+.word PROG_cfgoff, PROG_bss_end, PROG_act_size, cfg_sp_addr

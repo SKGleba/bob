@@ -27,7 +27,7 @@ int regina_loadRegina(void *src, bool blockFudAccess, bool allowArmAccess) {
     void *dst = (void *)COMPAT_SRAM_OFFSET;
     uint32_t sz = COMPAT_SRAM_SIZE;
     if (src != dst) {
-        INFOF("[BOB] copy regina to %X[%X]\n", (uint32_t)dst, sz);
+        INFOF("[BOB] copy regina to 0x%X[0x%X]\n", (uint32_t)dst, sz);
         compat_handleAllegrex(AGX_CMD_ACL, REGBUS_AGX_SRAM_ACL_DEV_F00D, 0);
         memset32(dst, 0, sz);
         if (vp(dst)) {
