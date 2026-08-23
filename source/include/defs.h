@@ -16,7 +16,7 @@
     //#define DEBUG_PRINTS_UNUSE // disable\stub all print functions
     //#define DEBUG_REGDUMP_UNUSE // disable register dumping on exceptions
     #define DEBUG_REGDUMP_SMALL // only display register number at regdump
-    #define DEBUG_REGDUMP_EXC // regdump on exceptions/unk ints
+    //#define DEBUG_REGDUMP_EXC // regdump on exceptions/unk ints
     //#define DEBUG_ROUTER_UNUSE // disable the main debug router
     #define DEBUG_NOLEVELS // disable debug level filtering, all compiled prints will be shown
     //#define DEBUG_ONLYERR // only compile error prints

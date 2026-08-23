@@ -105,11 +105,14 @@ void debug_printFormat(char* base, ...) {
     va_start(args, base);
 
     int v_pos = 0, i = 0;
-    for (i = 0; i < base_len; i++) {
-        if (base[i] != '%')
+     do {
+        if (base[i] != '%') {
+            i++;
             continue;
+        }
         
-        dbgr_print(base + v_pos, i - v_pos);
+        if (i > v_pos)
+            dbgr_print(base + v_pos, i - v_pos);
         
         int ogi = i;
         i++;
@@ -154,17 +157,18 @@ L_printf_cswitch:
             dbgr_print((char*)&(char){va_arg(args, int)}, 1);
             break;
         default:
-            dbgr_print(base + ogi, i - ogi + 1);
+            if (i - ogi + 1)
+                dbgr_print(base + ogi, i - ogi + 1);
             break;
         }
-
         i++;
         v_pos = i;
-    }
+    } while(i < base_len);
 
     va_end(args);
 
-    dbgr_print(base + v_pos, i - v_pos);
+    if (i > v_pos)
+        dbgr_print(base + v_pos, i - v_pos);
 }
 
 static void printRange32(uint32_t* addr, uint32_t size, bool show_addr, char delim) {

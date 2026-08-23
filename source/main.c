@@ -52,11 +52,14 @@ bool ce_framework(bool bg, bob_fm_nfo_s* params, bool nested) {
                 enable_icache(icache_stat);
             }
 
-            if (CEFW_FLAG(params->magic, _EXTENDED) && params->next) {
+            if (CEFW_FLAG(params->magic, _EXTENDED) && params->next) { // watch the stack
                 if (!nested)
                     g_cefw_progress[bg] = CEFW_PROGRESS_NEXT;
                 statusled(STATUS_CEFW_NEXT);
-                ce_framework(bg, params->next, true); // watch the stack
+                if ((uint32_t)params->next & 0b1)
+                    ce_framework(bg, &params[1], true);
+                else
+                    ce_framework(bg, params->next, true);
             }
 
             params->status = params->exp_status;
@@ -84,7 +87,7 @@ void init(bob_config_s* arg_config) {
 
     asm(
         "movh $gp, %hi(cfg_gp_addr)\n"
-        "or3  $gp, $gp, %lo(cfg_gp_addr)\n"
+        "add3  $gp, $gp, %lo(cfg_gp_addr)\n"
     );
 
     int ret = 0;
