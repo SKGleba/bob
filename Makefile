@@ -1,12 +1,20 @@
-ifndef BOB_LP
-	BOB_LP=0x00040000
+TYPE?=fsk
+BOB_OUTPUT?=output/$(TYPE)
+
+ifeq ($(TYPE), fsk)
+	BOB_LP?=0x00040000
+	BOB_FP?=0xA000
+	BOB_SS?=0x2000
+else ifeq ($(TYPE), glitch)
+	BOB_LP?=0x00040000
+	BOB_FP?=0xA000
+	BOB_SS?=0x2000
+else ifeq ($(TYPE), fsm)
+	BOB_LP?=0x0080B000
+	BOB_FP?=0x15000
+	BOB_SS?=0x2000
 endif
-ifndef BOB_FP
-	BOB_FP=0xA000
-endif
-ifndef BOB_SS
-	BOB_SS=0x2000
-endif
+
 BOB_END_ADDR=$(shell printf "0x%X" $$(($(BOB_LP) + $(BOB_FP))))
 BOB_MAX_SIZE=$(shell printf "%d" $$(($(BOB_FP) - $(BOB_SS))))
 
@@ -21,16 +29,23 @@ CC=$(PREFIX)gcc
 ADDEFS=-I$(PSP2REF_DIR)
 CFLAGS=-ml -Os -std=gnu99 -nostdlib -fno-builtin -fno-inline -fno-strict-aliasing -Wall -Wno-volatile-register-var -mtiny=32
 LD=$(PREFIX)gcc
-LDFLAGS=-Wl,-T linker.x -nodefaultlibs -nostdlib -nostartfiles -Wl,-Map=bob.map
 OBJCOPY=$(PREFIX)objcopy
 OBJCOPYFLAGS=
 
+LDFLAGS=-Wl,-T $(LINKCFG_FILE) -Wl,-T linker.x -nodefaultlibs -nostdlib -nostartfiles -Wl,-Map=bob.map
+
 SRCS=$(wildcard source/*.c)
 ASMS=$(wildcard source/*.s)
-OBJ=$(SRCS:.c=.o) source/ex.ao source/vector.ao source/debug.ao source/util.ao source/config.ao
-OBJ_GLITCH=$(SRCS:.c=.o) source/ex.ao source/glitch_vector.ao source/debug.ao source/util.ao source/glitch_config.ao
+OBJ=$(SRCS:.c=.o) $(ASMS:.s=.ao)
+ifeq ($(TYPE), fsk)
+	ADDEFS+= -DBOBT_FSK
+else ifeq ($(TYPE), glitch)
+	ADDEFS+= -DBOBT_GLITCH
+else ifeq ($(TYPE), fsm)
+	ADDEFS+= -DBOBT_FSM
+endif
 
-all: $(LINKCFG_FILE) output/bob.bin
+.DEFAULT_GOAL := all
 
 %.o: %.c
 	@echo "\033[0;35mMidASM:\033[0;33m $< -> $<.asm\033[0m"
@@ -40,64 +55,46 @@ all: $(LINKCFG_FILE) output/bob.bin
 
 %.ao: %.s
 	@echo "\033[0;35mAssemble:\033[0;33m $< -> $@\033[0m"
-	@$(CC) -c -o $@ $< $(CFLAGS) $(ADDEFS)
+	@$(CC) -c -x assembler-with-cpp -o $@ $< $(CFLAGS) $(ADDEFS)
 
 bob.elf: $(OBJ)
 	@echo "\033[0;35mLink:\033[0;33m $^ -> $@\033[0m"
 	@$(LD) -o $@ $^ $(LDFLAGS)
 
-bob_glitch.elf: $(OBJ_GLITCH)
-	@echo "\033[0;35mLink (glitch):\033[0;33m $^ -> $@\033[0m"
-	@$(LD) -o $@ $^ $(LDFLAGS)
-
 %.bin: %.elf
 	@echo "\033[0;35mStrip:\033[0;33m $< -> $@\033[0m"
 	@$(OBJCOPY) -O binary $< $@
-	
-output/bob.bin: bob.bin bob_glitch.bin
+
+$(BOB_OUTPUT)/bob.bin: bob.bin
 	@echo "\033[0;35mPost-compilation:\033[0;33m"
 	@echo " | clean source dir"
 	@-rm source/*.o
 	@-rm source/*.ao
-	@-rm -rf output
+	@-rm -rf $(BOB_OUTPUT)
 	@echo " | create output tree"
-	@mkdir output
-	@mkdir output/asm
+	@mkdir -p $(BOB_OUTPUT)/asm
 	@echo " | midway assembly -> output"
-	@mv source/*.asm output/asm/
-	@echo " | bob (glitch) -> output"
-	@mv bob_glitch.elf output/bob_glitch.elf
-	@mv bob_glitch.bin output/bob_glitch.bin
-	@echo " | create bob binary include"
-	@echo static const > output/bob.bin.h
-	@xxd -i $< >> output/bob.bin.h
-	@echo " | create bob exports header"
-	@readelf -sW bob.elf | awk '{if ($$5 == "GLOBAL" && ($$4 == "FUNC" || $$4 == "OBJECT")) printf("#define bob_%s_addr 0x%s\n", $$8, $$2)}' > output/bob_exports.h
+	@mv source/*.asm $(BOB_OUTPUT)/asm/
+	@echo " | create bob export header"
+	@readelf -sW bob.elf | awk '{if ($$5 == "GLOBAL" && ($$4 == "FUNC" || $$4 == "OBJECT")) printf("#define bob_%s_addr 0x%s\n", $$8, $$2)}' > $(BOB_OUTPUT)/bob_exports.h
 	@echo " | create bob import assembly"
-	@readelf -sW bob.elf | awk '{if ($$5 == "GLOBAL" && $$4 == "FUNC") printf(".global %s\n%s:\njmp 0x%s\n\n", $$8, $$8, $$2)}' > output/bob_import.s
-	@echo " | create bob linker"
-	@echo ".bob_linker : {" > output/bob_linker.x && readelf -sW bob.elf | awk '{if ($$5 == "GLOBAL" && ($$4 == "FUNC" || $$4 == "OBJECT")) printf("\t%s = 0x%s;\n", $$8, $$2)}' >> output/bob_linker.x && echo "}" >> output/bob_linker.x
-	@mv $(LINKCFG_FILE) output/bob_cfg.x
-# readelf -sW bob.elf | awk '{if ($$5 == "GLOBAL" && ($$4 == "FUNC" || $$4 == "OBJECT")) print $$8}' | while IFS= read -r entry; do def=$$(grep -whR $$entry source/include/ | grep -v -e "#define" | grep -i ";" | sed 's/extern //'); [ -z "$$def" ] || echo "$${def%??} = (void *)bob_"$$entry"_addr;"; done > output/bob_imports.c
+	@readelf -sW bob.elf | awk '{if ($$5 == "GLOBAL" && $$4 == "FUNC") printf(".global %s\n%s:\njmp 0x%s\n\n", $$8, $$8, $$2)}' > $(BOB_OUTPUT)/bob_import.s
+	@echo " | create bob linkers"
+	@echo ".bob_linker : {" > $(BOB_OUTPUT)/bob_linker.x && readelf -sW bob.elf | awk '{if ($$5 == "GLOBAL" && ($$4 == "FUNC" || $$4 == "OBJECT")) printf("\t%s = 0x%s;\n", $$8, $$2)}' >> $(BOB_OUTPUT)/bob_linker.x && echo "}" >> $(BOB_OUTPUT)/bob_linker.x
+	@mv $(LINKCFG_FILE) $(BOB_OUTPUT)/$(LINKCFG_FILE)
+	@echo " | create bob binary include"
+	@echo static const > $(BOB_OUTPUT)/bob.bin.h
+	@xxd -i $< >> $(BOB_OUTPUT)/bob.bin.h
 	@echo " | bob (main) -> output"
-	@mv bob.elf output/bob.elf
-	@mv bob.bin output/bob.bin
-	@mv bob.map output/bob.map
+	@mv bob.elf $(BOB_OUTPUT)/bob.elf
+	@mv bob.bin $(BOB_OUTPUT)/bob.bin
+	@mv bob.map $(BOB_OUTPUT)/bob.map
 	@echo " | ensure bob fits (BOB_MAX_SIZE: $(BOB_MAX_SIZE))"
-	@if [ $$(stat -c %s output/bob.bin) -gt $(BOB_MAX_SIZE) ]; then echo "\033[0;31m\nERROR: bob.bin is too large\033[0m"; exit 1; fi
-	@if [ $$(stat -c %s output/bob_glitch.bin) -gt $(BOB_MAX_SIZE) ]; then echo "\033[0;31m\nERROR: bob_glitch.bin is too large\033[0m"; exit 1; fi
-	@if [ $$(($(BOB_FP))) -gt $$(($(SCE_SM_START))) ]; then echo "\033[0;31mWARNING: Footprint (BOB_FP=$(BOB_FP)) exceeds SCE SM load offset ($(SCE_SM_START))\033[0m"; fi
+	@if [ $$(stat -c %s $(BOB_OUTPUT)/bob.bin) -gt $(BOB_MAX_SIZE) ]; then echo "\033[0;31m\nERROR: bob.bin is too large\033[0m"; exit 1; fi
+	@if [ $$(($(BOB_FP))) -gt $$(($(SCE_SM_START))) ] && [ "$(TYPE)" != "fsm" ]; then echo "\033[0;31mWARNING: Footprint (BOB_FP=$(BOB_FP)) exceeds SCE SM load offset ($(SCE_SM_START))\033[0m"; fi
 	@if [ $$(($(BOB_FP))) -gt $$(($(MEP_GPREACH) * 2)) ]; then echo "\033[0;31mWARNING: Footprint (BOB_FP=$(BOB_FP)) exceeds MEP gprel reach (2 * $(MEP_GPREACH))\033[0m"; fi
 	@echo "  \-> \033[0;32mall done\n\033[0m"
 
-clean:
-	-rm source/*.o
-	-rm source/*.ao
-	-rm source/*.asm
-	-rm -rf output
-	-rm $(LINKCFG_FILE)
-
-# dynamic config because -Wl,--defsym was acting up
 $(LINKCFG_FILE): $(PSP2REF_DIR)/misc/map.x
 	@echo "\033[0;35mConfiguring in:\033[0;33m $@\033[0m"
 	@echo "\033[0;36m | Load:\033[0;32m $(BOB_LP)\033[0m"
@@ -114,3 +111,23 @@ $(LINKCFG_FILE): $(PSP2REF_DIR)/misc/map.x
 	@echo "cfg_PROG_max_size = $(BOB_MAX_SIZE);" >> $@
 	@echo "cfg_gp_addr = PROG_sdastart + 0x8000;" >> $@
 	@echo "cfg_tp_addr = cfg_PROG_load_end;" >> $@
+
+
+.PHONY: all clean cleanall fsk glitch fsm
+all: clean fsk glitch fsm
+fsk:
+	make actual TYPE=fsk
+glitch:
+	make actual TYPE=glitch
+fsm:
+	make actual TYPE=fsm
+actual: $(LINKCFG_FILE) $(BOB_OUTPUT)/bob.bin
+
+clean:
+	@-rm source/*.o 2>/dev/null
+	@-rm source/*.ao 2>/dev/null
+	@-rm source/*.asm 2>/dev/null
+	@-rm $(LINKCFG_FILE) 2>/dev/null
+
+cleanall: clean
+	@-rm -rf output 2>/dev/null

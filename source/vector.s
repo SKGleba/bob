@@ -2,52 +2,72 @@
 
 .global vectors_exceptions
 vectors_exceptions:
-jmp s_RESET
-jmp c_OTHER_EXC
-jmp c_OTHER_EXC
-jmp c_OTHER_EXC
-jmp c_OTHER_EXC
-jmp s_SWI
-jmp s_DBG
-jmp c_OTHER_EXC
-jmp c_OTHER_EXC
-jmp c_OTHER_EXC
-jmp c_OTHER_EXC
-jmp c_OTHER_EXC
-jmp c_OTHER_EXC
+#if !defined(BOBT_GLITCH)
+    jmp s_RESET
+    #if !defined(BOBT_FSM)
+        jmp c_OTHER_EXC
+        jmp c_OTHER_EXC
+        jmp c_OTHER_EXC
+        jmp c_OTHER_EXC
+        jmp s_SWI
+        jmp s_DBG
+        jmp c_OTHER_EXC
+        jmp c_OTHER_EXC
+        jmp c_OTHER_EXC
+        jmp c_OTHER_EXC
+        jmp c_OTHER_EXC
+        jmp c_OTHER_EXC
+    #endif
+#else
+    jmp s_GLITCH
+    jmp s_GLITCH
+    jmp s_GLITCH
+    jmp s_GLITCH
+    jmp s_GLITCH
+    jmp s_GLITCH
+    jmp s_GLITCH
+    jmp s_GLITCH
+    jmp s_GLITCH
+    jmp s_GLITCH
+    jmp s_GLITCH
+    jmp s_GLITCH
+    jmp s_GLITCH
+#endif
 
 .global vectors_interrupts
 vectors_interrupts:
-jmp s_IRQ
-jmp s_IRQ
-jmp s_IRQ
-jmp s_IRQ
-jmp s_IRQ
-jmp s_IRQ
-jmp s_IRQ
-jmp s_IRQ
-jmp s_IRQ
-jmp s_IRQ
-jmp s_IRQ
-jmp c_OTHER_INT
-jmp c_OTHER_INT
-jmp c_OTHER_INT
-jmp c_OTHER_INT
-jmp c_OTHER_INT
-jmp c_OTHER_INT
-jmp c_OTHER_INT
-jmp c_OTHER_INT
-jmp c_OTHER_INT
-jmp c_OTHER_INT
-jmp c_OTHER_INT
-jmp c_OTHER_INT
-jmp c_OTHER_INT
-jmp c_OTHER_INT
-jmp c_OTHER_INT
-jmp c_OTHER_INT
-jmp c_OTHER_INT
-jmp c_OTHER_INT
-jmp c_OTHER_INT
+#ifndef BOBT_FSM
+    jmp s_IRQ
+    jmp s_IRQ
+    jmp s_IRQ
+    jmp s_IRQ
+    jmp s_IRQ
+    jmp s_IRQ
+    jmp s_IRQ
+    jmp s_IRQ
+    jmp s_IRQ
+    jmp s_IRQ
+    jmp s_IRQ
+    jmp c_OTHER_INT
+    jmp c_OTHER_INT
+    jmp c_OTHER_INT
+    jmp c_OTHER_INT
+    jmp c_OTHER_INT
+    jmp c_OTHER_INT
+    jmp c_OTHER_INT
+    jmp c_OTHER_INT
+    jmp c_OTHER_INT
+    jmp c_OTHER_INT
+    jmp c_OTHER_INT
+    jmp c_OTHER_INT
+    jmp c_OTHER_INT
+    jmp c_OTHER_INT
+    jmp c_OTHER_INT
+    jmp c_OTHER_INT
+    jmp c_OTHER_INT
+    jmp c_OTHER_INT
+    jmp c_OTHER_INT
+#endif
 jmp c_OTHER_INT
 
 .global s_init

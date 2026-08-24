@@ -146,12 +146,13 @@ bra .LGLITCH
 .global s_RESET
 .type	s_RESET, @function
 s_RESET:
-di
+#ifndef BOBT_FSM
+    di
+#endif
 movh $gp, %hi(cfg_gp_addr)
 add3  $gp, $gp, %lo(cfg_gp_addr)
 movh $sp, %hi(cfg_sp_addr)
 add3  $sp, $sp, %lo(cfg_sp_addr)
-.LJMP:
 jmp c_RESET
 
 .global ex_cxctable

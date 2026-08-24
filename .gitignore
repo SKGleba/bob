@@ -1,3 +1,8 @@
 /.vscode/
 /psp2ref
-/output/asm
+/output/*/asm/
+/output/*/bob.bin.h
+/output/*/bob_exports.h
+/output/*/bob_import.s
+/output/*/bob_linker.x
+/output/*/bob.map

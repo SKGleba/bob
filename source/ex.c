@@ -20,8 +20,10 @@ void c_RESET(void) {
     
     statusled(STATUS_RESET_HIT);
 
+#ifndef BOBT_FSM
     __attribute__((unused)) register volatile uint32_t exc asm("exc") = 0;
     __attribute__((unused)) register volatile uint32_t tmp asm("tmp") = 0;
+#endif
 
     WARN("[BOB] warning: did reset\n");
 
@@ -32,7 +34,9 @@ void c_RESET(void) {
 
     statusled(STATUS_CEFW_DONE_WAIT);
 
+#ifndef BOBT_FSM
     _MEP_INTR_ENABLE_
+#endif
 
     while (1) {
         ce_framework(true, NULL, false);

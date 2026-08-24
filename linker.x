@@ -1,5 +1,3 @@
-INCLUDE cfg.x /* configuration data */
-
 SECTIONS
 {
   . = cfg_PROG_load_addr;
