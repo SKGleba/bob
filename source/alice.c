@@ -76,6 +76,7 @@ int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool en
 
     if (set_ints) {
         // cleanup
+        INFO("[BOB] enabling mailbox interrupts\n");
         maika_s* maika = (maika_s*)MAIKA_OFFSET;
         maika->mailbox.arm2cry[0] = -1;
         maika->mailbox.arm2cry[1] = -1;
@@ -99,6 +100,7 @@ int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool en
 
 // TODO: flag setup ints
 int alice_stopReloadAlice(uint32_t reload_config, uint8_t *cefw_status) {
+    INFOF("[BOB] reload alice with config 0x%X\n", reload_config);
     if (!reload_config)
         reload_config = (((vp PERV2_ARM_BOOT_ALIAS_DRAM) ? ALICE_DRAM_ADDR : ALICE_SPAD32K_ADDR) << 1) | ((vp PERV2_ARM_BOOT_ALIAS_DRAM) ? ALICE_RELOAD_USE_DRAM : 0);
 

@@ -21,6 +21,7 @@
 #include "include/utils.h"
 #include "include/test.h"
 
+#ifndef GLITCH_UNUSE
 __attribute__((noreturn)) void glitch_init(void) {
 #ifndef DEBUG_STATUSLED_UNUSE
     gpio_set_port_mode(0, GPIO_PORT_GAMECARD_LED, GPIO_PORT_MODE_OUTPUT);
@@ -71,3 +72,8 @@ __attribute__((noreturn)) void glitch_init(void) {
 
     PANIC("GRET", 0);
 }
+#else
+__attribute__((noreturn)) void glitch_init(void) {
+    PANIC("GRET", 0);
+}
+#endif

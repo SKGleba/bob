@@ -77,18 +77,20 @@ bool ce_framework(bool bg, bob_fm_nfo_s* params, bool nested) {
     return false;
 }
 #else
+enum CEFW_PROGRESS g_cefw_progress[2] = { CEFW_PROGRESS_DISABLED, CEFW_PROGRESS_DISABLED };
 bool ce_framework(bool bg, bob_fm_nfo_s* params, bool nested) {
     return false;
 }
 #endif
 
 void init(bob_config_s* arg_config) {
-    _MEP_INTR_DISABLE_  // disable interrupts
-
+#ifndef BOBT_FSM
     asm(
+        "di\n"
         "movh $gp, %hi(cfg_gp_addr)\n"
         "add3  $gp, $gp, %lo(cfg_gp_addr)\n"
     );
+#endif
 
     int ret = 0;
 
@@ -123,6 +125,10 @@ void init(bob_config_s* arg_config) {
         statusled(STATUS_TEST_STARTING);
         ce_framework(false, g_config.test_params, false);
     }
+
+#ifdef BOBT_FSM
+    return;
+#endif
 
     // enable and clean icache
     statusled(STATUS_INIT_ICACHE);

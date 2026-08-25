@@ -80,8 +80,8 @@ add3 $sp, $sp, -0x60
 sw $0, 0x0($sp)
 ldc $0, $lp
 bsr ex_save_ctx
-movh $gp, %hi(cfg_PROG_load_end)
-add3 $gp, $gp, %lo(cfg_PROG_load_end)
+movh $gp, %hi(cfg_gp_addr)
+add3 $gp, $gp, %lo(cfg_gp_addr)
 bsr c_SWI
 bsr ex_restore_ctx
 ldc $0, $tmp
@@ -100,8 +100,8 @@ add3 $sp, $sp, -0x60
 sw $0, 0x0($sp)
 ldc $0, $lp
 bsr ex_save_ctx
-movh $gp, %hi(cfg_PROG_load_end)
-add3 $gp, $gp, %lo(cfg_PROG_load_end)
+movh $gp, %hi(cfg_gp_addr)
+add3 $gp, $gp, %lo(cfg_gp_addr)
 bsr c_IRQ
 bsr ex_restore_ctx
 ldc $0, $tmp
@@ -120,8 +120,8 @@ add3 $sp, $sp, -0x60
 sw $0, 0x0($sp)
 ldc $0, $lp
 bsr ex_save_ctx
-movh $gp, %hi(cfg_PROG_load_end)
-add3 $gp, $gp, %lo(cfg_PROG_load_end)
+movh $gp, %hi(cfg_gp_addr)
+add3 $gp, $gp, %lo(cfg_gp_addr)
 bsr c_DBG
 bsr ex_restore_ctx
 ldc $0, $tmp

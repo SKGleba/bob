@@ -11,6 +11,7 @@
 #include "include/types.h"
 #include "include/utils.h"
 #include "include/config.h"
+#include "include/tfsm.h"
 
 __attribute__((optimize("O0"), noreturn))
 void c_RESET(void) {
@@ -23,9 +24,10 @@ void c_RESET(void) {
 #ifndef BOBT_FSM
     __attribute__((unused)) register volatile uint32_t exc asm("exc") = 0;
     __attribute__((unused)) register volatile uint32_t tmp asm("tmp") = 0;
-#endif
-
     WARN("[BOB] warning: did reset\n");
+#else
+    tfsm_init();
+#endif
 
     if (CONFIG_GFLAGK(_TEST_ONRESET)) {
         statusled(STATUS_TEST_STARTING);
@@ -136,6 +138,9 @@ void c_DBG(void) {
 }
 
 void set_exception_table(bool glitch) {
+#ifdef BOBT_FSM
+    INFO("[BOB] set_exception_table called in FSM mode\n");
+#else
     if (glitch) {
         memset32(&vectors_exceptions[0], ex_cxctable[CXCTABLE_ETR_GLITCH], 0x34);
         return;
@@ -144,4 +149,5 @@ void set_exception_table(bool glitch) {
     vectors_exceptions[0] = ex_cxctable[CXCTABLE_ETR_RESET];
     vectors_exceptions[5] = ex_cxctable[CXCTABLE_ETR_SWI];
     vectors_exceptions[6] = ex_cxctable[CXCTABLE_ETR_DBG];
+#endif
 }
