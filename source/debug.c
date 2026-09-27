@@ -244,7 +244,7 @@ void debug_printRange(uint32_t addr, uint32_t size, bool show_addr, char delim) 
 #else
 
 void debug_printFormat(char* base, ...) {
-    WARN("[BOB] debug_printFormat called when disabled!");
+    WARN("debug_printFormat called when disabled!");
     _MEP_SYNC_BUS_
 }
 
@@ -273,14 +273,14 @@ static const char* regdump_registers[48] = {
 #endif
 
 void debug_c_regdump(uint32_t *regs) {
-    ERROR("CORE:\n");
+    printf("CORE:\n");
     for (int i = 0; i < 48; i++) {
         if (i == 16)
-            ERROR("\nCONTROL:\n");
+            printf("\nCONTROL:\n");
 #ifdef DEBUG_REGDUMP_SMALL
-        ERRORF(" %d: 0x%08X\n", i, regs[i]);
+        printf(" %d: 0x%08X\n", i, regs[i]);
 #else
-        ERRORF(" %s: 0x%08X\n", regdump_registers[i], regs[i]);
+        printf(" %s: 0x%08X\n", regdump_registers[i], regs[i]);
 #endif
     }
 }
@@ -288,7 +288,7 @@ void debug_c_regdump(uint32_t *regs) {
 #else
 
 void debug_c_regdump(void) {
-    WARN("[BOB] regdump called when disabled!");
+    WARN("regdump called when disabled!");
     _MEP_SYNC_BUS_
 }
 

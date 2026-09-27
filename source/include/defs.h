@@ -53,7 +53,7 @@
         #define HEAP_ONINIT 0x4 // initialize heap on init(), with 32 HEAP_ONINIT*4-sized small blocks
     #endif
 
-    //#define GLITCH_UNUSE // dont include the glitch funcs
+    #define GLITCH_UNUSE // dont include the glitch funcs
     #ifndef GLITCH_UNUSE
         #define GLITCH_SKIP_TEST // skip test() on glitch trigger
     #endif

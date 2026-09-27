@@ -24,7 +24,7 @@ void c_RESET(void) {
 #ifndef BOBT_FSM
     __attribute__((unused)) register volatile uint32_t exc asm("exc") = 0;
     __attribute__((unused)) register volatile uint32_t tmp asm("tmp") = 0;
-    WARN("[BOB] warning: did reset\n");
+    WARN("did reset\n");
 #else
     tfsm_init();
 #endif
@@ -47,13 +47,13 @@ void c_RESET(void) {
 
 void c_SWI(int a0, int a1, int a2, int a3) {
     statusled(STATUS_SWI_HIT);
-    INFOF("[BOB] entering SWI 0x%X 0x%X 0x%X 0x%X\n", a0, a1, a2, a3);
+    INFOF("entering SWI 0x%X 0x%X 0x%X 0x%X\n", a0, a1, a2, a3);
 
     //TODO
 
     delay_nx(0x6000, 200);
 
-    INFO("[BOB] exiting SWI\n");
+    INFO("exiting SWI\n");
     statusled(STATUS_SWI_QUIT);
 }
 
@@ -68,7 +68,7 @@ void c_IRQ(void) {
             compat_Arm2Cry0123(irqn - IRQN_ARM2CRY0);
             break;
         default:
-            WARNF("[BOB] UNHANDLED IRQ: %d\n", irqn);
+            WARNF("UNHANDLED IRQ: %d\n", irqn);
             break;
     }
     statusled(STATUS_IRQ_QUIT);
@@ -86,7 +86,7 @@ void c_OTHER_INT(void) {
 #if !defined(SILENT) && !defined(DEBUG_ONLYERR)
     register volatile uint32_t exc asm("exc");
     register volatile uint32_t epc asm("epc");
-    WARNF("[BOB] UNK INTERRUPT: 0x%X @ 0x%X\n", exc, epc);
+    WARNF("UNK INTERRUPT: 0x%X @ 0x%X\n", exc, epc);
 #endif
 
     _MEP_HALT_
@@ -106,7 +106,7 @@ void c_OTHER_EXC(void) {
 #if !defined(SILENT) && !defined(DEBUG_ONLYERR)
     register volatile uint32_t exc asm("exc");
     register volatile uint32_t epc asm("epc");
-    WARNF("[BOB] UNK EXCEPTION: 0x%X @ 0x%X\n", exc, epc);
+    WARNF("UNK EXCEPTION: 0x%X @ 0x%X\n", exc, epc);
 #endif
 
     _MEP_HALT_
@@ -123,7 +123,7 @@ void PANIC(const char* panic_string, uint32_t panic_value) {
     
     statusled(STATUS_PANIC_HIT);
 
-    ERRORF("[BOB] PANIC: %s | 0x%X\n", panic_string, panic_value);
+    ERRORF("PANIC: %s | 0x%X\n", panic_string, panic_value);
 
     _MEP_HALT_
 
@@ -133,13 +133,13 @@ void PANIC(const char* panic_string, uint32_t panic_value) {
 __attribute__((optimize("O0")))
 void c_DBG(void) {
     statusled(STATUS_DBG_HIT);
-    INFO("[BOB] GOT DBG INTERRUPT\n");
+    INFO("GOT DBG INTERRUPT\n");
     statusled(STATUS_DBG_QUIT);
 }
 
 void set_exception_table(bool glitch) {
 #ifdef BOBT_FSM
-    INFO("[BOB] set_exception_table called in FSM mode\n");
+    INFO("set_exception_table called in FSM mode\n");
 #else
     if (glitch) {
         memset32(&vectors_exceptions[0], ex_cxctable[CXCTABLE_ETR_GLITCH], 0x34);

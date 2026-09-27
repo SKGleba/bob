@@ -109,13 +109,13 @@ void init(bob_config_s* arg_config) {
         g_uart_bus = CONFIG_GVAL(_UART_BUS);
         uart_init(g_uart_bus, 0x10000 | CONFIG_GVAL(_UART_CLK));
     }
-    ERRORF("[BOB] init bob [%X], me @ 0x%X\n", get_build_timestamp(), init);
+    printf("[BOB] init bob [%X], me @ 0x%X\n", get_build_timestamp(), init);
 #endif
 
 #ifdef HEAP_ONINIT
     statusled(STATUS_INIT_HEAP);
     ret = heap_start(NULL, 0, HEAP_ONINIT);
-    INFOF("[BOB] init heap 0x%X\n", ret);
+    INFOF("init heap 0x%X\n", ret);
     if (ret < 0)
         PANIC("HEAP", ret);
 #endif

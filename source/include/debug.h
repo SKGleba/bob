@@ -115,17 +115,17 @@ enum STATUSLED_CODES {  // inits, exceptions, command handlers
 #define _hexdump_addr(addr, length, show_addr) debug_printRange((uint32_t)addr, length, show_addr, ' ')
 #define _hexdump_full(addr, length, show_addr, delim) debug_printRange((uint32_t)addr, length, show_addr, delim)
 
-#define ERROR(_s) DBG_GATE(DEBUG_LEVEL_ERROR, print(_s))
-#define ERRORF(...) DBG_GATE(DEBUG_LEVEL_ERROR, printf(__VA_ARGS__))
-#define ERRORFL(_s, ...) DBG_GATE(DEBUG_LEVEL_ERROR, printfl(_s, __VA_ARGS__))
+#define ERROR(_s) DBG_GATE(DEBUG_LEVEL_ERROR, print("[BOB] E: " _s))
+#define ERRORF(...) DBG_GATE(DEBUG_LEVEL_ERROR, printf("[BOB] E: " __VA_ARGS__))
+#define ERRORFL(_s, ...) DBG_GATE(DEBUG_LEVEL_ERROR, printfl("[BOB] E: " _s, __VA_ARGS__))
 
 #ifndef DEBUG_ONLYERR
-#define WARN(_s) DBG_GATE(DEBUG_LEVEL_WARN, print(_s))
-#define WARNF(...) DBG_GATE(DEBUG_LEVEL_WARN, printf(__VA_ARGS__))
-#define WARNFL(_s, ...) DBG_GATE(DEBUG_LEVEL_WARN, printfl(_s, __VA_ARGS__))
-#define INFO(_s) DBG_GATE(DEBUG_LEVEL_INFO, print(_s))
-#define INFOF(...) DBG_GATE(DEBUG_LEVEL_INFO, printf(__VA_ARGS__))
-#define INFOFL(_s, ...) DBG_GATE(DEBUG_LEVEL_INFO, printfl(_s, __VA_ARGS__))
+#define WARN(_s) DBG_GATE(DEBUG_LEVEL_WARN, print("[BOB] W: " _s))
+#define WARNF(...) DBG_GATE(DEBUG_LEVEL_WARN, printf("[BOB] W: " __VA_ARGS__))
+#define WARNFL(_s, ...) DBG_GATE(DEBUG_LEVEL_WARN, printfl("[BOB] W: " _s, __VA_ARGS__))
+#define INFO(_s) DBG_GATE(DEBUG_LEVEL_INFO, print("[BOB] I: " _s))
+#define INFOF(...) DBG_GATE(DEBUG_LEVEL_INFO, printf("[BOB] I: " __VA_ARGS__))
+#define INFOFL(_s, ...) DBG_GATE(DEBUG_LEVEL_INFO, printfl("[BOB] I: " _s, __VA_ARGS__))
 #else
 #define WARN(_s)
 #define WARNF(...)

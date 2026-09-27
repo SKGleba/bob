@@ -23,7 +23,7 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
     uint8_t xsize = 0;
     uint32_t (*ccode)() = NULL;
 
-    INFOF("[BOB] RPC CMD 0x%X\n", cmd_id);
+    INFOF("RPC CMD 0x%X\n", cmd_id);
 
     g_rpc_status |= RPC_STATUS_INCMD;
 
@@ -154,12 +154,12 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
             break;
         case RPC_CMD_EXEC:
             ccode = (void *)args[0];
-            INFOF("[BOB] RPC EXEC 0x%08X\n", ccode);
+            INFOF("RPC EXEC 0x%08X\n", ccode);
             cret = ccode(args[1], args[2], extra_data);
             break;
         case RPC_CMD_EXEC_EXTENDED:
             ccode = (void *)args[0];
-            INFOF("[BOB] RPC EXECE 0x%08X\n", ccode);
+            INFOF("RPC EXECE 0x%08X\n", ccode);
             cret = ccode(args[1], args[2], extra_data[0], extra_data[1], extra_data[2], extra_data[3], extra_data[4], extra_data[5]);
             break;
         case RPC_CMD_SCHEDULE_ALICE_TASK:
@@ -182,7 +182,7 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
 
     g_rpc_status &= ~RPC_STATUS_INCMD;
 
-    INFOF("[BOB] RPC RET 0x%X\n", cret);
+    INFOF("RPC RET 0x%X\n", cret);
 
     args[0] = (uint32_t)cret;
     return xsize;
@@ -296,10 +296,10 @@ void rpc_loop(void) {
     params.uart_mode = RPC_UART_MODE;     // use kermit uart
     params.uart_scan_timeout = 0;         // timeout for uart data check
     if (g_rpc_status < 0) {
-        WARNF("[BOB] RPC mode disabled, status: 0x%X\n", g_rpc_status);
+        WARNF("RPC mode disabled, status: 0x%X\n", g_rpc_status);
         return;
     }
-    INFOF("[BOB] entering RPC mode, delay 0x%X\n", params.delay_cval);
+    INFOF("entering RPC mode, delay 0x%X\n", params.delay_cval);
     g_rpc_status |= RPC_STATUS_RUNNING;
 
     if (params.uart_mode)
@@ -312,14 +312,14 @@ void rpc_loop(void) {
         if (g_rpc_status & RPC_STATUS_REQUEST_BLOCK) {
             g_rpc_status |= RPC_STATUS_BLOCKED;
             statusled(STATUS_RPC_BLOCKED);
-            INFO("[BOB] RPC blocked\n");
+            INFO("RPC blocked\n");
             do {
                 statusled(STATUS_RPC_BLOCKED);
                 delay_nx(RPC_BLOCKED_DELAY, 200);
                 statusled(STATUS_RPC_BLOCKED2);
                 delay_nx(RPC_BLOCKED_DELAY, 200);
             } while (g_rpc_status & RPC_STATUS_REQUEST_BLOCK);
-            INFO("[BOB] RPC unblocked\n");
+            INFO("RPC unblocked\n");
             g_rpc_status &= ~RPC_STATUS_BLOCKED;
         }
 
@@ -334,14 +334,14 @@ void rpc_loop(void) {
 
     g_rpc_status &= 0xFFFFFF00;  // clear status, keep requests
 
-    INFO("[BOB] exiting RPC mode\n");
+    INFO("exiting RPC mode\n");
     statusled(STATUS_RPC_EXIT);
 }
 
 #else
 
 void rpc_loop(void) {
-    WARN("[BOB] RPC disabled!\n");
+    WARN("RPC disabled!\n");
 }
 
 #endif

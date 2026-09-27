@@ -36,23 +36,23 @@ __attribute__((noreturn)) void glitch_init(void) {
     statusled(STATUS_GLINIT_UART);
     uart_init(UART_BUS, UART_RATE);
     for (int i = 0; i < 0x100; i++)
-        ERROR("ping pong ding dong "); // spam uart for the glitcher watchdog
-    WARNF("[BOB] glitch_init bob [%X], me @ %X\n", get_build_timestamp(), glitch_init);
+        printf("ping pong ding dong "); // spam uart for the glitcher watchdog
+    printf("[BOB] glitch_init bob [%X], me @ %X\n", get_build_timestamp(), glitch_init);
 #endif
 
     statusled(STATUS_GLINIT_ERNIE);
-    INFO("[BOB] ernie init\n");
+    INFO("ernie init\n");
     ernie_init(true, true);
 
     statusled(STATUS_GLINIT_JIG);
-    INFO("[BOB] jig init\n");
+    INFO("jig init\n");
     uint32_t msg = 0xCAFEBABE;
     jig_update_shared_buffer((uint8_t*)&msg, 0, 0x10, true);
 
     // test test stuff
 #ifndef GLITCH_SKIP_TEST
     statusled(STATUS_TEST_STARTING);
-    INFO("[BOB] test test test\n");
+    INFO("test test test\n");
     glitch_test();
 #endif
 
@@ -60,7 +60,7 @@ __attribute__((noreturn)) void glitch_init(void) {
 
     // start the rpc server
     statusled(STATUS_GLINIT_RPC);
-    INFO("[BOB] icache off, move stack & exit to rpc\n");
+    INFO("icache off, move stack & exit to rpc\n");
     enable_icache(false);
     asm(
         "movh $sp, %hi(cfg_sp_addr)\n"

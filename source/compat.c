@@ -190,7 +190,7 @@ void compat_Arm2Cry0123(int num) {
     uint32_t arm_req = maika->mailbox.arm2cry[num];
 #if !defined(SILENT) && !defined(DEBUG_ONLYERR)
     const char *reqs[4] = { "ARM2CRY0", "ARM2CRY1", "ARM2CRY2", "ARM2CRY3" };
-    INFOF("[BOB] entering %s req 0x%X\n", reqs[num], arm_req);
+    INFOF("entering %s req 0x%X\n", reqs[num], arm_req);
 #endif
     switch (num) {
         case 0:
@@ -200,11 +200,11 @@ void compat_Arm2Cry0123(int num) {
                 maika->mailbox.arm2cry[0] = -1; // ack
             break;
         default:
-            WARNF("[BOB] UNHANDLED %s REQ: 0x%X\n", reqs[num], arm_req);
+            WARNF("UNHANDLED %s REQ: 0x%X\n", reqs[num], arm_req);
             maika->mailbox.arm2cry[num] = -1; // ack
             break;
     }
-    INFOF("[BOB] exiting %s req 0x%X\n", reqs[num], arm_req);
+    INFOF("exiting %s req 0x%X\n", reqs[num], arm_req);
     statusled(STATUS_ARM_QUIT);
 }
 

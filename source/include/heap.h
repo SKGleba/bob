@@ -9,8 +9,8 @@
 #define HEAP_DEFAULT_ADDR (&PROG_heap_start)
 #define HEAP_DEFAULT_SIZE ((HEAP_CPU_PTRT)&cfg_PROG_load_end - (HEAP_CPU_PTRT)&PROG_heap_start)
 #define HEAP_STUB_FUNC stub()
-#define HEAP_DBGP(...) INFOF("[BOB] " __VA_ARGS__)
-#define HEAP_ERRP(...) ERRORF("[BOB] " __VA_ARGS__)
+#define HEAP_DBGP INFOF
+#define HEAP_ERRP ERRORF
 // ^^^ platform-specific ^^^
 
 // vvv user config vvv

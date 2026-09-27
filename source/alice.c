@@ -50,33 +50,35 @@ int alice_schedule_bob_task(int core, int task_id, bool wait_core_done, bool wai
 }
 
 int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool enable_cs, bool dram, bool set_uart) {
-    void* dst = (void*)(dram ? ALICE_DRAM_ADDR : ALICE_SPAD32K_ADDR);
-    uint32_t sz = dram ? ALICE_DRAM_SIZE : ALICE_SPAD32K_SIZE;
-    
-    if (src != dst) {
-        INFOF("[BOB] copy alice to 0x%X[0x%X]\n", (uint32_t)dst, sz);
-        memset32(dst, 0, sz);
-        if (vp(dst)) {
-            ERROR("[BOB] failed to clear dst area\n");
-            return -1;
+    if (src) {
+        void* dst = (void*)(dram ? ALICE_DRAM_ADDR : ALICE_SPAD32K_ADDR);
+        uint32_t sz = dram ? ALICE_DRAM_SIZE : ALICE_SPAD32K_SIZE;
+        if (src != dst) {
+            INFOF("copy alice to 0x%X[0x%X]\n", (uint32_t)dst, sz);
+            memset32(dst, 0, sz);
+            if (vp(dst)) {
+                ERROR("failed to clear dst area\n");
+                return -1;
+            }
+            memcpy(dst, src, sz);
         }
-        memcpy(dst, src, sz);
-    }
-    
-    alice_vectors = dst;
-    alice_xcfg = (alice_xcfg_s*)((uint32_t)dst + (uint32_t)(alice_vectors->configs.xcfg));
-    alice_core_status = (int(*)[4])((uint32_t)dst + (uint32_t)(alice_vectors->configs.core_status));
-    alice_tasks = (volatile alice_core_task_s * (* volatile)[4])((uint32_t)dst + (uint32_t)(alice_vectors->configs.core_tasks));
+        
+        alice_vectors = dst;
+        alice_xcfg = (alice_xcfg_s*)((uint32_t)dst + (uint32_t)(alice_vectors->configs.xcfg));
+        alice_core_status = (int(*)[4])((uint32_t)dst + (uint32_t)(alice_vectors->configs.core_status));
+        alice_tasks = (volatile alice_core_task_s * (* volatile)[4])((uint32_t)dst + (uint32_t)(alice_vectors->configs.core_tasks));
 
-    if (set_uart) {
-        INFOF("[BOB] set alice uart to %d[0x%X]\n", g_uart_bus, UART_RATE);
-        alice_xcfg->uart_bus = g_uart_bus;
-        alice_xcfg->uart_rate = UART_RATE;
-    }
+        if (set_uart) {
+            INFOF("set alice uart to %d[0x%X]\n", g_uart_bus, UART_RATE);
+            alice_xcfg->uart_bus = g_uart_bus;
+            alice_xcfg->uart_rate = UART_RATE;
+        }
+    } else
+        WARNF("loadAlice: no source provided\n");
 
     if (set_ints) {
         // cleanup
-        INFO("[BOB] enabling mailbox interrupts\n");
+        INFO("enabling mailbox interrupts\n");
         setup_ints(true); // actually enable mailbox ifs & irqs - on soc v<3.2 this can retrigger irqs
         _MEP_INTR_ENABLE_
     }
@@ -84,18 +86,18 @@ int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool en
     if (start)
         compat_armReBoot(arm_clock, enable_cs, dram);
 
-    INFO("[BOB] alice loaded\n");
+    INFO("alice loaded\n");
 
     return 0;
 }
 
 // TODO: flag setup ints
 int alice_stopReloadAlice(uint32_t reload_config, uint8_t *cefw_status) {
-    INFOF("[BOB] reload alice with config 0x%X\n", reload_config);
+    INFOF("reload alice with config 0x%X\n", reload_config);
     if (!reload_config)
         reload_config = (((vp PERV2_ARM_BOOT_ALIAS_DRAM) ? ALICE_DRAM_ADDR : ALICE_SPAD32K_ADDR) << 1) | ((vp PERV2_ARM_BOOT_ALIAS_DRAM) ? ALICE_RELOAD_USE_DRAM : 0);
 
-    INFO("[BOB] killing arm...\n");
+    INFO("killing arm...\n");
     compat_killArm(false);
 
     if (cefw_status)
@@ -144,12 +146,12 @@ uint32_t alice_handleCmd(uint32_t cmdep) {
         uint32_t (*exec_func)(uint32_t a, uint32_t b, uint32_t c) = (void*)(cmd & 0xFFFFFFFE);
         if (!(cmd & 1))
             exec_func = (void*)((uint32_t)exec_func & 0x7FFFFFFE);
-        INFOF("[BOB] exec 0x%X(0x%X, 0x%X, 0x%X)\n", exec_func, cmds->arg[0], cmds->arg[1], cmds->arg[2]);
+        INFOF("exec 0x%X(0x%X, 0x%X, 0x%X)\n", exec_func, cmds->arg[0], cmds->arg[1], cmds->arg[2]);
         cmds->ret = exec_func(cmds->arg[0], cmds->arg[1], cmds->arg[2]);
         return (uint32_t)cmdep;
     }
 
-    INFOF("[BOB] got alice cmd %d (0x%X, 0x%X, 0x%X)\n", cmd, cmds->arg[0], cmds->arg[1], cmds->arg[2]);
+    INFOF("got alice cmd %d (0x%X, 0x%X, 0x%X)\n", cmd, cmds->arg[0], cmds->arg[1], cmds->arg[2]);
     switch (cmd) {
     case ALICE_A2B_GET_RPC_STATUS:
         cmds->ret = g_rpc_status;
@@ -217,7 +219,7 @@ uint32_t alice_handleCmd(uint32_t cmdep) {
         break;
     case ALICE_A2B_SET_B2A_SHBUF:
         if (cmds->arg[1] < ALICE_B2A_SHBUF_MINSIZE) {
-            ERRORF("[BOB] alice cmd set_b2a_shbuf: invalid size 0x%X\n", cmds->arg[1]);
+            ERRORF("alice cmd set_b2a_shbuf: invalid size 0x%X\n", cmds->arg[1]);
             cmds->ret = -1;
             break;
         }
@@ -258,7 +260,7 @@ uint32_t alice_handleCmd(uint32_t cmdep) {
         break;
     }
 
-    INFOF("[BOB] alice cmd %d done, ret 0x%X\n", cmd, cmds->ret);
+    INFOF("alice cmd %d done, ret 0x%X\n", cmd, cmds->ret);
 
     return (uint32_t)cmdep;
 }

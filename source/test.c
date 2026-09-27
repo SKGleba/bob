@@ -20,26 +20,26 @@
 
 // default init test function
 void dfl_test(int arg) {
-    INFO("[BOB] test test test\n");
+    INFO("test test test\n");
 
     if (arg & 1)
         set_dbg_mode(true);
 
     _MEP_SYNC_BUS_;
 
-    INFO("[BOB] killing arm...\n");
+    INFO("killing arm...\n");
     compat_killArm(false);
 
-    INFO("[BOB] arm is dead, disable the OLED screen...\n");
+    INFO("arm is dead, disable the OLED screen...\n");
     gpio_port_clear(0, GPIO_PORT_OLED);
 
-    INFO("[BOB] set max clock\n");
+    INFO("set max clock\n");
     vp 0xe3103040 = 0x10007;
 
-    INFO("[BOB] test test stuff\n");
+    INFO("test test stuff\n");
     rpc_loop();
 
-    INFO("[BOB] all tests done\n");
+    INFO("all tests done\n");
 }
 
 

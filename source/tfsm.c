@@ -6,7 +6,7 @@
 #ifdef BOBT_FSM
 
 void tfsm_init(void) {
-    ERROR("[BOB] tfsm_init() called\n");
+    ERROR("tfsm_init() called\n");
 }
 
 #endif

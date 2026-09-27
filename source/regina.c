@@ -13,34 +13,34 @@
 
 int regina_loadRegina(void *src, bool blockFudAccess, bool allowArmAccess) {
     if (vp(0xE3101024) & 0x1) { // temp detection method
-        WARN("[BOB] W: regbus not ready, initializing..\n");
+        WARN("regbus not ready, initializing..\n");
         compat_pspemuColdInit(true, true);
     }
 
-    INFO("[BOB] put AGX into reset\n");
+    INFO("put AGX into reset\n");
     compat_handleAllegrex(AGX_CMD_RESET, true, 3);
 
-    INFO("[BOB] spin up AGX clocks\n");
+    INFO("spin up AGX clocks\n");
     compat_handleAllegrex(AGX_CMD_GATE, 0x1, 0x3);
     compat_handleAllegrex(AGX_CMD_CLOCK, 0x1, 0);
 
     void *dst = (void *)COMPAT_SRAM_OFFSET;
     uint32_t sz = COMPAT_SRAM_SIZE;
     if (src != dst) {
-        INFOF("[BOB] copy regina to 0x%X[0x%X]\n", (uint32_t)dst, sz);
+        INFOF("copy regina to 0x%X[0x%X]\n", (uint32_t)dst, sz);
         compat_handleAllegrex(AGX_CMD_ACL, REGBUS_AGX_SRAM_ACL_DEV_F00D, 0);
         memset32(dst, 0, sz);
         if (vp(dst)) {
-            ERROR("[BOB] loadRegina: failed to clear dst\n");
+            ERROR("loadRegina: failed to clear dst\n");
             return -1;
         }
         memcpy(dst, src, sz);
     }
 
-    INFO("[BOB] set ACL\n");
+    INFO("set ACL\n");
     compat_handleAllegrex(AGX_CMD_ACL, ((allowArmAccess << 3) | (!blockFudAccess << 2)), 0);
 
-    INFO("[BOB] put AGX out of reset\n");
+    INFO("put AGX out of reset\n");
     compat_handleAllegrex(AGX_CMD_RESET, false, 1);
 
     return 0;
@@ -53,14 +53,14 @@ int regina_sendCmd(int cmd, uint32_t *args, uint32_t *extra, int timeout_step, i
         timeout_count = REGINA_RPC_ANSWER_TIMEOUT_COUNT;
     rgn_rpc_combuf_s *combuf = (rgn_rpc_combuf_s *)RGN_RPC_COMBUF_OFFSET;
     if (combuf->rpc_status != RGN_RPC_STATUS_READY) {
-        INFO("[BOB] regina_sendCmd: rpc_status != READY, wait\n");
+        INFO("regina_sendCmd: rpc_status != READY, wait\n");
         for (int i = 0; i < timeout_count; i++) {
             if (combuf->rpc_status == RGN_RPC_STATUS_READY)
                 break;
             delay_nx(timeout_step, 200);
         }
         if (combuf->rpc_status != RGN_RPC_STATUS_READY) {
-            WARN("[BOB] regina_sendCmd: rpc_status != READY, timed out\n");
+            WARN("regina_sendCmd: rpc_status != READY, timed out\n");
             return 0xDEADBABE;
         }
     }
@@ -84,7 +84,7 @@ int regina_sendCmd(int cmd, uint32_t *args, uint32_t *extra, int timeout_step, i
         delay_nx(timeout_step, 200);
     }
     if (combuf->rpc_status != RGN_RPC_STATUS_REPLY) {
-        WARN("[BOB] regina_sendCmd: rpc_status != REPLY, timed out\n");
+        WARN("regina_sendCmd: rpc_status != REPLY, timed out\n");
         return 0xDEADBABE;
     }
 
