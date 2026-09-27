@@ -77,16 +77,7 @@ int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool en
     if (set_ints) {
         // cleanup
         INFO("[BOB] enabling mailbox interrupts\n");
-        maika_s* maika = (maika_s*)MAIKA_OFFSET;
-        maika->mailbox.arm2cry[0] = -1;
-        maika->mailbox.arm2cry[1] = -1;
-        maika->mailbox.arm2cry[2] = -1;
-        maika->mailbox.arm2cry[3] = -1;
-        maika->mailbox.cry2arm_inv[0] = -1;
-        maika->mailbox.cry2arm_inv[1] = -1;
-        maika->mailbox.cry2arm_inv[2] = -1;
-        maika->mailbox.cry2arm_inv[3] = -1;
-        setup_ints(); // actually enable mailbox ifs & irqs - on soc v<3.2 this can retrigger irqs
+        setup_ints(true); // actually enable mailbox ifs & irqs - on soc v<3.2 this can retrigger irqs
         _MEP_INTR_ENABLE_
     }
 

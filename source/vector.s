@@ -98,9 +98,7 @@ jmp rpc_loop
 s_ce_framework:
 jmp ce_framework
 
-.global s_keygx
-s_keygx:
-jmp crypto_keygx
+.word 0x0 # RESERVED
 
 .global g_bobcprm
 .type   g_bobcprm, @object

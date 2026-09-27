@@ -64,7 +64,7 @@ LINKERWORD(PROG_act_size);
 __attribute__((noinline)) uint32_t get_build_timestamp(void);
 
 // intr stuff
-void setup_ints(void);
+void setup_ints(bool ackinv_mailbox);
 bool intr_mask(uint32_t num, bool change, bool set);
 
 // stub func for disabled features

@@ -81,7 +81,7 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
             cret = 0;
             if ((bool)args[0]) {
                 if ((bool)args[1])
-                    setup_ints();
+                    setup_ints((bool)args[2]);
                 _MEP_INTR_ENABLE_
             } else
                 _MEP_INTR_DISABLE_

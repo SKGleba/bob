@@ -19,7 +19,18 @@ uint32_t get_build_timestamp(void) {
     return (uint32_t)UNIX_TIMESTAMP;
 }
 
-void setup_ints(void) {
+void setup_ints(bool ackinv_mailbox) {
+    maika_s* maika = (maika_s*)MAIKA_OFFSET;
+    if (ackinv_mailbox) {
+        maika->mailbox.arm2cry[0] = -1; // ack incoming
+        maika->mailbox.arm2cry[1] = -1;
+        maika->mailbox.arm2cry[2] = -1;
+        maika->mailbox.arm2cry[3] = -1;
+        maika->mailbox.cry2arm_inv[0] = -1; // inv outgoing
+        maika->mailbox.cry2arm_inv[1] = -1;
+        maika->mailbox.cry2arm_inv[2] = -1;
+        maika->mailbox.cry2arm_inv[3] = -1;
+    }
     cbus_write(3, 0);
     cbus_write(4, 0x07777777);
     cbus_write(5, 0x777f);
@@ -32,7 +43,7 @@ void setup_ints(void) {
         "or3 $0, $0, 0x110\n"
         "stc $0, $psw\n"
     );
-    ((maika_s*)MAIKA_OFFSET)->aio.control_0 |=
+    maika->aio.control_0 |=
         (MAIKA_AIO_CONTROL0_ARM2CRY0 | MAIKA_AIO_CONTROL0_ARM2CRY1 | MAIKA_AIO_CONTROL0_ARM2CRY2 | MAIKA_AIO_CONTROL0_ARM2CRY3);
 }
 
