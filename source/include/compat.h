@@ -30,6 +30,33 @@ enum AGX_CMD {
     AGX_CMD_QUERY = 0x100, // query instead of set
 };
 
+// from libspl-int.h
+#define SPLS2T1_STTCL 0x1F850000
+#define SPLS2T1_MAGIC 0xB02607F0
+#define SPLS2T1_MAXSZ 0x100
+#define SPLS2T1_MINSZ 0x2C
+struct splv0_t1s2pb_s {
+    uint32_t skfcmdid;
+	union {
+		uint32_t magic;
+		uint32_t _start;
+	};
+	union {
+		uint32_t src;
+		uint32_t status;
+	};
+	int ret;
+	uint32_t func;
+	uint32_t arg[4];
+	uint32_t sp;
+    union {
+        uint32_t gp;
+        uint32_t s2t1jmpba;
+    };
+	uint8_t code[SPLS2T1_MAXSZ - SPLS2T1_MINSZ];
+};
+_Static_assert(sizeof(struct splv0_t1s2pb_s) == SPLS2T1_MAXSZ, "splv0_t1s2pb_t size mismatch");
+
 #ifndef COMPAT_UNUSE
     void compat_Arm2Cry0_handleCmd(uint32_t cmd);
     uint32_t compat_Cry2Arm0(uint32_t msg, bool full);
@@ -39,6 +66,7 @@ enum AGX_CMD {
     void compat_pspemuColdInit(bool dram, bool regbus);
     int compat_handleAllegrex(int cmd, int arg1, int arg2);
     void compat_Arm2Cry0123(int num);
+    int compat_ArmSkSplStage2t1(struct splv0_t1s2pb_s *s2t1pb, bool ackd);
 #else
     #define compat_Arm2Cry0_handleCmd(a) stub()
     #define compat_Cry2Arm0(a, b) stub()
@@ -48,6 +76,7 @@ enum AGX_CMD {
     #define compat_pspemuColdInit(a, b) stub()
     #define compat_handleAllegrex(a, b, c) stub()
     #define compat_Arm2Cry0123(a) stub()
+    #define compat_ArmSkSplStage2t1(a) stub()
     #define ALICE_UNUSE
     #define REGINA_UNUSE
 #endif

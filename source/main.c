@@ -34,32 +34,45 @@ bool ce_framework(bool bg, bob_fm_nfo_s* params, bool nested) {
                 g_cefw_progress[bg] = CEFW_PROGRESS_STARTING;
             params->status = CE_FRAMEWORK_STATUS_RUNNING;
 
-            bool icache_stat = false;
-            if (CEFW_FLAG(params->magic, _ICACHEOFF)) {
+            if ((params->codepaddr < F00D_SRAM_OFFSET) && params->codepaddr) {
+                if (params->codepaddr <= (g_exparam & 0xFFFF))
+                    params->codepaddr = ((uint32_t)&PROG_exports_start + (params->codepaddr * 4));
+                else
+                    params->codepaddr = 0;
+            }
+
+            if (params->codepaddr) {
+                bool icache_stat = false;
+                if (CEFW_FLAG(params->magic, _ICACHEOFF)) {
+                    if (!nested)
+                        g_cefw_progress[bg] = CEFW_PROGRESS_OFF_ICACHE;
+                    statusled(STATUS_CEFW_OFF_ICACHE);
+                    icache_stat = enable_icache(false);
+                }
+
                 if (!nested)
-                    g_cefw_progress[bg] = CEFW_PROGRESS_OFF_ICACHE;
-                statusled(STATUS_CEFW_OFF_ICACHE);
-                icache_stat = enable_icache(false);
-            }
+                    g_cefw_progress[bg] = CEFW_PROGRESS_CCODE;
+                statusled(STATUS_CEFW_CCODE);
+                //INFOF("CEFWX: 0x%08X(0x%08X, 0x%08X, 0x%08X, 0x%08X..)\n", params->codepaddr, params->arg0, params->argx[0], params->argx[1], params->argx[2]);
+                if (CEFW_FLAG(params->magic, _EXTRARG))
+                    params->resp = params->c_ext(params->arg0, params->argx[0], params->argx[1], params->argx[2], params->argx[3], params->argx[4], params->argx[5], params->argx[6]);
+                else
+                    params->resp = params->c_n(params->arg0, &params->status);
 
-            if (!nested)
-                g_cefw_progress[bg] = CEFW_PROGRESS_CCODE;
-            statusled(STATUS_CEFW_CCODE);
-            params->resp = params->codepaddr(params->arg, &params->status);
+                if (CEFW_FLAG(params->magic, _ICACHEOFF) && icache_stat) {
+                    statusled(STATUS_CEFW_ON_ICACHE);
+                    enable_icache(icache_stat);
+                }
+            } else
+                params->resp = -1;
 
-            if (CEFW_FLAG(params->magic, _ICACHEOFF) && icache_stat) {
-                statusled(STATUS_CEFW_ON_ICACHE);
-                enable_icache(icache_stat);
-            }
-
-            if (CEFW_FLAG(params->magic, _EXTENDED) && params->next) { // watch the stack
+            if (CEFW_FLAG(params->magic, _EXTENDED)) { // watch the stack
+                if (!(params->unext & -2))
+                    params->unext = (uint32_t)&params->snext_start + (!(params->unext & 1) * (7 * sizeof(uint32_t)));
                 if (!nested)
                     g_cefw_progress[bg] = CEFW_PROGRESS_NEXT;
                 statusled(STATUS_CEFW_NEXT);
-                if ((uint32_t)params->next & 0b1)
-                    ce_framework(bg, &params[1], true);
-                else
-                    ce_framework(bg, params->next, true);
+                ce_framework(bg, params->next, true);
             }
 
             params->status = params->exp_status;
@@ -83,7 +96,7 @@ bool ce_framework(bool bg, bob_fm_nfo_s* params, bool nested) {
 }
 #endif
 
-void init(bob_config_s* arg_config) {
+void init(bob_config_s* arg_config, void *tf, int ta0, int ta1) {
 #ifndef BOBT_FSM
     asm(
         "di\n"
@@ -97,7 +110,10 @@ void init(bob_config_s* arg_config) {
     // init config
     if (!CONFIG_GFLAGK(_CFG_USEINT)) {
         statusled(STATUS_INIT_CFG);
-        ret = config_parse(arg_config);
+        if (ICONFIG_IS(arg_config))
+            ret = config_iparse((uint32_t)arg_config, tf, ta0, ta1);
+        else
+            ret = config_parse(arg_config);
         if (ret)
             PANIC("CFGP", ret);
     }
@@ -110,6 +126,8 @@ void init(bob_config_s* arg_config) {
         uart_init(g_uart_bus, 0x10000 | CONFIG_GVAL(_UART_CLK));
     }
     printf("[BOB] init bob [%X], me @ 0x%X\n", get_build_timestamp(), init);
+    printf("config at 0x%X\n", (uint32_t)&g_config);
+    hexdump((uint32_t)&g_config, sizeof(g_config));
 #endif
 
 #ifdef HEAP_ONINIT

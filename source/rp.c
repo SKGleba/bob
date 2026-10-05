@@ -21,7 +21,6 @@ volatile int g_rpc_status = 0;
 static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_data, rpc_params_s *params) {
     int cret = -1;
     uint8_t xsize = 0;
-    uint32_t (*ccode)() = NULL;
 
     INFOF("RPC CMD 0x%X\n", cmd_id);
 
@@ -35,20 +34,14 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
             if ((int)args[2] < 0)
                 cret = readAs(args[0], args[2] & 0x7fffffff);
             else
-                cret = vp args[0];
+                cret = v32p args[0];
             break;
         case RPC_CMD_WRITE32:
             if ((int)args[2] < 0)
                 writeAs(args[0], args[1], args[2] & 0x7fffffff);
             else
-                vp(args[0]) = args[1];
+                v32p(args[0]) = args[1];
             cret = 0;
-            break;
-        case RPC_CMD_MEMSET:
-            cret = (uint32_t)memset((void *)args[0], args[1] & 0xFF, args[2]);
-            break;
-        case RPC_CMD_MEMCPY:
-            cret = (uint32_t)memcpy((void *)args[0], (void *)args[1], args[2]);
             break;
         case RPC_CMD_SET_DELAY:
             cret = params->delay_cval;
@@ -66,17 +59,6 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
             hexdump(args[0], args[1], args[2]);
             cret = 0;
             break;
-        case RPC_CMD_MEMSET32:
-            cret = (uint32_t)memset32((void *)args[0], args[1], args[2]);
-            break;
-        case RPC_CMD_ARM_RESET:
-            cret = 0;
-            compat_armReBoot((int)args[0], (bool)args[1], (bool)args[2]);
-            break;
-        case RPC_CMD_SET_XCTABLE:
-            cret = 0;
-            set_exception_table((bool)args[0]);
-            break;
         case RPC_CMD_SET_INTS:
             cret = 0;
             if ((bool)args[0]) {
@@ -89,19 +71,10 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
         case RPC_CMD_START_ALICE_RPC:  // (ALICE: block_bob, delegate_core, BOB:wait_task_done)
             cret = alice_schedule_bob_task(0, ALICE_ZERO_TASKS_ENABLE_RPC, true, (bool)args[2], args[0], args[1], 0, 0);
             break;
-        case RPC_CMD_GET_ALICE_TASK_STATUS:
-            cret = alice_get_task_status((int)args[0], (bool)args[1], (bool)args[2]);
-            break;
         case RPC_CMD_SET_UART_MODE:
             cret = params->uart_mode;
             params->uart_mode = args[0];
             params->uart_scan_timeout = args[1];
-            break;
-        case RPC_CMD_DRAM_INIT:
-            cret = dram_init((int)args[0], (bool)args[1]);
-            break;
-        case RPC_CMD_AGX_HANDLE:
-            cret = compat_handleAllegrex((int)args[0], (int)args[1], (int)args[2]);
             break;
         case RPC_CMD_REGINA_MEMCPY:
             cret = regina_sendCmd(RGN_RPC_CMD_MEMCPY, args, NULL, 0, 0);
@@ -112,18 +85,6 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
             else
                 cret = stor_init_sd(args[1]);
             break;
-        case RPC_CMD_READ_SD:
-            cret = stor_read_sd(args[0], (void *)args[1], args[2]);
-            break;
-        case RPC_CMD_WRITE_SD:
-            cret = stor_write_sd(args[0], (void *)args[1], args[2]);
-            break;
-        case RPC_CMD_READ_EMMC:
-            cret = stor_read_emmc(args[0], (void *)args[1], args[2]);
-            break;
-        case RPC_CMD_WRITE_EMMC:
-            cret = stor_write_emmc(args[0], (void *)args[1], args[2]);
-            break;
         case RPC_CMD_FEATURES:
             cret = g_config.features;
             if (CONFIG_FLAGK(args[0], _ISLATEST))
@@ -131,18 +92,11 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
             break;
         case RPC_CMD_RUN_TEST:
             if (g_config.test_params && g_config.test_params->codepaddr)
-                cret = g_config.test_params->codepaddr(args[0], NULL);
+                cret = g_config.test_params->c_n(args[0], NULL);
             break;
         case RPC_CMD_SET_TEST:
             if (g_config.test_params)
-                cret = config_set_dfl_test(g_config.test_params, (void *)args[0], args[1], (bool)args[2]);
-            break;
-        case RPC_CMD_PSPEMU_COLD_INIT:
-            compat_pspemuColdInit((bool)args[0], (bool)args[1]);
-            cret = 0;
-            break;
-        case RPC_CMD_INTR_MGR:
-            cret = intr_mask(args[0], (bool)args[1], (bool)args[2]);
+                cret = config_set_dfl_test(g_config.test_params, (void *)args[0], args[1], (bool)args[2], NULL);
             break;
 
         case RPC_CMD_COPYTO:
@@ -153,25 +107,18 @@ static uint8_t rpc_handle_cmd(uint8_t cmd_id, uint32_t *args, uint32_t *extra_da
             xsize = args[1];
             break;
         case RPC_CMD_EXEC:
-            ccode = (void *)args[0];
-            INFOF("RPC EXEC 0x%08X\n", ccode);
-            cret = ccode(args[1], args[2], extra_data);
+            INFOF("EXEC 0x%08X(0x%08X, 0x%08X, 0x%08X)\n", args[0], args[1], args[2], (uint32_t)extra_data);
+            cret = ((uint32_t (*)())args[0])(args[1], args[2], extra_data);
             break;
         case RPC_CMD_EXEC_EXTENDED:
-            ccode = (void *)args[0];
-            INFOF("RPC EXECE 0x%08X\n", ccode);
-            cret = ccode(args[1], args[2], extra_data[0], extra_data[1], extra_data[2], extra_data[3], extra_data[4], extra_data[5]);
+            INFOF("EXECE 0x%08X(0x%08X, 0x%08X, 0x%08X, 0x%08X, 0x%08X, 0x%08X, 0x%08X, 0x%08X)\n", args[0], args[1], args[2], extra_data[0], extra_data[1], extra_data[2], extra_data[3], extra_data[4], extra_data[5]);
+            cret = ((uint32_t (*)())args[0])(args[1], args[2], extra_data[0], extra_data[1], extra_data[2], extra_data[3], extra_data[4], extra_data[5]);
             break;
-        case RPC_CMD_SCHEDULE_ALICE_TASK:
-            cret = alice_schedule_bob_task((int)args[0], (int)args[1], (bool)args[2], (bool)extra_data[0], (int)extra_data[1], (int)extra_data[2],
-                                           (int)extra_data[3], (int)extra_data[4]);
-            break;
-        case RPC_CMD_LOAD_ALICE:
-            cret = alice_loadAlice((void *)args[0], (bool)args[1], (int)args[2], (bool)extra_data[0], (bool)extra_data[1], (bool)extra_data[2],
-                                   (bool)extra_data[3]);
-            break;
-        case RPC_CMD_LOAD_REGINA:
-            cret = regina_loadRegina((void *)args[0], (bool)args[1], (bool)args[2]);
+        case RPC_CMD_EXEC_EXPORT:
+            if (args[0]) {
+                INFOF("EXECX %d(0x%08X, 0x%08X, 0x%08X, 0x%08X, 0x%08X, 0x%08X, 0x%08X, 0x%08X)\n", args[0], args[1], args[2], extra_data[0], extra_data[1], extra_data[2], extra_data[3], extra_data[4], extra_data[5]);
+                cret = ((uint32_t (*)())((uint32_t)&PROG_exports_start + (args[0] * 4)))(args[1], args[2], extra_data[0], extra_data[1], extra_data[2], extra_data[3], extra_data[4], extra_data[5]);
+            }
             break;
         case RPC_CMD_REGINA_CMD:
             cret = regina_sendCmd((int)args[0], extra_data, NULL, (int)args[1], (int)args[2]); // yhh

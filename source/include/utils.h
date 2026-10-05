@@ -5,8 +5,10 @@
 #include <intrinsics.h>
 
 // atrocious, but i love it
-#define p *(uint32_t*)
-#define vp *(volatile uint32_t*)
+#define p8 *(uint8_t*)
+#define p16 *(uint16_t*)
+#define p32 *(uint32_t*)
+#define p64 *(uint64_t*)
 #define v8p *(volatile uint8_t*)
 #define v16p *(volatile uint16_t*)
 #define v32p *(volatile uint32_t*)
@@ -19,6 +21,8 @@
 #define BITNVALM(n, val, mask) (((val) & (mask)) << (n))
 #define XBITN(v, n) (((v) >> (n)) & 1)
 #define XBITNVALM(v, n, mask) (((v) >> (n)) & (mask))
+
+#define xorswap(_a, _b, _it, _ot) { _a = _ot (_it _a ^ _it _b); _b = _ot (_it _b ^ _it _a); _a = _ot (_it _a ^ _it _b); } // heh
 
 // function selector based on argc
 #define FUN_VAR4(_1, _2, _3, _4, _fun, ...) _fun
@@ -59,6 +63,7 @@ LINKERWORD(cfg_PROG_load_end);
 LINKERWORD(cfg_PROG_max_size);
 LINKERWORD(PROG_heap_start);
 LINKERWORD(PROG_act_size);
+LINKERWORD(PROG_exports_start);
 
 // get compile timestamp
 __attribute__((noinline)) uint32_t get_build_timestamp(void);

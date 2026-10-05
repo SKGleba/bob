@@ -3,8 +3,6 @@
 
 // hard definitions
 
-#include "types.h"
-
 #if defined(BOBT_GLITCH)
     #include "defs_glitc.h"
 #elif defined(BOBT_FSM)
@@ -37,9 +35,11 @@
     #ifndef COMPAT_UNUSE
         //#define ALICE_UNUSE   // dont include the alice code
         //#define REGINA_UNUSE  // dont include the regina code
+        //#define COMPAT_NOSPL  // dont include the spl compat layer
     #endif
 
     //#define CCX_UNUSE // disable the code exec framework
+    //#define C3P_UNUSE // disable the C3P machine
     #define DRAM_UNUSE // dont include the dram init code
     #define SDIF_UNUSE // dont include the storage/sdif code
     #define SDIF_NOINITS // dont include the storage/sdif init functions, requires ctx import

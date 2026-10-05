@@ -56,7 +56,7 @@ int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool en
         if (src != dst) {
             INFOF("copy alice to 0x%X[0x%X]\n", (uint32_t)dst, sz);
             memset32(dst, 0, sz);
-            if (vp(dst)) {
+            if (v32p(dst)) {
                 ERROR("failed to clear dst area\n");
                 return -1;
             }
@@ -95,7 +95,7 @@ int alice_loadAlice(void* src, bool start, int arm_clock, bool set_ints, bool en
 int alice_stopReloadAlice(uint32_t reload_config, uint8_t *cefw_status) {
     INFOF("reload alice with config 0x%X\n", reload_config);
     if (!reload_config)
-        reload_config = (((vp PERV2_ARM_BOOT_ALIAS_DRAM) ? ALICE_DRAM_ADDR : ALICE_SPAD32K_ADDR) << 1) | ((vp PERV2_ARM_BOOT_ALIAS_DRAM) ? ALICE_RELOAD_USE_DRAM : 0);
+        reload_config = (((v32p PERV2_ARM_BOOT_ALIAS_DRAM) ? ALICE_DRAM_ADDR : ALICE_SPAD32K_ADDR) << 1) | ((v32p PERV2_ARM_BOOT_ALIAS_DRAM) ? ALICE_RELOAD_USE_DRAM : 0);
 
     INFO("killing arm...\n");
     compat_killArm(false);
@@ -103,14 +103,14 @@ int alice_stopReloadAlice(uint32_t reload_config, uint8_t *cefw_status) {
     if (cefw_status)
         *cefw_status = 0xA2;
 
-    return alice_loadAlice((void *)((reload_config & ALICE_RELOAD_SOURCE) >> 1), true, vp(PERV_GET_REG(PERV_CTRL_BASECLK, 0)) & 0xf, true,
+    return alice_loadAlice((void *)((reload_config & ALICE_RELOAD_SOURCE) >> 1), true, v32p(PERV_GET_REG(PERV_CTRL_BASECLK, 0)) & 0xf, true,
                            !!(reload_config & ALICE_RELOAD_ENABLE_CS), !!(reload_config & ALICE_RELOAD_USE_DRAM), !!(reload_config & ALICE_RELOAD_SET_UART));
 }
 
 int alice_schedule_task(int target_core, volatile alice_core_task_s* task, bool wait_core_done, bool wait_task_done) {
     if (!alice_core_status || !alice_tasks) {
         if (!alice_vectors)
-            alice_loadAlice((void*)((vp PERV2_ARM_BOOT_ALIAS_DRAM) ? ALICE_DRAM_ADDR : ALICE_SPAD32K_ADDR), false, 0, false, false, (bool)(vp PERV2_ARM_BOOT_ALIAS_DRAM), false);
+            alice_loadAlice((void*)((v32p PERV2_ARM_BOOT_ALIAS_DRAM) ? ALICE_DRAM_ADDR : ALICE_SPAD32K_ADDR), false, 0, false, false, (bool)(v32p PERV2_ARM_BOOT_ALIAS_DRAM), false);
         else
             return -1;
     }
@@ -182,13 +182,13 @@ uint32_t alice_handleCmd(uint32_t cmdep) {
         if ((int)cmds->arg[2] < 0)
             cmds->ret = (int)readAs(cmds->arg[0], cmds->arg[2] & 0x7fffffff);
         else
-            cmds->ret = (int)vp cmds->arg[0];
+            cmds->ret = (int)v32p cmds->arg[0];
         break;
     case ALICE_A2B_WRITE32:
         if ((int)cmds->arg[2] < 0)
             writeAs(cmds->arg[0], cmds->arg[1], cmds->arg[2] & 0x7fffffff);
         else
-            vp cmds->arg[0] = cmds->arg[1];
+            v32p cmds->arg[0] = cmds->arg[1];
         break;
     case ALICE_A2B_STOP_RELOAD_ALICE:
         alice_stopReloadAlice(cmds->arg[0], NULL);

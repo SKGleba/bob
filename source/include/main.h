@@ -18,7 +18,7 @@ enum CEFW_PROGRESS {
 extern enum CEFW_PROGRESS g_cefw_progress[2];
 
 // initialize bob, call that AFTER bob is copied to f00d mem
-void init(bob_config_s* arg_config);
+void init(bob_config_s* arg_config, void *tf, int ta0, int ta1);
 
 // code exec framework | [bg] if running from idle loop
 bool ce_framework(bool bg, bob_fm_nfo_s* params, bool nested);

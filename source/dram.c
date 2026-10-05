@@ -125,12 +125,12 @@ static void dram_swsh(int num_banks, int wv, int xv) {
         regz += 8;
     }
     for (int uj = 0; uj < num_banks; uj -= -1) {
-        while (uret = vp(LPDDR0_CFG_OFFSET + 0x8000 + 0x20), (uret >> ((uj & 7) << 2) & 0xF) != (xv & 0xFF))
+        while (uret = v32p(LPDDR0_CFG_OFFSET + 0x8000 + 0x20), (uret >> ((uj & 7) << 2) & 0xF) != (xv & 0xFF))
             delay_nx(10, 200);
     }
 }
 
-#define dram_sshr(reg, lb, hb) vp(LPDDR0_CFG_OFFSET + 0x8000 + 0x100 + (reg * 8)) = (lb & 0xFF) | ((hb & 0xFF) << 8);
+#define dram_sshr(reg, lb, hb) v32p(LPDDR0_CFG_OFFSET + 0x8000 + 0x100 + (reg * 8)) = (lb & 0xFF) | ((hb & 0xFF) << 8);
 
 static void dram_sshr_lut(int num_banks, uint8_t *lut) {
     uint8_t *lut_c;
@@ -151,11 +151,11 @@ static void dram_lut_apply(int **lut) {
 static int dram_sshtr(int num_banks) {
     uint8_t RB5 = 0, RB8 = 0;
 
-    vp(LPDDR0_CFG_OFFSET + 0x8000 + 0x120) = 5;
-    RB5 = (vp(LPDDR0_CFG_OFFSET + 0x8000 + 0x120) & 0xFF00) >> 8;
+    v32p(LPDDR0_CFG_OFFSET + 0x8000 + 0x120) = 5;
+    RB5 = (v32p(LPDDR0_CFG_OFFSET + 0x8000 + 0x120) & 0xFF00) >> 8;
 
-    vp(LPDDR0_CFG_OFFSET + 0x8000 + 0x120) = 8;
-    RB8 = (vp(LPDDR0_CFG_OFFSET + 0x8000 + 0x120) & 0xFF00) >> 8;
+    v32p(LPDDR0_CFG_OFFSET + 0x8000 + 0x120) = 8;
+    RB8 = (v32p(LPDDR0_CFG_OFFSET + 0x8000 + 0x120) & 0xFF00) >> 8;
 
     if (RB8 & 3)
         return 4;
@@ -177,7 +177,7 @@ static int dram_sshtr(int num_banks) {
 
 int dram_init(int clock, bool is_resume) {
     int num_banks = 0;
-    uint32_t soc_rev = vp PERV_GET_REG(PERV_CTRL_MISC, PERV_CTRL_MISC_REG_SOC_REV);
+    uint32_t soc_rev = v32p PERV_GET_REG(PERV_CTRL_MISC, PERV_CTRL_MISC_REG_SOC_REV);
     if ((int)soc_rev < 0) {
         soc_rev &= 0x30000000;
         switch (soc_rev) {
@@ -205,8 +205,8 @@ int dram_init(int clock, bool is_resume) {
         dram_swsh(num_banks, 5, 4);
     dram_swsh(num_banks, 2, 2);
 
-    vp(LPDDR0_CFG_OFFSET + 0x8000 + 0x180) = 1;
-    while (vp(LPDDR0_CFG_OFFSET + 0x8000 + 0x180) != 1)
+    v32p(LPDDR0_CFG_OFFSET + 0x8000 + 0x180) = 1;
+    while (v32p(LPDDR0_CFG_OFFSET + 0x8000 + 0x180) != 1)
         ;
 
     int x = 0, y = 0;

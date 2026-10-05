@@ -67,8 +67,10 @@ vectors_interrupts:
     jmp c_OTHER_INT
     jmp c_OTHER_INT
     jmp c_OTHER_INT
+    jmp c_OTHER_INT
+#else
+    .word 0,0,0 # padding | TODO: some module-specific calls?
 #endif
-jmp c_OTHER_INT
 
 .global s_init
 s_init:
@@ -78,29 +80,6 @@ jmp init
 s_glitch_init:
 jmp glitch_init
 
-.global s_get_build_timestamp
-s_get_build_timestamp:
-jmp get_build_timestamp
-
-.global s_printFormat
-s_printFormat:
-jmp debug_printFormat
-
-.global s_alice_stopReloadAlice
-s_alice_stopReloadAlice:
-jmp alice_stopReloadAlice
-
-.global s_rpc_loop
-s_rpc_loop:
-jmp rpc_loop
-
-.global s_ce_framework
-s_ce_framework:
-jmp ce_framework
-
-.word 0x0 # RESERVED
-
-.global g_bobcprm
-.type   g_bobcprm, @object
-g_bobcprm:
-.word PROG_cfgoff, PROG_bss_end, PROG_act_size, cfg_sp_addr
+.global g_cfgoff
+g_cfgoff:
+.word PROG_cfgoff

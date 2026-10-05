@@ -12,7 +12,7 @@
 #ifndef REGINA_UNUSE
 
 int regina_loadRegina(void *src, bool blockFudAccess, bool allowArmAccess) {
-    if (vp(0xE3101024) & 0x1) { // temp detection method
+    if (v32p(0xE3101024) & 0x1) { // temp detection method
         WARN("regbus not ready, initializing..\n");
         compat_pspemuColdInit(true, true);
     }
@@ -30,7 +30,7 @@ int regina_loadRegina(void *src, bool blockFudAccess, bool allowArmAccess) {
         INFOF("copy regina to 0x%X[0x%X]\n", (uint32_t)dst, sz);
         compat_handleAllegrex(AGX_CMD_ACL, REGBUS_AGX_SRAM_ACL_DEV_F00D, 0);
         memset32(dst, 0, sz);
-        if (vp(dst)) {
+        if (v32p(dst)) {
             ERROR("loadRegina: failed to clear dst\n");
             return -1;
         }

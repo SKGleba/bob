@@ -56,7 +56,7 @@ __attribute__((noreturn)) void glitch_init(void) {
     glitch_test();
 #endif
 
-    vp 0xe3103040 = 0x10007;  // back up
+    v32p 0xe3103040 = 0x10007;  // back up
 
     // start the rpc server
     statusled(STATUS_GLINIT_RPC);

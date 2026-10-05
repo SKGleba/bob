@@ -11,41 +11,34 @@ RPC_COMMANDS = {
     "ping" : 0x0,
     "read32" : 0x1,
     "write32" : 0x2,
-    "memset" : 0x3,
-    "memcpy" : 0x4,
-    "delay" : 0x5, # arg0 : check delay | arg1 : reply delay
-    "stop" : 0x6,
-    "push" : 0x7, # dont use this
-    "hexdump" : 0x8,
-    "memset32" : 0x9,
-    "arm_reset" : 0xa,
-    "set_xctable" : 0xb,
-    "set_ints" : 0xc,
-    "alice_rpc" : 0xd,
-    "alice_task_status" : 0xe,
-    "set_uart_mode" : 0xf,
-    "dram_init" : 0x10,
-    "agx_handle" : 0x11,
-    "regina_memcpy" : 0x12,
-    "init_storage" : 0x13,
-    "read_sd" : 0x14,
-    "write_sd" : 0x15,
-    "read_emmc" : 0x16,
-    "write_emmc" : 0x17,
-    "cfg_features" : 0x18,
-    "test_run" : 0x19,
-    "test_set" : 0x1a,
-    "pspemu_coldinit" : 0x1b,
+    "delay" : 0x3, # arg0 : check delay | arg1 : reply delay
+    "stop" : 0x4,
+    "push" : 0x5, # dont use this
+    "hexdump" : 0x6,
+    "set_ints" : 0x7,
+    "alice_rpc" : 0x8,
+    "set_uart_mode" : 0x9,
+    "regina_memcpy" : 0xa,
+    "init_storage" : 0xb,
+    "cfg_features" : 0xc,
+    "test_run" : 0xd,
+    "test_set" : 0xe,
     "copyto" : 0x40,
     "copyfrom" : 0x41,
     "exec" : 0x42, # exec arg0(arg1, arg2, &extra) | ret to arg0
-    "execbig" : 0x43, # exec arg0(extra32[X], extra32[X+1], extra32[X+2], extra32[X+3]) | rets to argX
-    "alice_schedule_bob_task" : 0x44,
-    "alice_load_direct" : 0x45,
-    "regina_load" : 0x46,
-    "regina_cmd_direct" : 0x47,
+    "execbig" : 0x43, # exec arg0(arg1, arg2, extra32[0]..[5]) | rets to arg0
+    "execidx" : 0x44, # exec export[arg0](arg1, arg2, extra32[0]..[5]) | ret to arg0
+    "regina_cmd_direct" : 0x45,
 }
-
+BOB_EXPORTS = [
+    "inexport", "alice_stopReload", "rpc_loop", "ce_framework",
+    "get_build_timestamp", "c3p_machine", "tfsm_init", "debug_printFormat", 
+    "debug_s_regdump", "memcpy", "memset", "memset32", "compat_armReBoot", 
+    "compat_handleAllegrex","compat_pspemuColdInit", "set_exception_table", 
+    "alice_get_task_status", "alice_schedule_bob_task", "dram_init", 
+    "stor_read_sd", "stor_write_sd", "stor_read_emmc", "stor_write_emmc", 
+    "intr_mask", "alice_loadAlice", "regina_loadRegina"
+]
 
 RPC_FAST_DELAY = 0x80
 RPC_CMD_SIZE = 0x10
@@ -157,24 +150,6 @@ def handle_cmd(user_cmd, argv, wait4resp=True):
                     cv_argv[3] += swapstr32("{:08X}".format(int(argv[x][2:], 16)))
             cv_argv[3] = cv_argv[3].ljust(48, "0")
             return handle_cmd("execbig", cv_argv)
-        case "alice_schedule_task":
-            cv_argv = ["0x0", "0x0", "0x0", ""]
-            for x,arg in enumerate(argv):
-                if x < 3:
-                    cv_argv[x] = argv[x]
-                else:
-                    cv_argv[3] += swapstr32("{:08X}".format(int(argv[x][2:], 16)))
-            cv_argv[3] = cv_argv[3].ljust(40, "0")
-            return handle_cmd("alice_schedule_bob_task", cv_argv)
-        case "alice_load":
-            cv_argv = ["0x0", "0x0", "0x0", ""]
-            for x,arg in enumerate(argv):
-                if x < 3:
-                    cv_argv[x] = argv[x]
-                else:
-                    cv_argv[3] += swapstr32("{:08X}".format(int(argv[x][2:], 16)))
-            cv_argv[3] = cv_argv[3].ljust(32, "0")
-            return handle_cmd("alice_load_direct", cv_argv)
         case "regina_cmd":
             cv_argv = ["0x0", "0x0", "0x0", ""] # cmd, timeout_step, timeout_count, args 0-3
             for x,arg in enumerate(argv):
@@ -191,8 +166,21 @@ def handle_cmd(user_cmd, argv, wait4resp=True):
                     cv_argv[3] += swapstr32("{:08X}".format(int(argv[x][2:], 16)))
             cv_argv[3] = cv_argv[3].ljust(32, "0")
             return handle_cmd("regina_cmd_direct", cv_argv)
+        case "alice_schedule_task":
+            return handle_cmd("alice_schedule_bob_task", argv)
+        case "alice_load":
+            return handle_cmd("alice_loadAlice", argv)
         case _:
-            if user_cmd in RPC_COMMANDS:
+            if user_cmd in BOB_EXPORTS:
+                cv_argv = [hex(BOB_EXPORTS.index(user_cmd)), "0x0", "0x0", ""]
+                for x,arg in enumerate(argv):
+                    if x < 2:
+                        cv_argv[x + 1] = argv[x]
+                    else:
+                        cv_argv[3] += swapstr32("{:08X}".format(int(argv[x][2:], 16)))
+                cv_argv[3] = cv_argv[3].ljust(48, "0")
+                return handle_cmd("execidx", cv_argv)
+            elif user_cmd in RPC_COMMANDS:
                 cv_argv = ["0x0", "0x0", "0x0", ""]
                 for x, arg in enumerate(argv):
                     if arg[0:2] == "0x":

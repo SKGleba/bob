@@ -34,7 +34,7 @@ void dfl_test(int arg) {
     gpio_port_clear(0, GPIO_PORT_OLED);
 
     INFO("set max clock\n");
-    vp 0xe3103040 = 0x10007;
+    v32p 0xe3103040 = 0x10007;
 
     INFO("test test stuff\n");
     rpc_loop();

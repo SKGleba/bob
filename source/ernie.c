@@ -106,8 +106,8 @@ void ernie_3auth_single(uint8_t keyset_id, uint8_t *key, uint8_t *data) {
     ernie_exec(tx, sizeof(tx), rx, sizeof(rx));
 
     // STEP2
-    p& enc_buf[0] = maika->bigmac_ctrl.channel[0].rng;
-    p& enc_buf[4] = maika->bigmac_ctrl.channel[0].rng;
+    p32& enc_buf[0] = maika->bigmac_ctrl.channel[0].rng;
+    p32& enc_buf[4] = maika->bigmac_ctrl.channel[0].rng;
     memcpy(&enc_buf[8], &rx[ERNIE_RX_DATA(8)], 0x8);
     memcpy(&enc_buf[0x10], data, 0x10);
     

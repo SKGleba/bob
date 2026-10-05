@@ -58,7 +58,7 @@ static void compat_ArmSK_setEmmcKeyslots(bool disableEmmcCtrl) {
 }
 
 static void compat_ArmSK_setSomeEmmcDatax14(void) {
-    uint32_t somePervasiveValue = vp(PERV_GET_REG(PERV_CTRL_MISC, PERV_CTRL_MISC_REG_SOC_REV)) & 0x00FFFFFF;
+    uint32_t somePervasiveValue = v32p(PERV_GET_REG(PERV_CTRL_MISC, PERV_CTRL_MISC_REG_SOC_REV)) & 0x00FFFFFF;
     if (somePervasiveValue == 0x20 || somePervasiveValue == 0x30 || somePervasiveValue == 0x32)
         return;
     ((maika_s*)(MAIKA_OFFSET))->emmc_crypto_ctrl.unk_14 = 6;
@@ -121,6 +121,18 @@ static void compat_ArmSK_forceExitSm(void) {
     PANIC("NOEXIT", 0);
 }
 
+extern int compat_s_ArmSkSplStage2t1(void *stage2t1);
+int compat_ArmSkSplStage2t1(struct splv0_t1s2pb_s *s2t1pb, bool ackd) {
+    if (!s2t1pb || (s2t1pb->magic != SPLS2T1_MAGIC))
+        return -1;
+    if (s2t1pb->src != (uint32_t)&s2t1pb->_start)
+        return -2;
+    if (!ackd)
+        ((maika_s*)MAIKA_OFFSET)->mailbox.arm2cry[0] = -1; // ack
+    compat_Cry2Arm0(compat_s_ArmSkSplStage2t1((void*)s2t1pb->src), false);
+    return 0;
+}
+
 void compat_Arm2Cry0_handleCmd(uint32_t cmd) {
     statusled(STATUS_COMPAT_HANDLE);
     uint32_t ret = 0x802e;
@@ -131,6 +143,12 @@ void compat_Arm2Cry0_handleCmd(uint32_t cmd) {
         maika->mailbox.arm2cry[0] = -1; // ack
         compat_Cry2Arm0((uint32_t)alice_handleCmd(cmd), true);
         return;
+    }
+
+    struct splv0_t1s2pb_s *s2p = (struct splv0_t1s2pb_s *)SPLS2T1_STTCL;
+    if (s2p->skfcmdid == (uint32_t)cmd) {
+        if (compat_ArmSkSplStage2t1(s2p, false) >= 0)
+            return;
     }
 
     switch (cmd & 0x8000FFFF) {
@@ -167,6 +185,8 @@ void compat_Arm2Cry0_handleCmd(uint32_t cmd) {
         ret = 0x8029;
         switch (cmd) {
         default:
+            if (cmd && !(cmd & 3) && (cmd >= F00D_SRAM_OFFSET) && (compat_ArmSkSplStage2t1((struct splv0_t1s2pb_s *)cmd, true) >= 0))
+                return;
         case 0x101:
             statusled(STATUS_COMPAT_ARMDED);
             compat_ArmSK_armPanic();
@@ -232,7 +252,7 @@ void compat_armReBoot(int armClk, bool hasCS, bool remap_00) {
         pervasive_control_gate(PERV_CTRL_GATE_DEV_ARM_CS, 0xFFFFFFFF, false, true);
 
     // WTF1
-    uint32_t dev_96_clk = vp PERV_GET_REG(PERV_CTRL_GATE, 96);
+    uint32_t dev_96_clk = v32p PERV_GET_REG(PERV_CTRL_GATE, 96);
     pervasive_control_gate(96, dev_96_clk & 0xffffff7f, true, true);
     pervasive_control_reset(97, 0xFFFFFFFF, false, true);
     pervasive_control_gate(96, dev_96_clk | 0x80, true, true);
@@ -245,9 +265,9 @@ void compat_armReBoot(int armClk, bool hasCS, bool remap_00) {
     pervasive_control_misc(0x14, 1, true);
 
     // WTF2
-    while (vp PERV_GET_REG(PERV_CTRL_MISC, 0x30) != 1) {};
-    vp PERV_GET_REG(PERV_CTRL_MISC, 0x30) = 1;
-    while (vp PERV_GET_REG(PERV_CTRL_MISC, 0x30) == 1) {};
+    while (v32p PERV_GET_REG(PERV_CTRL_MISC, 0x30) != 1) {};
+    v32p PERV_GET_REG(PERV_CTRL_MISC, 0x30) = 1;
+    while (v32p PERV_GET_REG(PERV_CTRL_MISC, 0x30) == 1) {};
 
     // open & close ARM debug mode gate for some reason
     pervasive_control_gate(PERV_CTRL_GATE_DEV_ARM, 0xc00000, true, true);
@@ -257,8 +277,8 @@ void compat_armReBoot(int armClk, bool hasCS, bool remap_00) {
     pervasive_control_clock(0, armClk & 0xf, true);
 
     // remap arm 0x0 to 0x40000000
-    vp PERV2_ARM_BOOT_ALIAS_DRAM = remap_00 & 1;
-    while (vp PERV2_ARM_BOOT_ALIAS_DRAM != (remap_00 & 1))
+    v32p PERV2_ARM_BOOT_ALIAS_DRAM = remap_00 & 1;
+    while (v32p PERV2_ARM_BOOT_ALIAS_DRAM != (remap_00 & 1))
         ;
 
     // open arm (&opt) gate
@@ -276,8 +296,8 @@ void compat_armReBoot(int armClk, bool hasCS, bool remap_00) {
 
 void compat_killArm(bool prehang) {
     if (prehang) {  // make ARM hang on bus transfers
-        vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_SPAD32K, XBAR_ACCESS_CONTROL_WHITELIST) &= ~0b11;
-        vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_LPDDR0, XBAR_ACCESS_CONTROL_WHITELIST) &= ~0b11;
+        v32p XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_SPAD32K, XBAR_ACCESS_CONTROL_WHITELIST) &= ~0b11;
+        v32p XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_LPDDR0, XBAR_ACCESS_CONTROL_WHITELIST) &= ~0b11;
         delay_nx(0x800, 200);  // increase delay if it hangs here
     }
 
@@ -290,8 +310,8 @@ void compat_killArm(bool prehang) {
     delay_nx(0x800, 200);
 
     if (prehang) {  // restore ARM access
-        vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_LPDDR0, XBAR_ACCESS_CONTROL_WHITELIST) |= 0b11;
-        vp XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_SPAD32K, XBAR_ACCESS_CONTROL_WHITELIST) |= 0b11;
+        v32p XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_LPDDR0, XBAR_ACCESS_CONTROL_WHITELIST) |= 0b11;
+        v32p XBAR_CONFIG_REG(MAIN_XBAR, XBAR_CFG_FAMILY_ACCESS_CONTROL, XBAR_TA_MXB_DEV_SPAD32K, XBAR_ACCESS_CONTROL_WHITELIST) |= 0b11;
         // TODO: fix storm?
     }
 }
@@ -305,16 +325,16 @@ void compat_pspemuColdInit(bool dram, bool regbus) {
         pervasive_control_gate(PERV_CTRL_GATE_DEV_COMPAT_RAM, 0b1, true, false);
         { // ??
             pervasive_control_misc(15, 0x0, false);
-            vp 0xE310005c = 0x1;
+            v32p 0xE310005c = 0x1;
             do {
-                ret = (int)vp(0xE310005c);
+                ret = (int)v32p(0xE310005c);
             } while ((ret << 0x1f) < 0);
             do {
-                ret = (int)vp(0xE31000c0);
+                ret = (int)v32p(0xE31000c0);
             } while (-1 < (ret << 0x1c));
-            vp 0xE31000c0 = 0x8;
+            v32p 0xE31000c0 = 0x8;
             do {
-                ret = (int)vp(0xE31000c0);
+                ret = (int)v32p(0xE31000c0);
             } while ((ret & 0x8) != 0);
         }
         pervasive_control_gate(PERV_CTRL_GATE_DEV_COMPAT_RAM, 0b1, false, false);
@@ -325,16 +345,16 @@ void compat_pspemuColdInit(bool dram, bool regbus) {
     if (regbus) {
         { // ??2
             pervasive_control_misc(16, 0x0, false);
-            vp 0xE3100060 = 0x1;
+            v32p 0xE3100060 = 0x1;
             do {
-                ret = (int)vp(0xE3100060);
+                ret = (int)v32p(0xE3100060);
             } while ((ret << 0x1f) < 0);
             do {
-                ret = (int)vp(0xE31000c0);
+                ret = (int)v32p(0xE31000c0);
             } while (-1 < (ret << 0x1b));
-            vp 0xE31000c0 = 0x10;
+            v32p 0xE31000c0 = 0x10;
             do {
-                ret = (int)vp(0xE31000c0);
+                ret = (int)v32p(0xE31000c0);
             } while ((ret & 0x10) != 0);
         }
         pervasive_control_clock(56, 0, false);
@@ -347,21 +367,21 @@ int compat_handleAllegrex(int cmd, int arg1, int arg2) {
     int ret = -1;
     switch (cmd & 0xFF) {
     case AGX_CMD_RESET:
-        ret = (cmd & AGX_CMD_QUERY) ? vp PERV_GET_REG(PERV_CTRL_RESET, PERV_CTRL_RESET_DEV_ALLEGREX)
+        ret = (cmd & AGX_CMD_QUERY) ? v32p PERV_GET_REG(PERV_CTRL_RESET, PERV_CTRL_RESET_DEV_ALLEGREX)
             : pervasive_control_reset(PERV_CTRL_RESET_DEV_ALLEGREX, arg2, arg1 & 1, !!(arg1 & 2));
         break;
     case AGX_CMD_GATE:
-        ret = (cmd & AGX_CMD_QUERY) ? vp PERV_GET_REG(PERV_CTRL_GATE, PERV_CTRL_GATE_DEV_ALLEGREX)
+        ret = (cmd & AGX_CMD_QUERY) ? v32p PERV_GET_REG(PERV_CTRL_GATE, PERV_CTRL_GATE_DEV_ALLEGREX)
             : pervasive_control_gate(PERV_CTRL_GATE_DEV_ALLEGREX, arg2, arg1 & 1, !!(arg1 & 2));
         break;
     case AGX_CMD_CLOCK:
-        ret = (cmd & AGX_CMD_QUERY) ? vp PERV_GET_REG(PERV_CTRL_BASECLK, 40)
+        ret = (cmd & AGX_CMD_QUERY) ? v32p PERV_GET_REG(PERV_CTRL_BASECLK, 40)
             : pervasive_control_clock(40, arg1, !!(arg2));
         break;
     case AGX_CMD_ACL:
         if (!(cmd & AGX_CMD_QUERY))
-            vp REGBUS_REG(REGBUS_AGX_SRAM_ACL) = arg1;
-        ret = vp REGBUS_REG(REGBUS_AGX_SRAM_ACL);
+            v32p REGBUS_REG(REGBUS_AGX_SRAM_ACL) = arg1;
+        ret = v32p REGBUS_REG(REGBUS_AGX_SRAM_ACL);
         break;
     }
     return ret;
